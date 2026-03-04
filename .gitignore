@@ -37,3 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+seed_error.log
+prisma/dev.db
+node_modules
+.tmp
