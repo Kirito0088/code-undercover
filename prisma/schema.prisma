@@ -44,9 +44,12 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  xp            Int           @default(0)
-  level         Int           @default(1)
+  auraPoints    Int           @default(0)
+  auraLevel     Int           @default(1)
+  missionsCompleted Int       @default(0)
   foxBadges     Int           @default(0)
+  comboStreak   Int           @default(0)
+  maxCombo      Int           @default(0)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   accounts      Account[]
@@ -68,9 +71,12 @@ model Mission {
   title           String
   description     String
   briefing        String        @default("")
-  difficulty      String
+  difficulty      String        @default("EASY")
   language        String        @default("C")
-  xpReward        Int           @default(100)
+  type            String        @default("standard")
+  goal            String?
+  startingCode    String?
+  auraReward      Int           @default(100)
   teachingContent String?       // JSON string of slides
   mcqContent      String?       // JSON string of MCQs
   validationRules String?       // JSON: { requiredKeywords, forbiddenPatterns, minLength, requiredOutput }
@@ -100,3 +106,13 @@ model UserMission {
   @@index([userId])
   @@index([missionId])
 }
+
+model DailyQuestion {
+  id            String   @id @default(cuid())
+  question      String
+  options       String   // JSON array of strings
+  correctAnswer String   // The correct option
+  explanation   String   // Explains why it's correct
+  createdAt     DateTime @default(now())
+}
+

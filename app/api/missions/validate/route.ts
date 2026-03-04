@@ -2,17 +2,17 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { exec } from 'child_process'
-import { promisify } from 'util'
-import fs from 'fs/promises'
-import path from 'path'
-import os from 'os'
-
-const execAsync = promisify(exec)
-
+import { executeCode } from '@/lib/compiler'
 import { detectInnovation } from '@/lib/validation/missionValidator'
+import {
+    AURA_MISSION_COMPLETE,
+    AURA_FIRST_ATTEMPT,
+    AURA_FOX_INNOVATION,
+    AURA_CORRECT_EXECUTION,
+    AURA_HINT_PENALTY,
+    calculateAuraLevel
+} from '@/lib/aura'
 
-// ─── Validation Engine ───
 interface ValidationRules {
     requiredKeywords?: string[]
     requiredPatterns?: string[]
@@ -20,57 +20,40 @@ interface ValidationRules {
     minLength?: number
     requireCustomFunction?: boolean
     description?: string
+    testCases?: { input: string; output: string }[]
+    requiredOutput?: string
 }
 
-function validateCodeAgainstRules(
+function validateCodeAgainstSyntaxRules(
     code: string,
     rules: ValidationRules
 ): { passed: boolean; failures: string[] } {
     const failures: string[] = []
 
-    // 1. Minimum length check
     if (rules.minLength && code.length < rules.minLength) {
-        failures.push(
-            "Code is too short. Your solution needs to demonstrate the required concepts."
-        )
+        failures.push("Code is too short.")
     }
-
-    // 2. Forbidden patterns (e.g. template placeholder still present)
     if (rules.forbiddenPatterns) {
         for (const pattern of rules.forbiddenPatterns) {
             if (code.includes(pattern)) {
-                failures.push(
-                    "Your code still contains the default template. Write your own solution."
-                )
+                failures.push("Your code still contains default template placeholders.")
                 break
             }
         }
     }
-
-    // 3. Required keywords
     if (rules.requiredKeywords) {
         const missing = rules.requiredKeywords.filter((kw) => !code.includes(kw))
         if (missing.length > 0) {
-            failures.push(
-                "Missing required concepts: " + missing.join(", ") + ". Review the mission briefing."
-            )
+            failures.push("Missing required concepts: " + missing.join(", "))
         }
     }
-
-    // 4. Required patterns (at least one must match)
     if (rules.requiredPatterns && rules.requiredPatterns.length > 0) {
         const hasAny = rules.requiredPatterns.some((p) => code.includes(p))
         if (!hasAny) {
-            failures.push(
-                "Missing required pattern. Make sure you're using the correct syntax."
-            )
+            failures.push("Missing required pattern.")
         }
     }
-
-    // 5. Custom function check (must have a function definition besides main)
     if (rules.requireCustomFunction) {
-        // Look for a function definition pattern: type name(params) {
-        // but not main(
         const funcRegex = /\b(int|void|float|double|char)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{/g
         let match
         let hasCustomFunc = false
@@ -81,16 +64,21 @@ function validateCodeAgainstRules(
             }
         }
         if (!hasCustomFunc) {
-            failures.push(
-                "You must define at least one custom function besides main()."
-            )
+            failures.push("You must define at least one custom function besides main().")
         }
     }
-
     return { passed: failures.length === 0, failures }
 }
 
-// ─── API Handler ───
+function getComboBonus(streak: number): number {
+    if (streak === 1) return 10
+    if (streak === 2) return 20
+    if (streak === 3) return 40
+    if (streak === 4) return 70
+    if (streak >= 5) return 100
+    return 0
+}
+
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
@@ -99,132 +87,175 @@ export async function POST(req: Request) {
         }
 
         const { missionId, code } = await req.json()
-        if (!missionId || !code) {
-            return NextResponse.json({ error: 'Missing code payload' }, { status: 400 })
+        if (!missionId || !code || typeof code !== 'string' || code.length > 10000) {
+            return NextResponse.json({ error: 'Missing or invalid code' }, { status: 400 })
         }
 
-        // 1. Fetch Mission + UserMission
         const mission = await db.mission.findUnique({ where: { id: missionId } })
-        if (!mission) {
-            return NextResponse.json({ error: 'Mission not found' }, { status: 404 })
-        }
-
         const userMission = await db.userMission.findUnique({
             where: { userId_missionId: { userId: session.user.id, missionId } }
         })
-        if (!userMission) {
-            return NextResponse.json({ error: 'User mission not found' }, { status: 404 })
+        const user = await db.user.findUnique({ where: { id: session.user.id } })
+
+        if (!mission || !userMission || !user) {
+            return NextResponse.json({ error: 'Entities not found' }, { status: 404 })
         }
 
-        // 2. Increment attempt count
         await db.userMission.update({
             where: { id: userMission.id },
             data: { attemptCount: userMission.attemptCount + 1 }
         })
 
-        // 3. ──── VALIDATE CODE AGAINST MISSION RULES ────
-        const rules: ValidationRules = (mission as any).validationRules
-            ? JSON.parse((mission as any).validationRules)
+        const rules: ValidationRules = mission.validationRules
+            ? JSON.parse(mission.validationRules)
             : {}
 
-        const ruleCheck = validateCodeAgainstRules(code, rules)
+        let newComboStreak = user.comboStreak
+        let comboBonusAura = 0
 
-        if (!ruleCheck.passed) {
-            // Rules failed — don't even try compiling
+        // 1. Static Validation
+        const syntaxCheck = validateCodeAgainstSyntaxRules(code, rules)
+
+        if (!syntaxCheck.passed) {
+            // Combo Breaks
+            await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
             return NextResponse.json({
                 success: false,
                 stdout: "",
                 stderr: "",
-                validationErrors: ruleCheck.failures,
-                ruleDescription: rules.description || null,
-                innovationUnlocked: false,
-                innovationReason: ""
+                validationErrors: syntaxCheck.failures,
+                ruleDescription: rules.description,
+                comboBonus: 0,
+                comboStreak: 0
             })
         }
 
-        // 4. ──── COMPILE & RUN (only if rules pass) ────
-        const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cu-runner-'))
-        const sourceFile = path.join(tmpDir, 'main.c')
-        const exeName = process.platform === 'win32' ? 'main.exe' : 'main'
-        const executable = path.join(tmpDir, exeName)
+        // 2. Dynamic Execution & Test Cases Check
+        let finalStdout = ""
+        let finalStderr = ""
+        let testCaseFailed = false
+        const validationFailures: string[] = []
 
-        let stdout = ""
-        let stderr = ""
-        let compiled = false
+        const testCases = rules.testCases || (rules.requiredOutput ? [{ input: "", output: rules.requiredOutput }] : [{ input: "", output: "" }])
 
-        try {
-            await fs.writeFile(sourceFile, code)
-            const compileCmd = `gcc "${sourceFile}" -o "${executable}"`
-            await execAsync(compileCmd)
-            const runRes = await execAsync(`"${executable}"`, { timeout: 2000 })
-            stdout = runRes.stdout
-            stderr = runRes.stderr
-            compiled = true
-        } catch (e: any) {
-            compiled = false
-            stderr = e.stderr || e.message || 'Compilation or execution failed.'
+        for (let i = 0; i < testCases.length; i++) {
+            const tc = testCases[i]
+            const runRes = await executeCode(code, tc.input)
 
-            // MVP fallback: if GCC not installed, accept if rules already passed
-            if (
-                e.message?.includes('gcc') &&
-                (e.message?.includes('not recognized') || e.message?.includes('not found'))
-            ) {
-                console.log("[MVP] GCC not available — rules passed, accepting solution")
-                compiled = true
-                stdout = "[Simulated] Code validation passed. Output generated successfully."
-                stderr = ""
+            if (!runRes.success) {
+                // Compilation error or infinite loop
+                await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+
+                return NextResponse.json({
+                    success: false,
+                    stdout: "",
+                    stderr: runRes.compilerError || runRes.errors || "Execution failed",
+                    explanation: runRes.explanation,
+                    validationErrors: ["Compilation failed. Fix your syntax errors."],
+                    comboBonus: 0,
+                    comboStreak: 0
+                })
             }
-        } finally {
-            try {
-                await fs.rm(tmpDir, { recursive: true, force: true })
-            } catch (_) { /* ignore */ }
+
+            finalStdout = runRes.output || ""
+            finalStderr = runRes.errors || ""
+
+            // Output Validation
+            if (tc.output !== "" && runRes.output?.trim() !== tc.output.trim()) {
+                testCaseFailed = true
+                validationFailures.push(`Test Case ${i + 1} Failed: Expected '${tc.output}' but got '${runRes.output?.trim()}'`)
+                break
+            }
         }
 
-        if (!compiled) {
+        if (testCaseFailed) {
+            // Combo Breaks
+            await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
             return NextResponse.json({
                 success: false,
-                stdout: "",
-                stderr: stderr,
-                validationErrors: ["Compilation failed. Fix the syntax errors and try again."],
-                innovationUnlocked: false,
-                innovationReason: ""
+                stdout: finalStdout,
+                stderr: finalStderr,
+                validationErrors: validationFailures,
+                comboBonus: 0,
+                comboStreak: 0
             })
         }
 
-        // 5. ──── INNOVATION DETECTION ────
+        // 3. Success! Calculate Rewards and Combos
+        const isFirstTimeCompletion = userMission.status !== 'COMPLETED'
+        const usedHints = userMission.hintsUsed > 0
+
+        if (isFirstTimeCompletion) {
+            if (usedHints) {
+                newComboStreak = 0 // Combo breaks if a hint was ever used on this mission
+            } else {
+                newComboStreak += 1 // Flawless finish!
+                comboBonusAura = getComboBonus(newComboStreak)
+            }
+        }
+
         let isInnovation = false
         let innovationReason = ""
+        let earnedAura = comboBonusAura
 
         if (!userMission.innovationUnlocked) {
             const innovationResult = detectInnovation(code, mission.title)
             if (innovationResult.innovationUnlocked) {
                 isInnovation = true
                 innovationReason = innovationResult.innovationReason
-
-                await db.userMission.update({
-                    where: { id: userMission.id },
-                    data: { innovationUnlocked: true }
-                })
-                await db.user.update({
-                    where: { id: session.user.id },
-                    data: { foxBadges: { increment: 1 } }
-                })
+                earnedAura += AURA_FOX_INNOVATION
             }
         }
 
-        // 6. ──── MARK COMPLETED ────
+        if (isFirstTimeCompletion) {
+            earnedAura += mission.auraReward || AURA_MISSION_COMPLETE
+            earnedAura += AURA_CORRECT_EXECUTION
+
+            if (userMission.attemptCount === 0) {
+                earnedAura += AURA_FIRST_ATTEMPT
+            }
+            const hintPenalty = userMission.hintsUsed * AURA_HINT_PENALTY
+            earnedAura = Math.max(10, earnedAura - hintPenalty)
+        }
+
+        // 4. Database Updates
+        if (earnedAura > 0 || isInnovation || isFirstTimeCompletion || newComboStreak !== user.comboStreak) {
+            const newAuraPoints = user.auraPoints + earnedAura
+            const newAuraLevel = calculateAuraLevel(newAuraPoints)
+            const newMaxCombo = Math.max(user.maxCombo, newComboStreak)
+
+            await db.user.update({
+                where: { id: user.id },
+                data: {
+                    auraPoints: newAuraPoints,
+                    auraLevel: newAuraLevel,
+                    comboStreak: newComboStreak,
+                    maxCombo: newMaxCombo,
+                    foxBadges: isInnovation ? { increment: 1 } : undefined,
+                    missionsCompleted: isFirstTimeCompletion ? { increment: 1 } : undefined
+                }
+            })
+        }
+
         await db.userMission.update({
             where: { id: userMission.id },
-            data: { status: 'COMPLETED', completedAt: new Date() }
+            data: {
+                status: 'COMPLETED',
+                completedAt: new Date(),
+                innovationUnlocked: isInnovation ? true : undefined
+            }
         })
 
         return NextResponse.json({
             success: true,
-            stdout,
-            stderr,
+            stdout: finalStdout,
+            stderr: finalStderr,
             validationErrors: [],
+            earnedAura,
             innovationUnlocked: isInnovation,
-            innovationReason
+            innovationReason,
+            comboBonus: comboBonusAura,
+            comboStreak: newComboStreak
         })
 
     } catch (error) {

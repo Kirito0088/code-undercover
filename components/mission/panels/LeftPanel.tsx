@@ -3,9 +3,21 @@ import Image from "next/image"
 
 interface LeftPanelProps {
     mission: MissionRecord
+    missionCleared: boolean
+    attemptCount: number
 }
 
-export function LeftPanel({ mission }: LeftPanelProps) {
+export function LeftPanel({ mission, missionCleared, attemptCount }: LeftPanelProps) {
+    const getDialogue = () => {
+        if (missionCleared) {
+            return '"Excellent work, Agent. Module restored. Report back to base."'
+        }
+        if (attemptCount >= 3) {
+            return '"Take your time. Re-read the briefing and check the hints panel."'
+        }
+        return '"Read the briefing closely, agent. The syntax must be precise."'
+    }
+
     return (
         <>
             <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
@@ -55,7 +67,7 @@ export function LeftPanel({ mission }: LeftPanelProps) {
                 <div className="absolute top-4 left-4 right-4 bg-gray-900/95 border border-green-500/30 rounded-lg p-3 shadow-[0_0_15px_rgba(34,197,94,0.1)] z-20 backdrop-blur-sm -translate-y-2">
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-b border-r border-green-500/30 rotate-45"></div>
                     <p className="text-xs font-mono text-green-100 text-center">
-                        "Read the briefing closely, agent. The syntax must be precise."
+                        {getDialogue()}
                     </p>
                 </div>
 

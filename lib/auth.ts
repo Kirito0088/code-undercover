@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { db } from "@/lib/db"
-import { compare } from "bcrypt"
+import { compare } from "bcryptjs"
 
 if (!process.env.NEXTAUTH_SECRET) {
     console.warn(
@@ -36,16 +36,22 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 try {
+                    // Normalize email to prevent case/whitespace mismatches
+                    const normalizedEmail = credentials.email.trim().toLowerCase()
+
                     const user = await db.user.findUnique({
                         where: {
-                            email: credentials.email,
+                            email: normalizedEmail,
                         },
                     })
 
-                    if (!user || !user.password) {
-                        console.warn(
-                            `[AUTH] No user found for email: ${credentials.email}`
-                        )
+                    if (!user) {
+                        console.warn(`[AUTH] No user record found for email: ${normalizedEmail}`)
+                        return null
+                    }
+
+                    if (!user.password) {
+                        console.warn(`[AUTH] User exists but has no password (needs registration): ${normalizedEmail}`)
                         return null
                     }
 

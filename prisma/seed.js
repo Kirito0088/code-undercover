@@ -5,151 +5,132 @@ const prisma = new PrismaClient()
 const missions = [
     {
         order: 1,
-        title: "The Pointer Breach",
-        description:
-            "A critical vulnerability has been detected in the agency's authentication module. Dangling pointers are causing unauthorized memory access. Your mission: write a C program that correctly allocates, uses, and frees memory using pointers.",
-        briefing:
-            "Learn the fundamentals of pointers in C. Understand how to declare pointer variables, assign addresses, dereference values, and avoid common pitfalls like dangling and null pointer dereferences.",
+        title: "First Transmission",
+        description: "The agency needs you to establish communications. Write a C program that prints the secret access phrase to the console.",
+        briefing: "Learn the fundamentals of output in C. Understand how to use the printf function and include the standard input/output library.",
         difficulty: "EASY",
         language: "C",
-        xpReward: 100,
+        auraReward: 100,
         teachingContent: JSON.stringify([
             {
-                title: "Memory Direct Access",
-                content: "Pointers allow direct manipulation of memory. When a pointer loses its reference to a valid memory address but the pointer itself still exists, it becomes a dangling pointer."
-            },
-            {
-                title: "The Vulnerability",
-                content: "In Code Undercover systems, dangling pointers lead to unauthorized access. Your mission is to secure the code by tracking valid memory references and setting pointers to NULL when freed."
+                title: "The printf() Function",
+                content: "In C, printf() is used to print text to the screen. It is part of the standard I/O library (stdio.h). Example: printf(\"Hello, World!\\n\");"
             }
         ]),
         mcqContent: JSON.stringify([
             {
                 id: 1,
-                question: "What happens when a dangling pointer is dereferenced?",
-                options: [
-                    "It automatically returns NULL",
-                    "It safely crashes the program",
-                    "It accesses undefined memory, causing unpredictable behavior or vulnerabilities"
-                ],
-                correctIndex: 2
-            },
-            {
-                id: 2,
-                question: "Which keyword is used to allocate memory in C?",
-                options: ["new", "malloc", "allocate", "create"],
+                question: "Which library is required to use printf?",
+                options: ["math.h", "stdio.h", "stdlib.h", "conio.h"],
                 correctIndex: 1
             }
         ]),
         validationRules: JSON.stringify({
-            requiredKeywords: ["malloc", "free", "printf", "NULL"],
-            requiredPatterns: ["int *", "int*"],
+            requiredKeywords: ["printf", "Hello Agent"],
             forbiddenPatterns: ["// Agent, write your code here"],
-            minLength: 120,
-            description: "Your code must: allocate memory with malloc(), use a pointer, print output with printf(), free the memory, and set the pointer to NULL."
+            minLength: 50,
+            requiredOutput: "Hello Agent",
+            description: "Your code must include the printf function and output exactly 'Hello Agent'."
         })
     },
     {
         order: 2,
-        title: "Variable Infiltration",
-        description:
-            "An enemy agent has scrambled the variable declarations in our communication module. Data types are mismatched and values are corrupted. Restore order by demonstrating mastery of C data types and variable declarations.",
-        briefing:
-            "Master C data types: int, float, double, char. Learn about variable scope, initialization, type casting, and the sizeof operator. Write clean declarations that the compiler respects.",
+        title: "Input Intercept",
+        description: "An incoming numerical code needs to be intercepted and verified. Read an integer from user input and print it back securely.",
+        briefing: "Learn how to read user input using scanf in C. You will need to declare an integer variable and pass its address to scanf using the & operator.",
         difficulty: "EASY",
         language: "C",
-        xpReward: 100,
+        auraReward: 100,
         teachingContent: JSON.stringify([
-            { title: "Data Types in C", content: "C has several built-in data types: int for integers, float and double for decimals, and char for single characters. Each occupies a different amount of memory." },
-            { title: "The sizeof Operator", content: "Use sizeof() to determine the memory footprint of any variable or type. This is crucial for writing memory-safe code." }
+            {
+                title: "The scanf() Function",
+                content: "scanf() reads input from the user. To read an integer, use the %d format specifier and provide the address of the variable using the & symbol. Example: scanf(\"%d\", &myVariable);"
+            }
         ]),
         mcqContent: JSON.stringify([
-            { id: 1, question: "Which data type stores a single character in C?", options: ["string", "char", "letter", "text"], correctIndex: 1 },
-            { id: 2, question: "What does sizeof(int) return?", options: ["The value of the int", "The memory size in bytes", "The address of the int", "The type name"], correctIndex: 1 }
+            {
+                id: 1,
+                question: "Why do we use the & symbol in scanf for variables like integers?",
+                options: [
+                    "To print the variable",
+                    "To declare the variable",
+                    "To provide the memory address of the variable",
+                    "Because it is required by printf"
+                ],
+                correctIndex: 2
+            }
         ]),
         validationRules: JSON.stringify({
-            requiredKeywords: ["int", "float", "char", "printf", "sizeof"],
+            requiredKeywords: ["scanf", "%d", "printf", "&"],
             forbiddenPatterns: ["// Agent, write your code here"],
-            minLength: 100,
-            description: "Your code must: declare int, float, and char variables, use printf to display them, and use sizeof to show their memory size."
+            minLength: 60,
+            testCases: [
+                { input: "7", output: "You entered: 7" },
+                { input: "42", output: "You entered: 42" }
+            ],
+            description: "Your code must declare an integer, read it using scanf, and output 'You entered: X', where X is the input."
         })
     },
     {
         order: 3,
-        title: "Control Flow Lockdown",
-        description:
-            "The agency's security gate system has malfunctioned. The conditional logic controlling access doors is broken. Fix the control flow to restore proper gate operation.",
-        briefing:
-            "Implement if-else chains, switch statements, and ternary operators. Understand logical operators (&&, ||, !) and how C evaluates boolean expressions.",
-        difficulty: "MEDIUM",
+        title: "Signal Analyzer",
+        description: "The intercepted signals are encrypted based on parity. Write a module that reads a numerical signal and determines whether it is Even or Odd.",
+        briefing: "Introduce conditional logic. Use the modulo operator (%) to check if a number is divisible by 2, and use an if-else statement to determine parity.",
+        difficulty: "EASY",
         language: "C",
-        xpReward: 200,
+        auraReward: 100,
         teachingContent: JSON.stringify([
-            { title: "Conditional Branching", content: "if-else statements allow your program to make decisions. The condition inside if() is evaluated as true (non-zero) or false (zero)." },
-            { title: "Switch Statements", content: "switch provides a clean alternative to long if-else chains when comparing a single variable against multiple values." }
+            {
+                title: "If-Else Statements & Modulo",
+                content: "Use the modulo operator (%) to find remainders. If a number % 2 equals 0, it is even. Use an if() statement to handle the true case, and else() to handle the false case."
+            }
         ]),
         mcqContent: JSON.stringify([
-            { id: 1, question: "What value does C treat as 'false'?", options: ["1", "-1", "0", "NULL"], correctIndex: 2 },
-            { id: 2, question: "Which operator means 'logical AND' in C?", options: ["&", "&&", "AND", "||"], correctIndex: 1 }
+            {
+                id: 1,
+                question: "What does the expression (7 % 2) evaluate to?",
+                options: ["0", "1", "3", "2"],
+                correctIndex: 1
+            }
         ]),
         validationRules: JSON.stringify({
-            requiredKeywords: ["if", "else", "switch", "printf"],
+            requiredKeywords: ["if", "else", "scanf", "printf", "%"],
             forbiddenPatterns: ["// Agent, write your code here"],
-            minLength: 150,
-            description: "Your code must: use if-else branching, implement a switch statement, and print results with printf."
+            minLength: 80,
+            testCases: [
+                { input: "4", output: "Even" },
+                { input: "5", output: "Odd" },
+                { input: "0", output: "Even" },
+                { input: "-3", output: "Odd" }
+            ],
+            description: "Your code must read an integer and output exactly 'Even' or 'Odd'."
         })
     },
     {
         order: 4,
-        title: "Loop Protocol",
-        description:
-            "Our encryption module requires a precise iterative algorithm to encode messages. The current implementation runs indefinitely. Implement proper loop constructs to fix the encoder.",
-        briefing:
-            "Master for loops, while loops, and do-while loops. Understand loop control with break and continue. Implement nested loops for matrix operations.",
-        difficulty: "MEDIUM",
+        title: "Syntax Glitch: Missing Terminator",
+        description: "An encrypted module failed to compile. We believe a junior operative missed a critical character. Fix the code to restore functionality.",
+        briefing: "Debug missions test your ability to read compiler errors. Find the missing semicolon in the provided code so it outputs 'Module Restored'.",
+        type: "debug",
+        goal: "Fix the syntax error so the program compiles.",
+        startingCode: "#include <stdio.h>\n\nint main() {\n    printf(\"Module Restored\")\n    return 0;\n}",
         language: "C",
-        xpReward: 250,
+        auraReward: 50,
         teachingContent: JSON.stringify([
-            { title: "Loop Constructs", content: "C provides three loop types: for (known iterations), while (condition-based), and do-while (runs at least once). Each has specific use cases." },
-            { title: "Loop Control", content: "Use break to exit a loop early, and continue to skip to the next iteration. These are essential for writing efficient algorithms." }
+            {
+                title: "Debugging Semicolons",
+                content: "In C, every statement must end with a semicolon (;). Missing them causes cascade compiler errors on the next line."
+            }
         ]),
-        mcqContent: JSON.stringify([
-            { id: 1, question: "Which loop always executes at least once?", options: ["for", "while", "do-while", "foreach"], correctIndex: 2 },
-            { id: 2, question: "What does 'break' do inside a loop?", options: ["Skips to next iteration", "Exits the loop", "Pauses the loop", "Restarts the loop"], correctIndex: 1 }
-        ]),
+        mcqContent: JSON.stringify([]),
         validationRules: JSON.stringify({
-            requiredKeywords: ["for", "while", "printf"],
-            forbiddenPatterns: ["// Agent, write your code here"],
-            minLength: 120,
-            description: "Your code must: use a for loop, use a while loop, and print iterative output with printf."
+            requiredKeywords: ["printf", "Module Restored"],
+            testCases: [
+                { input: "", output: "Module Restored" }
+            ],
+            description: "Fix the code to output 'Module Restored'."
         })
-    },
-    {
-        order: 5,
-        title: "Function Assembly",
-        description:
-            "The agency's codebase has become a monolithic mess. Refactor the system by extracting reusable functions with proper signatures and return types.",
-        briefing:
-            "Learn to declare and define functions in C. Understand parameter passing (by value vs by reference), return types, function prototypes, and recursive functions.",
-        difficulty: "HARD",
-        language: "C",
-        xpReward: 350,
-        teachingContent: JSON.stringify([
-            { title: "Function Basics", content: "Functions in C have a return type, a name, parameters, and a body. They enable code reuse and modularity." },
-            { title: "Pass by Reference", content: "C passes arguments by value by default. To modify the original variable, pass a pointer to it (pass by reference)." }
-        ]),
-        mcqContent: JSON.stringify([
-            { id: 1, question: "What is a function prototype?", options: ["The function body", "A declaration before the function definition", "A recursive call", "A pointer to a function"], correctIndex: 1 },
-            { id: 2, question: "How do you pass by reference in C?", options: ["Using &", "Using *", "Using pointers as parameters", "Using const"], correctIndex: 2 }
-        ]),
-        validationRules: JSON.stringify({
-            requiredKeywords: ["return", "printf"],
-            forbiddenPatterns: ["// Agent, write your code here"],
-            minLength: 180,
-            requireCustomFunction: true,
-            description: "Your code must: define at least one custom function (not main), call it from main, and use printf to display results."
-        })
-    },
+    }
 ]
 
 async function main() {
@@ -163,6 +144,38 @@ async function main() {
         })
         console.log("[SEED] Mission #" + mission.order + ': "' + mission.title + '" seeded.')
     }
+
+    const questions = [
+        {
+            question: "What is the correct way to allocate memory for an integer array of size 10 in C?",
+            options: JSON.stringify([
+                "int *arr = malloc(10);",
+                "int *arr = malloc(10 * sizeof(int));",
+                "int arr = malloc(10);",
+                "int *arr = calloc(10);"
+            ]),
+            correctAnswer: "int *arr = malloc(10 * sizeof(int));",
+            explanation: "malloc requires the total number of bytes. 10 integers * the size of an integer in bytes."
+        },
+        {
+            question: "Which format specifier is used to print a double in C?",
+            options: JSON.stringify([
+                "%d",
+                "%f",
+                "%lf",
+                "%s"
+            ]),
+            correctAnswer: "%lf",
+            explanation: "%lf stands for 'long float', which is the historical C designation for double precision floats in scanf/printf."
+        }
+    ]
+
+    for (const q of questions) {
+        await prisma.dailyQuestion.create({
+            data: q
+        })
+    }
+    console.log("[SEED] Daily questions seeded.")
 
     console.log("[SEED] Done. " + missions.length + " missions seeded.")
 }

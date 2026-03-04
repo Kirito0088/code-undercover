@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { hash } from "bcrypt"
+import { hash } from "bcryptjs"
 
 export async function POST(req: Request) {
     try {
@@ -32,29 +32,49 @@ export async function POST(req: Request) {
             )
         }
 
+        // Normalize email
+        const normalizedEmail = email.trim().toLowerCase()
+
         // Check if user exists
         const existingUser = await db.user.findUnique({
-            where: { email },
+            where: { email: normalizedEmail },
         })
-
-        if (existingUser) {
-            return NextResponse.json(
-                { message: "User with this email already exists" },
-                { status: 409 }
-            )
-        }
 
         // Hash password with bcrypt (cost factor 12 for production security)
         const hashedPassword = await hash(password, 12)
 
-        // Create user
-        const newUser = await db.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name: name || email.split("@")[0],
-            },
-        })
+        let newUser
+
+        if (existingUser) {
+            // If user exists but has NO password (auto-created by Navbar/session),
+            // allow them to "register" by setting a password
+            if (existingUser.password) {
+                return NextResponse.json(
+                    { message: "User with this email already exists" },
+                    { status: 409 }
+                )
+            }
+
+            // Initialize password for existing password-less user
+            newUser = await db.user.update({
+                where: { id: existingUser.id },
+                data: {
+                    password: hashedPassword,
+                    name: name || existingUser.name || normalizedEmail.split("@")[0],
+                },
+            })
+            console.log(`[REGISTER] Password initialized for existing user: ${newUser.id}`)
+        } else {
+            // Create brand new user
+            newUser = await db.user.create({
+                data: {
+                    email: normalizedEmail,
+                    password: hashedPassword,
+                    name: name || normalizedEmail.split("@")[0],
+                },
+            })
+            console.log(`[REGISTER] New user created: ${newUser.id}`)
+        }
 
         console.log(`[REGISTER] User created successfully: ${newUser.id}`)
 

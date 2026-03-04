@@ -11,9 +11,11 @@ import type { DashboardMission, MissionStatus } from "@/types"
  *  - Everything after it is LOCKED.
  */
 export async function getDashboardMissions(
-    userId: string
+    userId: string,
+    missionType: string = "standard"
 ): Promise<DashboardMission[]> {
     const missions = await db.mission.findMany({
+        where: { type: missionType },
         orderBy: { order: "asc" },
     })
 
@@ -59,7 +61,9 @@ export async function getDashboardMissions(
             description: mission.description,
             difficulty: mission.difficulty,
             language: mission.language,
-            xpReward: mission.xpReward,
+            type: mission.type,
+            goal: mission.goal,
+            auraReward: mission.auraReward,
             status,
         }
     })
@@ -80,7 +84,7 @@ export async function acceptMission(
     }
 
     // Get the user's dashboard to determine what's accessible
-    const dashboardMissions = await getDashboardMissions(userId)
+    const dashboardMissions = await getDashboardMissions(userId, mission.type)
     const target = dashboardMissions.find((m) => m.id === missionId)
 
     if (!target) {
@@ -124,7 +128,10 @@ export async function canAccessMission(
     userId: string,
     missionId: string
 ): Promise<boolean> {
-    const dashboardMissions = await getDashboardMissions(userId)
+    const mission = await db.mission.findUnique({ where: { id: missionId } })
+    if (!mission) return false
+
+    const dashboardMissions = await getDashboardMissions(userId, mission.type)
     const target = dashboardMissions.find((m) => m.id === missionId)
 
     if (!target) return false

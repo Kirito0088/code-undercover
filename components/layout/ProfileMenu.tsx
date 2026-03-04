@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Shield, Sparkles, Terminal, LogOut } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { Heart, CreditCard, PlayCircle, LogOut, Terminal, MapPin, Sparkles, Award, Shield } from "lucide-react"
+import Link from "next/link"
 import Image from "next/image"
+import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
+import { signOut } from "next-auth/react"
 
 interface ProfileMenuProps {
   user: {
     name: string | null
     email: string | null
-    xp: number
-    level: number
+    auraPoints: number
+    auraLevel: number
   }
   completedMissions: number
 }
@@ -41,7 +43,7 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
         </div>
         <div className="text-left hidden sm:block">
           <div className="text-sm font-bold text-white leading-none">{user.name || "Agent"}</div>
-          <div className="text-xs text-gray-400 font-mono mt-0.5">Lvl {user.level}</div>
+          <div className="text-xs text-gray-400 font-mono mt-0.5">Aura Lvl {user.auraLevel}</div>
         </div>
       </button>
 
@@ -57,11 +59,16 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-mono text-green-500 mb-1">AGENCY ID CARD</div>
-                <div className="text-lg font-bold text-white truncate leading-tight">
+                <div className="text-lg font-bold text-white truncate leading-tight flex items-center gap-2">
                   {user.name || "Agent"}
+                  <Award className={`h-4 w-4 shrink-0 ${getRankBadgeStyles(calculateAgentRank(user.auraPoints)).colorText} ${getRankBadgeStyles(calculateAgentRank(user.auraPoints)).shadow}`} />
                 </div>
-                <div className="text-xs text-gray-400 truncate font-mono">
-                  {user.email}
+                <div className="text-xs text-gray-400 truncate font-mono flex items-center gap-2">
+                  <span className={`font-bold uppercase tracking-wider ${getRankBadgeStyles(calculateAgentRank(user.auraPoints)).colorText} ${getRankBadgeStyles(calculateAgentRank(user.auraPoints)).shadow}`}>
+                    {calculateAgentRank(user.auraPoints)}
+                  </span>
+                  <span>•</span>
+                  <span>Aura Lvl {user.auraLevel}</span>
                 </div>
               </div>
             </div>
@@ -71,29 +78,29 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
           <div className="p-4 grid grid-cols-2 gap-3 bg-gray-900/50">
             <div className="bg-black/50 rounded-lg p-3 border border-gray-800/80">
               <div className="text-xs text-gray-500 mb-1 font-mono flex items-center gap-1">
-                <Terminal className="h-3 w-3" /> LEVEL
+                <Terminal className="h-3 w-3" /> AURA LEVEL
               </div>
-              <div className="text-xl font-bold text-white">{user.level}</div>
+              <div className="text-xl font-bold text-white">{user.auraLevel}</div>
             </div>
             <div className="bg-black/50 rounded-lg p-3 border border-gray-800/80">
-              <div className="text-xs text-gray-500 mb-1 font-mono flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> TOTAL XP
+              <div className="text-xs text-blue-500/70 mb-1 font-mono flex items-center gap-1">
+                <Sparkles className="h-3 w-3" /> AURA POINTS
               </div>
-              <div className="text-xl font-bold text-green-400">{user.xp}</div>
+              <div className="text-xl font-bold text-blue-400">{user.auraPoints}</div>
             </div>
             <div className="bg-black/50 rounded-lg p-3 border border-gray-800/80 col-span-2 flex items-center justify-between">
               <div>
                 <div className="text-xs text-gray-500 mb-0.5 font-mono">MISSIONS CLEARED</div>
                 <div className="text-lg font-bold text-white">{completedMissions}</div>
               </div>
-              
+
               {/* Fox Badges Section */}
               <div className="h-10 w-10 relative group/badge">
-                 <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-md opacity-0 group-hover/badge:opacity-100 transition-opacity"></div>
-                 <Image src="/characters/fox.png" alt="Innovation" fill className="object-contain drop-shadow-[0_0_5px_rgba(234,179,8,0.3)]" />
-                 <div className="absolute -bottom-1 -right-1 bg-black text-yellow-500 text-[10px] font-bold font-mono px-1 border border-yellow-500/30 rounded z-10">
-                    x0
-                 </div>
+                <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-md opacity-0 group-hover/badge:opacity-100 transition-opacity"></div>
+                <Image src="/characters/fox.png" alt="Innovation" fill className="object-contain drop-shadow-[0_0_5px_rgba(234,179,8,0.3)]" />
+                <div className="absolute -bottom-1 -right-1 bg-black text-yellow-500 text-[10px] font-bold font-mono px-1 border border-yellow-500/30 rounded z-10">
+                  x0
+                </div>
               </div>
             </div>
           </div>

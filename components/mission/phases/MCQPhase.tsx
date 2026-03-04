@@ -10,9 +10,19 @@ interface MCQPhaseProps {
 }
 
 export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
-    const questions = mission.mcqContent
-        ? JSON.parse(mission.mcqContent)
-        : [
+    let questions: { id?: number; question: string; options: string[]; correctIndex: number }[] = []
+
+    try {
+        questions = mission.mcqContent
+            ? JSON.parse(mission.mcqContent)
+            : []
+    } catch {
+        questions = []
+    }
+
+    // Guarantee at least one fallback question so the component never renders against an empty array
+    if (!Array.isArray(questions) || questions.length === 0) {
+        questions = [
             {
                 id: 1,
                 question: "What happens when a dangling pointer is dereferenced?",
@@ -24,30 +34,33 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                 correctIndex: 2,
             },
         ]
+    }
 
     const [currentQIndex, setCurrentQIndex] = useState(0)
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [showError, setShowError] = useState(false)
 
-    const handleSubmit = () => {
-        if (selectedOption === null) return
+    // Clamp index to valid range so it can never exceed the array
+    const safeIndex = Math.min(currentQIndex, questions.length - 1)
+    const q = questions[safeIndex]
 
-        if (selectedOption !== questions[currentQIndex].correctIndex) {
+    const handleSubmit = () => {
+        if (selectedOption === null || !q) return
+
+        if (selectedOption !== q.correctIndex) {
             setShowError(true)
             setTimeout(() => setShowError(false), 2000)
             return
         }
 
-        if (currentQIndex < questions.length - 1) {
-            setCurrentQIndex(currentQIndex + 1)
+        if (safeIndex < questions.length - 1) {
+            setCurrentQIndex(safeIndex + 1)
             setSelectedOption(null)
             setShowError(false)
         } else {
             onComplete()
         }
     }
-
-    const q = questions[currentQIndex]
 
     const getButtonClass = (index: number) => {
         const base = "w-full text-left p-4 rounded-xl border transition-all duration-200"
@@ -65,6 +78,24 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
         return `${base} text-gray-500 border-gray-600`
     }
 
+    // Fallback UI if q is still somehow undefined (should not happen with the guards above)
+    if (!q) {
+        return (
+            <div className="absolute inset-0 flex items-center justify-center p-8 bg-[#050505] z-30">
+                <div className="text-center">
+                    <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-4" />
+                    <p className="text-gray-400 font-mono text-sm">No question available. Proceeding to mission...</p>
+                    <button
+                        onClick={onComplete}
+                        className="mt-6 bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-bold tracking-widest font-mono uppercase transition-all"
+                    >
+                        CONTINUE
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="absolute inset-0 flex items-center justify-center p-8 bg-[#050505] z-30">
             <div className="max-w-2xl w-full">
@@ -77,7 +108,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                         Knowledge Check
                     </h2>
                     <p className="text-gray-400 font-mono text-sm tracking-wider">
-                        AUTHORIZE CLEARANCE: QUESTION {currentQIndex + 1} OF{" "}
+                        AUTHORIZE CLEARANCE: QUESTION {safeIndex + 1} OF{" "}
                         {questions.length}
                     </p>
                 </div>
@@ -89,7 +120,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                     </h3>
 
                     <div className="space-y-4">
-                        {q.options.map((opt: string, index: number) => (
+                        {(q.options ?? []).map((opt: string, index: number) => (
                             <button
                                 key={index}
                                 onClick={() => {
@@ -126,7 +157,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                             disabled={selectedOption === null}
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold tracking-widest font-mono uppercase transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                         >
-                            {currentQIndex < questions.length - 1
+                            {safeIndex < questions.length - 1
                                 ? "NEXT QUESTION"
                                 : "INITIATE MISSION"}
                             <Zap className="h-4 w-4" />

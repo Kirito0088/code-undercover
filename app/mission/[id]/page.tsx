@@ -31,14 +31,14 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
 
     const userProfile = await db.user.findUnique({
         where: { id: session.user.id },
-        select: { xp: true, level: true, foxBadges: true }
+        select: { auraPoints: true, auraLevel: true, foxBadges: true }
     })
 
     return (
         <MissionWorkspace
             mission={mission as unknown as MissionRecord}
             userMission={userMission as unknown as UserMissionRecord}
-            userProfile={userProfile || { xp: 0, level: 1, foxBadges: 0 }}
+            userProfile={userProfile || { auraPoints: 0, auraLevel: 1, foxBadges: 0 }}
         />
     )
 }

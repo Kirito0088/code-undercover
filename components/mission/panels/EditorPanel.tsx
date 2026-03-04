@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { MissionRecord } from "@/types"
+import type { MissionClearInfo } from "../MissionWorkspace"
 import { Play } from "lucide-react"
+import Editor from "@monaco-editor/react"
 
 interface EditorPanelProps {
     mission: MissionRecord
@@ -10,6 +12,8 @@ interface EditorPanelProps {
     attemptCount: number
     setAttemptCount: (count: number) => void
     setInnovationUnlocked: (unlocked: boolean) => void
+    setMissionCleared: (cleared: boolean) => void
+    setClearInfo: (info: MissionClearInfo) => void
 }
 
 export function EditorPanel({
@@ -18,8 +22,10 @@ export function EditorPanel({
     attemptCount,
     setAttemptCount,
     setInnovationUnlocked,
+    setMissionCleared,
+    setClearInfo,
 }: EditorPanelProps) {
-    const defaultCode = [
+    const defaultCode = mission.startingCode || [
         "// Mission: " + mission.title,
         "// Language: " + mission.language,
         "",
@@ -53,11 +59,29 @@ export function EditorPanel({
             const result = await response.json()
 
             if (result.success) {
-                setTerminalOutput([
+                const successLines = [
                     { type: "system", message: "> Compilation successful." },
                     { type: "success", message: "Output: " + (result.stdout || "System secured.") },
                     { type: "system", message: "MISSION CLEARED." },
-                ])
+                ] as { type: "system" | "error" | "success" | "hint"; message: string }[]
+
+                if (result.comboStreak > 1 && result.comboBonus > 0) {
+                    successLines.push({
+                        type: "success",
+                        message: `> ⚡ LOGIC COMBO x${result.comboStreak} (+${result.comboBonus} Aura Bonus)`,
+                    })
+                }
+
+                setTerminalOutput(successLines)
+
+                // Signal mission cleared to parent for victory overlay
+                setMissionCleared(true)
+                setClearInfo({
+                    auraEarned: result.auraEarned || result.earnedAura || 50,
+                    comboStreak: result.comboStreak || 0,
+                    comboBonus: result.comboBonus || 0,
+                })
+
                 if (result.innovationUnlocked) {
                     setInnovationUnlocked(true)
                     setTimeout(() => {
@@ -71,15 +95,19 @@ export function EditorPanel({
                     }, 2000)
                 }
             } else {
-                // Show validation errors from the rule engine
+                // Show validation errors from the rule engine or compiler
                 const errorLines: { type: "system" | "error" | "success" | "hint"; message: string }[] = [
-                    { type: "system", message: "> Validation failed." },
+                    { type: "system", message: "> Validation or Compilation failed." },
                 ]
 
                 if (result.validationErrors && result.validationErrors.length > 0) {
                     for (const err of result.validationErrors) {
                         errorLines.push({ type: "error", message: "✗ " + err })
                     }
+                }
+
+                if (result.explanation) {
+                    errorLines.push({ type: "hint", message: "Analysis: " + result.explanation })
                 }
 
                 if (result.stderr) {
@@ -134,20 +162,21 @@ export function EditorPanel({
             </div>
 
             {/* Editor Area with line numbers feel */}
-            <div className="flex-1 relative flex">
-                {/* Line number gutter */}
-                <div className="w-12 bg-[#0d1117] border-r border-gray-800/50 py-4 select-none flex-shrink-0">
-                    {code.split("\n").map((_, i) => (
-                        <div key={i} className="text-right pr-3 text-xs text-gray-600 leading-relaxed font-mono">
-                            {i + 1}
-                        </div>
-                    ))}
-                </div>
-                <textarea
+            <div className="flex-1 relative">
+                <Editor
+                    height="100%"
+                    defaultLanguage="c"
+                    theme="vs-dark"
                     value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    spellCheck={false}
-                    className="flex-1 bg-transparent text-gray-300 p-4 font-mono text-sm leading-relaxed resize-none focus:outline-none custom-scrollbar"
+                    onChange={(value) => setCode(value || "")}
+                    options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                        scrollBeyondLastLine: false,
+                        smoothScrolling: true,
+                        padding: { top: 16 }
+                    }}
                 />
             </div>
         </div>

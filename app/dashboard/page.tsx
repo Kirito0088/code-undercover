@@ -5,6 +5,7 @@ import { getDashboardMissions } from "@/services/mission.service"
 import { db } from "@/lib/db"
 import { Terminal } from "lucide-react"
 import { MissionCard } from "./MissionCard"
+import { DailyChallenge } from "@/components/dashboard/DailyChallenge"
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions)
@@ -17,7 +18,7 @@ export default async function DashboardPage() {
 
     const user = await db.user.findUnique({
         where: { id: session.user.id },
-        select: { xp: true, level: true, name: true, email: true },
+        select: { auraPoints: true, auraLevel: true, name: true, email: true },
     })
 
     const completedCount = missions.filter((m) => m.status === "COMPLETED").length
@@ -33,7 +34,7 @@ export default async function DashboardPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-white tracking-tight">Mission Control</h1>
                         <p className="mt-1 text-sm text-gray-400 font-mono">
-                            Agent: {user?.name || user?.email} | Level {user?.level ?? 1} | {user?.xp ?? 0} XP
+                            Agent: {user?.name || user?.email} | Aura Lvl {user?.auraLevel ?? 1} | {user?.auraPoints ?? 0} AURA
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -58,6 +59,8 @@ export default async function DashboardPage() {
                         ></div>
                     </div>
                 </div>
+
+                <DailyChallenge />
 
                 {/* Mission Grid */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

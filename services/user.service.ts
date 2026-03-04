@@ -9,8 +9,8 @@ export class UserService {
                     id: true,
                     name: true,
                     email: true,
-                    xp: true,
-                    level: true,
+                    auraPoints: true,
+                    auraLevel: true,
                     createdAt: true,
                 },
             })

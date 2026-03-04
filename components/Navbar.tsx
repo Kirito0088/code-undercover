@@ -9,17 +9,34 @@ import { NavBackButton } from "./layout/NavBackButton"
 export default async function Navbar() {
     const session = await getServerSession(authOptions)
 
-    let userStats: { name: string | null; email: string | null; xp: number; level: number } | null = null
+    let userStats: { name: string | null; email: string | null; auraPoints: number; auraLevel: number } | null = null
     let completedCount = 0
 
-    if (session?.user?.id) {
+    if (session?.user?.email) {
         userStats = await db.user.findUnique({
-            where: { id: session.user.id },
-            select: { name: true, email: true, xp: true, level: true },
+            where: { email: session.user.email },
+            select: { name: true, email: true, auraPoints: true, auraLevel: true },
         })
-        completedCount = await db.userMission.count({
-            where: { userId: session.user.id, status: "COMPLETED" },
-        })
+
+        // Defensive handling: auto-create missing user for orphaned sessions
+        if (!userStats) {
+            userStats = await db.user.create({
+                data: {
+                    id: session.user.id, // Preserve NextAuth ID
+                    email: session.user.email,
+                    name: session.user.name || "Agent",
+                    auraPoints: 0,
+                    auraLevel: 1,
+                },
+                select: { name: true, email: true, auraPoints: true, auraLevel: true },
+            })
+        }
+
+        if (session.user.id) {
+            completedCount = await db.userMission.count({
+                where: { userId: session.user.id, status: "COMPLETED" },
+            })
+        }
     }
 
     return (
@@ -41,18 +58,30 @@ export default async function Navbar() {
                             <>
                                 <Link
                                     href="/dashboard"
-                                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                    className="text-sm font-mono text-gray-300 hover:text-green-400 transition-colors"
                                 >
-                                    Dashboard
+                                    DASHBOARD
+                                </Link>
+                                <Link
+                                    href="/debug-lab"
+                                    className="text-sm font-mono text-gray-300 hover:text-red-400 transition-colors"
+                                >
+                                    DEBUG LAB
+                                </Link>
+                                <Link
+                                    href="/leaderboard"
+                                    className="text-sm font-mono text-gray-300 hover:text-green-400 transition-colors"
+                                >
+                                    LEADERBOARD
                                 </Link>
                                 <ProfileMenu
                                     user={{
-                                        name: userStats.name,
-                                        email: userStats.email,
-                                        xp: userStats.xp,
-                                        level: userStats.level,
+                                        name: userStats.name ?? "Agent",
+                                        email: userStats.email ?? "",
+                                        auraPoints: userStats.auraPoints,
+                                        auraLevel: userStats.auraLevel,
                                     }}
-                                    completedMissions={completedCount}
+                                    completedMissions={0}
                                 />
                             </>
                         ) : (

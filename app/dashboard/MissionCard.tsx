@@ -63,10 +63,10 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
     return (
         <div
             className={`relative rounded-xl p-6 border transition-all duration-300 shadow-lg overflow-hidden group ${isLocked
-                    ? "bg-gray-900/30 border-gray-800/50 opacity-60"
-                    : isCompleted
-                        ? "bg-gray-900/40 border-green-900/30"
-                        : "bg-gray-900/50 border-gray-800 hover:border-green-500/40 hover:bg-gray-800/50"
+                ? "bg-gray-900/30 border-gray-800/50 opacity-60"
+                : isCompleted
+                    ? "bg-gray-900/40 border-green-900/30"
+                    : "bg-gray-900/50 border-gray-800 hover:border-green-500/40 hover:bg-gray-800/50"
                 }`}
         >
             {/* Top glow for active */}
@@ -110,8 +110,8 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                     <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-gray-700" : "text-gray-500"}`}>
                         <Code className="h-3 w-3" /> {mission.language}
                     </span>
-                    <span className={`text-xs font-mono ${isLocked ? "text-gray-700" : "text-yellow-500/70"}`}>
-                        +{mission.xpReward} XP
+                    <span className={`text-xs font-bold font-mono ${isLocked ? "text-gray-700" : "text-blue-400"}`}>
+                        +{mission.auraReward} AURA
                     </span>
                 </div>
 

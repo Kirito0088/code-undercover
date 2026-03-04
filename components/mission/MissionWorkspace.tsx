@@ -12,12 +12,18 @@ import { CharacterManager } from "./CharacterManager"
 interface MissionWorkspaceProps {
     mission: MissionRecord
     userMission: UserMissionRecord
-    userProfile: { xp: number; level: number; foxBadges: number }
+    userProfile: { auraPoints: number; auraLevel: number; foxBadges: number }
 }
 
 type TerminalLine = {
     type: "system" | "error" | "success" | "hint"
     message: string
+}
+
+export interface MissionClearInfo {
+    auraEarned: number
+    comboStreak: number
+    comboBonus: number
 }
 
 export function MissionWorkspace({
@@ -34,6 +40,8 @@ export function MissionWorkspace({
     const [innovationUnlocked, setInnovationUnlocked] = useState(
         userMission.innovationUnlocked || false
     )
+    const [missionCleared, setMissionCleared] = useState(false)
+    const [clearInfo, setClearInfo] = useState<MissionClearInfo | null>(null)
 
     const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
         { type: "system", message: "> Terminal initialized. Ready for code input." },
@@ -63,6 +71,8 @@ export function MissionWorkspace({
                 phase={phase}
                 attemptCount={attemptCount}
                 innovationUnlocked={innovationUnlocked}
+                missionCleared={missionCleared}
+                clearInfo={clearInfo}
             />
 
             {/* Full-screen Phases */}
@@ -82,7 +92,7 @@ export function MissionWorkspace({
                 <div className="flex w-full h-full p-2 gap-2 relative z-10">
                     {/* LEFT: Briefing & Platypus Mentor */}
                     <section className="w-[28%] min-w-[280px] h-full bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
-                        <LeftPanel mission={mission} />
+                        <LeftPanel mission={mission} missionCleared={missionCleared} attemptCount={attemptCount} />
                     </section>
 
                     {/* CENTER: Editor */}
@@ -93,6 +103,8 @@ export function MissionWorkspace({
                             attemptCount={attemptCount}
                             setAttemptCount={setAttemptCount}
                             setInnovationUnlocked={setInnovationUnlocked}
+                            setMissionCleared={setMissionCleared}
+                            setClearInfo={setClearInfo}
                         />
                     </section>
 

@@ -10,7 +10,10 @@ export interface MissionRecord {
     briefing: string
     difficulty: string
     language: string
-    xpReward: number
+    type: string
+    goal: string | null
+    startingCode: string | null
+    auraReward: number
     teachingContent: string | null
     mcqContent: string | null
     validationRules: string | null
@@ -40,7 +43,9 @@ export interface DashboardMission {
     description: string
     difficulty: string
     language: string
-    xpReward: number
+    type: string
+    goal: string | null
+    auraReward: number
     status: MissionStatus
 }
 
@@ -50,6 +55,6 @@ export interface UserProfile {
     name?: string | null
     email?: string | null
     image?: string | null
-    xp: number
-    level: number
+    auraPoints: number
+    auraLevel: number
 }
