@@ -1,11 +1,10 @@
+#include "cJSON.h"
+#include "uthash.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// cJSON
-#include "cJSON.h"
-// uthash
-#include "uthash.h"
 // SDL2
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>

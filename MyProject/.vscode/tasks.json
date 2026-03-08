@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Project with Clang",
+            "type": "shell",
+            "command": "clang",
+            "args": [
+                "-std=c99",
+                "-I${workspaceFolder}/include",
+                "-I\"C:/msys64/ucrt64/include\"",
+                "${workspaceFolder}/src/main.c",
+                "${workspaceFolder}/lib/cJSON.c",
+                "-o",
+                "${workspaceFolder}/output.exe"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
