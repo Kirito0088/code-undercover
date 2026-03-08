@@ -76,7 +76,6 @@ export default async function LeaderboardPage({
                             <tbody className="divide-y divide-gray-800/50">
                                 {users.map((u, i) => {
                                     const rank = skip + i + 1
-                                    const isTop3 = rank <= 3
                                     const isCurrentUser = u.id === session.user.id
 
                                     return (

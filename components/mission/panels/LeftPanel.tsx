@@ -19,43 +19,27 @@ export function LeftPanel({ mission, missionCleared, attemptCount }: LeftPanelPr
     }
 
     return (
-        <>
-            <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
-                <div className="flex items-center gap-2 mb-4">
-                    <span className="text-green-500 font-mono text-xs border border-green-500/30 px-2 py-1 rounded bg-green-500/10 uppercase">
-                        {mission.difficulty}
-                    </span>
-                    <span className="text-gray-400 font-mono text-xs">// MISSION #{String(mission.order).padStart(2, '0')}</span>
-                </div>
-
-                <h1 className="text-2xl font-bold text-white mb-6 tracking-tight leading-tight glow-text-subtle">
-                    {mission.title}
-                </h1>
-
-                <div className="space-y-6">
-                    {/* Briefing */}
-                    <div>
-                        <h3 className="text-xs font-mono text-green-400 mb-2 uppercase tracking-wider">Mission Goal</h3>
-                        <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                            {mission.briefing || "Complete the objective as described."}
-                        </div>
+        <div className="flex-1 flex flex-col h-full bg-[#050a12] relative overflow-hidden">
+            <div className="p-4 flex-1 overflow-y-auto custom-scrollbar relative z-10 w-full h-full flex flex-col justify-center border-r-[1px] border-r-gray-900">
+                {/* Briefing Container */}
+                <div className="relative z-30 bg-black/40 border border-[#1e293b] p-6 rounded-lg shadow-2xl w-full my-auto before:content-[''] before:absolute before:left-[-1px] before:top-4 before:bottom-4 before:w-[4px] before:bg-cyan-500 before:rounded-l-sm">
+                    {/* Level Label */}
+                    <div className="flex items-center gap-3 mb-4">
+                        <span className="text-cyan-400 font-mono text-[13px] font-bold tracking-[0.3em] uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
+                            LEVEL.{mission.order}
+                        </span>
                     </div>
 
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-800 to-transparent"></div>
+                    {/* Bold Title */}
+                    <h1 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-widest uppercase font-sans mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] break-words">
+                        {mission.title.includes("Decipher") ? "SYSTEM\nBREACH" : mission.title}
+                    </h1>
 
-                    {/* Learning Objectives */}
-                    <div>
-                        <h3 className="text-xs font-mono text-blue-400 mb-3 uppercase tracking-wider">What You Will Learn</h3>
-                        <ul className="space-y-2">
-                            <li className="flex items-start gap-2 text-sm text-gray-400">
-                                <span className="text-blue-500 mt-0.5">▹</span>
-                                <span>Core syntax and structure.</span>
-                            </li>
-                            <li className="flex items-start gap-2 text-sm text-gray-400">
-                                <span className="text-blue-500 mt-0.5">▹</span>
-                                <span>Memory management fundamentals.</span>
-                            </li>
-                        </ul>
+                    {/* Briefing Text */}
+                    <div className="text-[#94a3b8] text-sm leading-relaxed font-mono whitespace-pre-wrap w-full">
+                        {mission.title.includes("Decipher")
+                            ? "Hack the security grid to enter the system.\nSecurity is active. Scanning your identity..."
+                            : mission.briefing || "Complete the objective as described."}
                     </div>
                 </div>
             </div>
@@ -82,6 +66,6 @@ export function LeftPanel({ mission, missionCleared, attemptCount }: LeftPanelPr
                     />
                 </div>
             </div>
-        </>
+        </div>
     )
 }

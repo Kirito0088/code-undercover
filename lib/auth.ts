@@ -84,7 +84,17 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async session({ session, token }) {
             if (token && session.user) {
-                session.user.id = token.id as string
+                // If the token ID is 25 chars, it's a legacy SQLite CUID. Look up their real MongoDB ID by email.
+                if (token.id && token.id.toString().length === 25 && session.user.email) {
+                    try {
+                        const dbUser = await db.user.findUnique({ where: { email: session.user.email } })
+                        session.user.id = dbUser?.id || token.id as string
+                    } catch {
+                        session.user.id = token.id as string
+                    }
+                } else {
+                    session.user.id = token.id as string
+                }
             }
             return session
         },

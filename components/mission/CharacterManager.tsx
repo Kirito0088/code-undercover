@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import type { MissionClearInfo } from "./MissionWorkspace"
 
@@ -21,6 +22,7 @@ export function CharacterManager({
     clearInfo,
     systemMessage
 }: CharacterManagerProps) {
+    const router = useRouter()
     const [showFoxAnimation, setShowFoxAnimation] = useState(false)
     const [showVictoryOverlay, setShowVictoryOverlay] = useState(false)
 
@@ -33,14 +35,17 @@ export function CharacterManager({
         }
     }, [innovationUnlocked])
 
-    // Trigger victory overlay when mission clears
+    // Trigger victory overlay when mission clears, then return to dashboard
     useEffect(() => {
         if (missionCleared) {
             setShowVictoryOverlay(true)
-            const timer = setTimeout(() => setShowVictoryOverlay(false), 5000)
+            const timer = setTimeout(() => {
+                setShowVictoryOverlay(false)
+                router.push("/dashboard")
+            }, 5000)
             return () => clearTimeout(timer)
         }
-    }, [missionCleared])
+    }, [missionCleared, router])
 
     return (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">

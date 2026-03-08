@@ -24,50 +24,17 @@ interface ValidationRules {
     requiredOutput?: string
 }
 
-function validateCodeAgainstSyntaxRules(
-    code: string,
-    rules: ValidationRules
-): { passed: boolean; failures: string[] } {
-    const failures: string[] = []
 
-    if (rules.minLength && code.length < rules.minLength) {
-        failures.push("Code is too short.")
-    }
-    if (rules.forbiddenPatterns) {
-        for (const pattern of rules.forbiddenPatterns) {
-            if (code.includes(pattern)) {
-                failures.push("Your code still contains default template placeholders.")
-                break
-            }
-        }
-    }
-    if (rules.requiredKeywords) {
-        const missing = rules.requiredKeywords.filter((kw) => !code.includes(kw))
-        if (missing.length > 0) {
-            failures.push("Missing required concepts: " + missing.join(", "))
-        }
-    }
-    if (rules.requiredPatterns && rules.requiredPatterns.length > 0) {
-        const hasAny = rules.requiredPatterns.some((p) => code.includes(p))
-        if (!hasAny) {
-            failures.push("Missing required pattern.")
-        }
-    }
-    if (rules.requireCustomFunction) {
-        const funcRegex = /\b(int|void|float|double|char)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{/g
-        let match
-        let hasCustomFunc = false
-        while ((match = funcRegex.exec(code)) !== null) {
-            if (match[2] !== "main") {
-                hasCustomFunc = true
-                break
-            }
-        }
-        if (!hasCustomFunc) {
-            failures.push("You must define at least one custom function besides main().")
-        }
-    }
-    return { passed: failures.length === 0, failures }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function validateCodeAgainstSyntaxRules(
+    _code: string,
+    _rules: ValidationRules
+): { passed: boolean; failures: string[] } {
+    // We now validate ONLY by comparing compiler/program output to expected test cases.
+    // Static code requirement checks (like forbidden template comments or required keywords)
+    // are bypassed to prevent false-positive failures.
+    return { passed: true, failures: [] }
 }
 
 function getComboBonus(streak: number): number {

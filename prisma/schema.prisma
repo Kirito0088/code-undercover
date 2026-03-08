@@ -3,13 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
   type              String
   provider          String
   providerAccountId String
@@ -28,9 +28,9 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
-  userId       String
+  userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -38,7 +38,7 @@ model Session {
 }
 
 model User {
-  id            String        @id @default(cuid())
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
   email         String?       @unique
   emailVerified DateTime?
@@ -58,6 +58,7 @@ model User {
 }
 
 model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   identifier String
   token      String   @unique
   expires    DateTime
@@ -66,7 +67,7 @@ model VerificationToken {
 }
 
 model Mission {
-  id              String        @id @default(cuid())
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
   order           Int           @unique
   title           String
   description     String
@@ -86,9 +87,9 @@ model Mission {
 }
 
 model UserMission {
-  id                 String    @id @default(cuid())
-  userId             String
-  missionId          String
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String    @db.ObjectId
+  missionId          String    @db.ObjectId
   status             String    @default("LOCKED")
   phase              String    @default("TEACHING") // TEACHING, MCQ, CODING
   hintsUsed          Int       @default(0)
@@ -108,11 +109,10 @@ model UserMission {
 }
 
 model DailyQuestion {
-  id            String   @id @default(cuid())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   question      String
   options       String   // JSON array of strings
   correctAnswer String   // The correct option
   explanation   String   // Explains why it's correct
   createdAt     DateTime @default(now())
 }
-

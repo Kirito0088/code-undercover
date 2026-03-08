@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { MissionRecord } from "@/types"
 import type { MissionClearInfo } from "../MissionWorkspace"
 import { Play } from "lucide-react"
@@ -162,7 +162,7 @@ export function EditorPanel({
             </div>
 
             {/* Editor Area with line numbers feel */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative min-h-0 w-full overflow-hidden">
                 <Editor
                     height="100%"
                     defaultLanguage="c"

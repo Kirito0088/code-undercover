@@ -8,6 +8,7 @@ import { TerminalPanel } from "./panels/TerminalPanel"
 import { TeachingPhase } from "./phases/TeachingPhase"
 import { MCQPhase } from "./phases/MCQPhase"
 import { CharacterManager } from "./CharacterManager"
+import { LevelIntro } from "../LevelIntro"
 
 interface MissionWorkspaceProps {
     mission: MissionRecord
@@ -42,6 +43,7 @@ export function MissionWorkspace({
     )
     const [missionCleared, setMissionCleared] = useState(false)
     const [clearInfo, setClearInfo] = useState<MissionClearInfo | null>(null)
+    const [showIntro, setShowIntro] = useState(mission.order === 1)
 
     const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
         { type: "system", message: "> Terminal initialized. Ready for code input." },
@@ -75,6 +77,11 @@ export function MissionWorkspace({
                 clearInfo={clearInfo}
             />
 
+            {/* Cinematic Level 1 Intro */}
+            {showIntro && (
+                <LevelIntro onComplete={() => setShowIntro(false)} />
+            )}
+
             {/* Full-screen Phases */}
             {phase === "TEACHING" && (
                 <TeachingPhase mission={mission} onComplete={() => syncPhase("MCQ")} />
@@ -96,7 +103,7 @@ export function MissionWorkspace({
                     </section>
 
                     {/* CENTER: Editor */}
-                    <section className="flex-1 h-full bg-gray-950/90 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+                    <section className="flex-1 h-full bg-gray-950/90 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative min-w-0 min-h-0">
                         <EditorPanel
                             mission={mission}
                             setTerminalOutput={setTerminalOutput}

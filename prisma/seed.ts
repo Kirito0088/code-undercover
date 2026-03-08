@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+export { }
 const { PrismaClient } = require("@prisma/client")
 
 const prisma = new PrismaClient()
@@ -12,7 +14,7 @@ const missions = [
             "Learn the fundamentals of pointers in C. Understand how to declare pointer variables, assign addresses, dereference values, and avoid common pitfalls like dangling and null pointer dereferences.",
         difficulty: "EASY",
         language: "C",
-        xpReward: 100,
+        auraReward: 100,
     },
     {
         order: 2,
@@ -23,7 +25,7 @@ const missions = [
             "Master C data types: int, float, double, char. Learn about variable scope, initialization, type casting, and the sizeof operator. Write clean declarations that the compiler respects.",
         difficulty: "EASY",
         language: "C",
-        xpReward: 100,
+        auraReward: 100,
     },
     {
         order: 3,
@@ -34,7 +36,7 @@ const missions = [
             "Implement if-else chains, switch statements, and ternary operators. Understand logical operators (&&, ||, !) and how C evaluates boolean expressions. Write decision-making code that handles edge cases.",
         difficulty: "MEDIUM",
         language: "C",
-        xpReward: 200,
+        auraReward: 200,
     },
     {
         order: 4,
@@ -45,7 +47,7 @@ const missions = [
             "Master for loops, while loops, and do-while loops. Understand loop control with break and continue. Implement nested loops for matrix operations. Avoid infinite loops and off-by-one errors.",
         difficulty: "MEDIUM",
         language: "C",
-        xpReward: 250,
+        auraReward: 250,
     },
     {
         order: 5,
@@ -56,7 +58,7 @@ const missions = [
             "Learn to declare and define functions in C. Understand parameter passing (by value vs by reference), return types, function prototypes, and recursive functions. Write modular, reusable code.",
         difficulty: "HARD",
         language: "C",
-        xpReward: 350,
+        auraReward: 350,
     },
 ]
 

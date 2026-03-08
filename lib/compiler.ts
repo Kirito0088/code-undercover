@@ -1,8 +1,9 @@
-import { spawn } from 'child_process'
-import fs from 'fs/promises'
+import { explainCompilerError } from './compilerExplanation'
+import { promises as fs } from 'fs'
 import path from 'path'
 import os from 'os'
-import { explainCompilerError } from './compilerExplanation'
+import { execFile, spawn } from 'child_process'
+import crypto from 'crypto'
 
 export interface CompileExecutionResult {
     success: boolean
@@ -13,115 +14,129 @@ export interface CompileExecutionResult {
     exitCode?: number | null
 }
 
+const EXECUTION_TIMEOUT_MS = 10000; // 10 seconds max
+
 export async function executeCode(code: string, input: string = ""): Promise<CompileExecutionResult> {
-    const tempPrefix = path.join(os.tmpdir(), "code-undercover-")
-    const tempDir = await fs.mkdtemp(tempPrefix)
+    const id = crypto.randomUUID();
+    const tempDir = os.tmpdir();
+    const srcPath = path.join(tempDir, `${id}.c`);
+    // On Windows, executables need .exe extension for easy spawn
+    const isWindows = os.platform() === 'win32';
+    const exeName = isWindows ? `${id}.exe` : id;
+    const exePath = path.join(tempDir, exeName);
 
     try {
-        const sourceFile = path.join(tempDir, "program.c")
-        const exeFile = path.join(tempDir, process.platform === 'win32' ? "program.exe" : "program")
-        await fs.writeFile(sourceFile, code)
+        // 1. Write the source code to a temp file
+        await fs.writeFile(srcPath, code, 'utf8');
 
-        // Compile using spawn (NOT exec with a string) so paths are handled correctly on all platforms
-        const compileResult = await new Promise<{ success: boolean; stderr: string }>((resolve) => {
-            const compiler = spawn("gcc", [sourceFile, "-o", exeFile], {
-                timeout: 3000,
-            })
-
-            let compileStderr = ""
-
-            compiler.stdout.on("data", () => {
-                // gcc doesn't normally write to stdout during compilation, but capture just in case
-            })
-
-            compiler.stderr.on("data", (data: Buffer) => {
-                compileStderr += data.toString()
-            })
-
-            compiler.on("error", (err) => {
-                resolve({ success: false, stderr: err.message })
-            })
-
-            compiler.on("close", (code) => {
-                resolve({ success: code === 0, stderr: compileStderr })
-            })
-        })
-
-        if (!compileResult.success) {
-            const stderr = compileResult.stderr || "Unknown compiler error"
-            return {
-                success: false,
-                compilerError: stderr,
-                explanation: explainCompilerError(stderr),
-            }
-        }
-
-        return await new Promise((resolve) => {
-            const child = spawn(exeFile, [], {
-                stdio: ['pipe', 'pipe', 'pipe']
-            })
-
-            let stdoutData = ""
-            let stderrData = ""
-            let isFinished = false
-            const maxOutputSize = 1024 * 1024 // 1MB 
-
-            child.stdout.on('data', (data) => {
-                stdoutData += data.toString()
-                if (stdoutData.length > maxOutputSize) {
-                    stdoutData = stdoutData.slice(0, maxOutputSize) + "\n...[OUTPUT TRUNCATED]"
-                    child.kill('SIGKILL')
+        // 2. Compile the source code using local GCC
+        await new Promise<void>((resolve, reject) => {
+            execFile('gcc', [srcPath, '-o', exePath, '-Wall', '-O2'], (error, stdout, stderr) => {
+                if (error) {
+                    // Compilation failed
+                    reject({ type: 'compile_error', stderr: stderr || stdout || error.message });
+                } else {
+                    resolve();
                 }
-            })
+            });
+        });
 
-            child.stderr.on('data', (data) => {
-                stderrData += data.toString()
-            })
+        // 3. Execute the compiled binary
+        const result = await new Promise<CompileExecutionResult>((resolve) => {
+            const child = spawn(exePath);
+            let outputRaw = '';
+            let errorRaw = '';
+            let isTimeout = false;
 
-            child.on('error', (err) => {
-                if (!isFinished) {
-                    isFinished = true
-                    resolve({
-                        success: false,
-                        errors: "Failed to execute program: " + err.message
-                    })
-                }
-            })
-
-            child.on('close', (code) => {
-                if (!isFinished) {
-                    isFinished = true
-                    resolve({
-                        success: true,
-                        output: stdoutData.trim(),
-                        errors: stderrData.trim(),
-                        exitCode: code
-                    })
-                }
-            })
+            const timeoutId = setTimeout(() => {
+                isTimeout = true;
+                child.kill('SIGKILL');
+            }, EXECUTION_TIMEOUT_MS);
 
             if (input) {
-                child.stdin.write(input)
+                child.stdin.write(input);
+                child.stdin.end();
             }
-            child.stdin.end()
 
-            setTimeout(() => {
-                if (!isFinished) {
-                    isFinished = true
-                    child.kill('SIGKILL')
+            child.stdout.on('data', (data) => {
+                outputRaw += data.toString();
+            });
+
+            child.stderr.on('data', (data) => {
+                errorRaw += data.toString();
+            });
+
+            child.on('close', (code, signal) => {
+                clearTimeout(timeoutId);
+
+                if (isTimeout || signal === 'SIGKILL' || signal === 'SIGXCPU') {
                     resolve({
                         success: false,
+                        output: outputRaw.trim(),
                         errors: "Execution Timeout: Your program took too long to finish. (Potential infinite loop)"
-                    })
+                    });
+                    return;
                 }
-            }, 2000)
-        })
 
-    } finally {
-        try {
-            await fs.rm(tempDir, { recursive: true, force: true, maxRetries: 3 })
-        } catch (e) {
-            console.error("Cleanup error in compiler.ts:", e)
+                if (signal) {
+                    resolve({
+                        success: false,
+                        output: outputRaw.trim(),
+                        errors: errorRaw.trim() || `Runtime Error: Program terminated by signal ${signal}`,
+                        exitCode: code
+                    });
+                    return;
+                }
+
+                if (code !== 0) {
+                    resolve({
+                        success: false,
+                        output: outputRaw.trim(),
+                        errors: errorRaw.trim() || `Program exited with code ${code}`,
+                        exitCode: code
+                    });
+                    return;
+                }
+
+                // Success
+                resolve({
+                    success: true,
+                    output: outputRaw.trim(),
+                    errors: errorRaw.trim() || "",
+                    exitCode: 0
+                });
+            });
+
+            child.on('error', (err) => {
+                clearTimeout(timeoutId);
+                resolve({
+                    success: false,
+                    errors: `Execution Failed: ${err.message}`
+                });
+            });
+        });
+
+        return result;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        if (error?.type === 'compile_error') {
+            const compilerOutput = error.stderr.trim();
+            return {
+                success: false,
+                compilerError: compilerOutput,
+                explanation: explainCompilerError(compilerOutput)
+            };
         }
+
+        console.error("[COMPILER] Failed to execute code locally:", error);
+        return {
+            success: false,
+            errors: `System Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        };
+    } finally {
+        // 4. Cleanup temp files
+        try { await fs.unlink(srcPath); } catch { }
+        try { await fs.unlink(exePath); } catch { }
     }
 }

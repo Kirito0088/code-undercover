@@ -6,6 +6,7 @@ import { db } from "@/lib/db"
 import { Terminal } from "lucide-react"
 import { MissionCard } from "./MissionCard"
 import { DailyChallenge } from "@/components/dashboard/DailyChallenge"
+import { MissionIntelStory } from "./MissionIntelStory"
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions)
@@ -26,7 +27,8 @@ export default async function DashboardPage() {
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
     return (
-        <div className="flex-1 bg-black/40 py-10">
+        <div className="flex-1 bg-black/40 py-10 relative">
+            <MissionIntelStory />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Header */}

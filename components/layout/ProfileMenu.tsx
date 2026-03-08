@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Heart, CreditCard, PlayCircle, LogOut, Terminal, MapPin, Sparkles, Award, Shield } from "lucide-react"
-import Link from "next/link"
+import { LogOut, Terminal, Sparkles, Award, Shield } from "lucide-react"
 import Image from "next/image"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
 import { signOut } from "next-auth/react"

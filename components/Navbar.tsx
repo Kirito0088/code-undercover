@@ -10,32 +10,33 @@ export default async function Navbar() {
     const session = await getServerSession(authOptions)
 
     let userStats: { name: string | null; email: string | null; auraPoints: number; auraLevel: number } | null = null
-    let completedCount = 0
+    // let _completedCount = 0
 
     if (session?.user?.email) {
-        userStats = await db.user.findUnique({
+        let dbUser = await db.user.findUnique({
             where: { email: session.user.email },
-            select: { name: true, email: true, auraPoints: true, auraLevel: true },
+            select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true },
         })
 
         // Defensive handling: auto-create missing user for orphaned sessions
-        if (!userStats) {
-            userStats = await db.user.create({
+        if (!dbUser) {
+            dbUser = await db.user.create({
                 data: {
-                    id: session.user.id, // Preserve NextAuth ID
                     email: session.user.email,
                     name: session.user.name || "Agent",
                     auraPoints: 0,
                     auraLevel: 1,
                 },
-                select: { name: true, email: true, auraPoints: true, auraLevel: true },
+                select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true },
             })
         }
 
-        if (session.user.id) {
-            completedCount = await db.userMission.count({
-                where: { userId: session.user.id, status: "COMPLETED" },
-            })
+        userStats = dbUser;
+
+        if (dbUser.id) {
+            // _completedCount = await db.userMission.count({
+            //     where: { userId: dbUser.id, status: "COMPLETED" },
+            // })
         }
     }
 

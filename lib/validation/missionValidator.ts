@@ -10,8 +10,10 @@ export function detectInnovation(
 ): { innovationUnlocked: boolean; innovationReason: string } {
     // We specifically target the Pointer mission for these rules
     if (missionTitle !== "The Pointer Breach") {
-        // Fallback for other missions: check for ternary or while-loops as a basic heuristic
-        if (code.includes("while (") || code.includes("while(") || code.includes("? :") || code.includes("?:")) {
+        // Fallback for other missions: check for while-loops or ternary operators
+        const hasWhileLoop = /\bwhile\s*\(/.test(code)
+        const hasTernary = /\?[^:]*:/.test(code)
+        if (hasWhileLoop || hasTernary) {
             return {
                 innovationUnlocked: true,
                 innovationReason: "Alternative control flow detected! Exceptional logic, agent."
@@ -47,15 +49,15 @@ int main() {
         return { innovationUnlocked: false, innovationReason: "" };
     }
 
-    // 2. Check for alternative valid valid syntax / advanced techniques
-    const hasSizeofStar = code.includes("sizeof(*");
-    const hasPointerArithmetic = code.includes("ptr +") || code.includes("ptr+");
-    const hasBangNullCheck = code.includes("if (!") || code.includes("if(!");
-    const hasParenthesisDereference = code.includes("*(ptr)");
+    // 2. Check for alternative valid syntax / advanced techniques using regex
+    const hasSizeofStar = /\bsizeof\s*\(\s*\*/.test(code);
+    const hasPointerArithmetic = /\bptr\s*[+\-]/.test(code);
+    const hasBangNullCheck = /\bif\s*\(\s*!/.test(code);
+    const hasParenthesisDereference = /\*\s*\(\s*ptr\s*\)/.test(code);
 
-    // In C, casting malloc (e.g., (int *)malloc) is considered bad practice by some, 
+    // In C, casting malloc (e.g., (int *)malloc) is considered bad practice by some,
     // so omitting it is an innovation/proper C idiom (unlike C++).
-    const lacksIntCast = !normalizedUserCode.includes("(int*)malloc");
+    const lacksIntCast = !/\(\s*int\s*\*\s*\)\s*malloc/.test(code);
 
     if (hasSizeofStar || hasPointerArithmetic || hasBangNullCheck || hasParenthesisDereference || lacksIntCast) {
         return {

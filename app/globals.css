@@ -30,6 +30,38 @@
   50% { filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.6)); }
 }
 
+@keyframes laser-scan {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes door-pulse-red {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: inset 0 0 50px rgba(220, 38, 38, 0.6); border-color: rgba(220, 38, 38, 1); }
+}
+
+@keyframes door-pulse-yellow {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(234, 179, 8, 0.2); border-color: rgba(234, 179, 8, 0.4); }
+  50% { box-shadow: inset 0 0 50px rgba(234, 179, 8, 0.6); border-color: rgba(234, 179, 8, 1); }
+}
+
+@keyframes door-pulse-green {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: inset 0 0 50px rgba(34, 197, 94, 0.8); border-color: rgba(34, 197, 94, 1); }
+}
+
+@keyframes door-slide-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-15%); opacity: 0; }
+}
+
+@keyframes door-slide-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(15%); opacity: 0; }
+}
+
 /* ─── Custom Scrollbar (Cyber theme) ─── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
