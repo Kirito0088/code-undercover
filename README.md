@@ -2,7 +2,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment variables by creating a `.env` file at the root of the project with your MongoDB connection string:
+```env
+DATABASE_URL="mongodb+srv://<username>:<password>@cluster0...mongodb.net/code-undercover"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+```
+
+Next, initialize the database and seed the initial missions:
+```bash
+npm run setup
+```
+
+Finally, run the development server:
 
 ```bash
 npm run dev
