@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/MyProject/include",
                 "C:/msys64/ucrt64/include"
             ],
             "defines": [

@@ -14,7 +14,7 @@ export interface CompileExecutionResult {
     exitCode?: number | null
 }
 
-const EXECUTION_TIMEOUT_MS = 10000; // 10 seconds max
+const EXECUTION_TIMEOUT_MS = 5000; // 5 seconds max
 
 export async function executeCode(code: string, input: string = ""): Promise<CompileExecutionResult> {
     const id = crypto.randomUUID();

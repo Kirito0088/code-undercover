@@ -1,0 +1,6 @@
+-IMyProject/include
+-IC:/msys64/ucrt64/include
+-xc
+-std=c11
+-Wall
+-Wextra

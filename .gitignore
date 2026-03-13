@@ -41,3 +41,8 @@ seed_error.log
 prisma/dev.db
 node_modules
 .tmp
+
+# C/C++ build artifacts
+*.exe
+*.o
+compile_commands.json
