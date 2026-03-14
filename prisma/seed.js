@@ -189,3 +189,4 @@ main()
     .finally(async function () {
         await prisma.$disconnect()
     })
+export {}

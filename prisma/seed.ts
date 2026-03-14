@@ -7,11 +7,9 @@ const prisma = new PrismaClient()
 const missions = [
     {
         order: 1,
-        title: "The Pointer Breach",
-        description:
-            "A critical vulnerability has been detected in the agency's authentication module. Dangling pointers are causing unauthorized memory access. Your mission: write a C program that correctly allocates, uses, and frees memory using pointers.",
-        briefing:
-            "Learn the fundamentals of pointers in C. Understand how to declare pointer variables, assign addresses, dereference values, and avoid common pitfalls like dangling and null pointer dereferences.",
+        title: "The System Access",
+        description: "Learn how to use the printf function in C to display output on the screen. In this task, students will learn how to include the standard input/output library and use printf to print a message to the terminal. The expected output from the program will be: \"Hello Agent \"",
+        briefing: "Learn how to use the printf function in C to display output on the screen. In this task, students will learn how to include the standard input/output library and use printf to print a message to the terminal. The expected output from the program will be: \"Hello Agent \"",
         difficulty: "EASY",
         language: "C",
         auraReward: 100,
@@ -85,3 +83,4 @@ main()
     .finally(async () => {
         await prisma.$disconnect()
     })
+export {}

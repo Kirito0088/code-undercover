@@ -102,45 +102,6 @@ export function CharacterManager({
                 </div>
             )}
 
-            {/* PLATYPUS SUPPORT: Shows on >= 2 attempts ONLY if mission NOT cleared */}
-            {(attemptCount >= 2 && phase === "CODING" && !missionCleared) && (
-                <div className="absolute bottom-10 right-10 flex flex-col items-end animate-in slide-in-from-bottom-10 fade-in duration-500">
-                    <div className="bg-blue-950/90 border border-blue-500/50 p-4 rounded-2xl rounded-br-none shadow-[0_0_20px_rgba(59,130,246,0.2)] max-w-xs mb-4 backdrop-blur-md">
-                        <p className="text-blue-100 font-mono text-sm leading-relaxed">
-                            {systemMessage?.sender === "platypus"
-                                ? systemMessage.text
-                                : "Hey there! Don't worry about the errors. Even the best agents need a few tries. Check the hints if you're stuck!"}
-                        </p>
-                    </div>
-                    <div className="relative h-48 w-48">
-                        <Image
-                            src="/characters/platypus.png"
-                            alt="Platypus Support"
-                            fill
-                            className="object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]"
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* PLATYPUS SUCCESS: Shows after mission cleared (replaces encouragement) */}
-            {(missionCleared && phase === "CODING") && (
-                <div className="absolute bottom-10 right-10 flex flex-col items-end animate-in slide-in-from-bottom-10 fade-in duration-500">
-                    <div className="bg-green-950/90 border border-green-500/50 p-4 rounded-2xl rounded-br-none shadow-[0_0_20px_rgba(34,197,94,0.2)] max-w-xs mb-4 backdrop-blur-md">
-                        <p className="text-green-100 font-mono text-sm leading-relaxed">
-                            &quot;Great work, Agent. Module restored successfully. Your skills are evolving.&quot;
-                        </p>
-                    </div>
-                    <div className="relative h-48 w-48">
-                        <Image
-                            src="/characters/platypus.png"
-                            alt="Platypus Support"
-                            fill
-                            className="object-contain drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]"
-                        />
-                    </div>
-                </div>
-            )}
 
             {/* FOX: Shows up when innovation unlocks */}
             {showFoxAnimation && (

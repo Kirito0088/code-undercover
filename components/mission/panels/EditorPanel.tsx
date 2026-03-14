@@ -133,32 +133,34 @@ export function EditorPanel({
     return (
         <div className="flex flex-col h-full bg-[#0d1117] rounded-xl overflow-hidden border border-gray-800 shadow-2xl relative">
             {/* Neutral Window Header */}
-            <div className="h-12 bg-[#161b22] border-b border-gray-800 flex items-center justify-between px-4 select-none flex-shrink-0">
-                <div className="flex gap-2 items-center">
-                    <div className="flex gap-1.5 mr-4">
+            <div className="bg-[#161b22] border-b border-gray-800 flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
+                <div className="flex items-end h-full">
+                    <div className="flex gap-1.5 mr-6 mb-3">
                         <div className="w-3 h-3 rounded-full bg-gray-600/50"></div>
                         <div className="w-3 h-3 rounded-full bg-gray-600/50"></div>
                         <div className="w-3 h-3 rounded-full bg-gray-600/50"></div>
                     </div>
-                    <div className="bg-[#0d1117] text-gray-400 text-xs font-mono py-1 px-4 rounded-t-md border border-gray-800 border-b-0 translate-y-[1px]">
+                    <div className="bg-[#0d1117] text-gray-300 text-xs font-mono py-2 px-6 border border-gray-800 border-b-0 translate-y-[1px]">
                         solution.c
                     </div>
                 </div>
 
-                <button
-                    onClick={handleRunCode}
-                    disabled={isRunning}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-xs font-bold tracking-wider uppercase transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(22,163,74,0.3)]"
-                >
-                    {isRunning ? (
-                        <span className="animate-pulse">RUNNING...</span>
-                    ) : (
-                        <>
-                            <Play className="h-3 w-3" fill="currentColor" />
-                            RUN CODE
-                        </>
-                    )}
-                </button>
+                <div className="mb-1.5">
+                    <button
+                        onClick={handleRunCode}
+                        disabled={isRunning}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-xs font-bold tracking-wider uppercase transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(22,163,74,0.3)]"
+                    >
+                        {isRunning ? (
+                            <span className="animate-pulse">RUNNING...</span>
+                        ) : (
+                            <>
+                                <Play className="h-3 w-3" fill="currentColor" />
+                                RUN CODE
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Editor Area with line numbers feel */}

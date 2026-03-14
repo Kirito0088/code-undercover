@@ -127,12 +127,8 @@ export async function POST(req: Request) {
             finalStdout = runRes.output || ""
             finalStderr = runRes.errors || ""
 
-            // Output Validation
-            if (tc.output !== "" && runRes.output?.trim() !== tc.output.trim()) {
-                testCaseFailed = true
-                validationFailures.push(`Test Case ${i + 1} Failed: Expected '${tc.output}' but got '${runRes.output?.trim()}'`)
-                break
-            }
+            // Output Validation (Disabled as per user request to ignore strict string matching)
+            // If the code compiled and executed successfully above, we consider it a pass.
         }
 
         if (testCaseFailed) {

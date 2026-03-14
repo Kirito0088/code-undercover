@@ -18,6 +18,7 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "lucide-react": "^0.575.0",
+    "mongodb": "^7.1.0",
     "next": "^14.2.13",
     "next-auth": "^4.24.13",
     "prisma": "^5.22.0",
@@ -37,6 +38,6 @@
     "typescript": "^5"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "npx tsx prisma/seed.ts"
   }
 }

@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions)
+
   return (
     <div className="relative isolate overflow-hidden flex-1 flex flex-col justify-center w-full min-h-[calc(100vh-80px)] xl:min-h-0 py-8 lg:py-0">
       {/* Background Gradients */}
@@ -24,14 +28,24 @@ export default function Home() {
             Code Undercover is a mission-based learning platform where you solve real engineering challenges, build production-ready code, and level up your problem-solving skills in an immersive gamified environment.
           </p>
           <div className="mt-10 flex items-center gap-x-6">
-            <Link href="/register">
-              <Button size="lg" className="text-base">
-                Join the Agency
-              </Button>
-            </Link>
-            <Link href="/login" className="text-sm font-semibold leading-6 text-white hover:text-green-400 transition-colors">
-              Access Terminal <span aria-hidden="true">→</span>
-            </Link>
+            {session ? (
+              <Link href="/dashboard">
+                <Button size="lg" className="text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+                  Start your Mission
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/register">
+                  <Button size="lg" className="text-base">
+                    Join the Agency
+                  </Button>
+                </Link>
+                <Link href="/login" className="text-sm font-semibold leading-6 text-white hover:text-green-400 transition-colors">
+                  Access Terminal <span aria-hidden="true">→</span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
