@@ -11,20 +11,19 @@ interface CharacterManagerProps {
     innovationUnlocked: boolean
     missionCleared: boolean
     clearInfo: MissionClearInfo | null
+    missionId: string
     systemMessage?: { sender: "platypus" | "fox", text: string } | null
 }
 
 export function CharacterManager({
-    phase,
-    attemptCount,
     innovationUnlocked,
     missionCleared,
     clearInfo,
+    missionId,
     systemMessage
 }: CharacterManagerProps) {
     const router = useRouter()
     const [showFoxAnimation, setShowFoxAnimation] = useState(false)
-    const [showVictoryOverlay, setShowVictoryOverlay] = useState(false)
 
     // Trigger fox animation once when unlocked
     useEffect(() => {
@@ -35,23 +34,11 @@ export function CharacterManager({
         }
     }, [innovationUnlocked])
 
-    // Trigger victory overlay when mission clears, then return to dashboard
-    useEffect(() => {
-        if (missionCleared) {
-            setShowVictoryOverlay(true)
-            const timer = setTimeout(() => {
-                setShowVictoryOverlay(false)
-                router.push("/dashboard")
-            }, 5000)
-            return () => clearTimeout(timer)
-        }
-    }, [missionCleared, router])
-
     return (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
 
-            {/* VICTORY OVERLAY: Shows when mission is cleared */}
-            {showVictoryOverlay && clearInfo && (
+            {/* VICTORY OVERLAY: Shows ONLY after user clicks Finish Mission */}
+            {missionCleared && clearInfo && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-[60] pointer-events-auto">
                     <div className="animate-in zoom-in-75 fade-in duration-500 flex flex-col items-center">
                         {/* Success Pulse Ring */}
@@ -94,9 +81,25 @@ export function CharacterManager({
                                 </div>
                             )}
 
-                            <p className="text-gray-400 text-xs font-mono mt-4">
+                            <p className="text-gray-400 text-xs font-mono mt-4 mb-6">
                                 Module restored. Returning to base...
                             </p>
+
+                            {/* Navigation Buttons */}
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={() => router.push("/dashboard")}
+                                    className="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-600 px-6 py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase transition-colors"
+                                >
+                                    Back to Dashboard
+                                </button>
+                                <button
+                                    onClick={() => router.push("/dashboard")}
+                                    className="w-full bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                                >
+                                    Continue →
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

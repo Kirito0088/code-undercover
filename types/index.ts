@@ -1,3 +1,12 @@
+// ─── Compiler Types ───
+export interface CompilerDiagnostic {
+    line: number
+    column: number
+    type: "error" | "warning" | "note"
+    message: string
+    rawContext: string
+}
+
 // ─── Mission Status ───
 export type MissionStatus = "LOCKED" | "ACTIVE" | "COMPLETED"
 

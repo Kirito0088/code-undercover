@@ -6,14 +6,22 @@ import type { MissionClearInfo } from "../MissionWorkspace"
 import { Play } from "lucide-react"
 import Editor from "@monaco-editor/react"
 
+interface TerminalLine {
+    type: "system" | "error" | "success" | "hint" | "finish"
+    message: string
+    rawContext?: string
+    isDiagnostic?: boolean
+}
+
 interface EditorPanelProps {
     mission: MissionRecord
-    setTerminalOutput: React.Dispatch<React.SetStateAction<{ type: "system" | "error" | "success" | "hint"; message: string }[]>>
+    setTerminalOutput: React.Dispatch<React.SetStateAction<TerminalLine[]>>
     attemptCount: number
     setAttemptCount: (count: number) => void
     setInnovationUnlocked: (unlocked: boolean) => void
     setMissionCleared: (cleared: boolean) => void
     setClearInfo: (info: MissionClearInfo) => void
+    setPendingClearInfo: (info: MissionClearInfo | null) => void
 }
 
 export function EditorPanel({
@@ -22,8 +30,7 @@ export function EditorPanel({
     attemptCount,
     setAttemptCount,
     setInnovationUnlocked,
-    setMissionCleared,
-    setClearInfo,
+    setPendingClearInfo,
 }: EditorPanelProps) {
     const defaultCode = mission.startingCode || [
         "// Mission: " + mission.title,
@@ -59,45 +66,65 @@ export function EditorPanel({
             const result = await response.json()
 
             if (result.success) {
-                const successLines = [
+                // ── SUCCESS: Show output → Platypus → Finish button ──────
+                const lines: TerminalLine[] = [
                     { type: "system", message: "> Compilation successful." },
-                    { type: "success", message: "Output: " + (result.stdout || "System secured.") },
-                    { type: "system", message: "MISSION CLEARED." },
-                ] as { type: "system" | "error" | "success" | "hint"; message: string }[]
+                ]
 
+                // Show program output
+                if (result.stdout && result.stdout.trim()) {
+                    lines.push({ type: "system", message: "─── Program Output ───────────────────" })
+                    lines.push({ type: "success", message: result.stdout.trim() })
+                    lines.push({ type: "system", message: "──────────────────────────────────────" })
+                }
+
+                // Execution time
+                if (result.executionTimeMs !== undefined) {
+                    lines.push({ type: "system", message: `> Execution Time: ${result.executionTimeMs} ms` })
+                }
+
+                // Combo bonus
                 if (result.comboStreak > 1 && result.comboBonus > 0) {
-                    successLines.push({
+                    lines.push({
                         type: "success",
                         message: `> ⚡ LOGIC COMBO x${result.comboStreak} (+${result.comboBonus} Aura Bonus)`,
                     })
                 }
 
-                setTerminalOutput(successLines)
+                // Platypus success explanation in the terminal
+                lines.push({
+                    type: "hint",
+                    message: `Excellent work, Agent.\n\nYour program compiled and executed successfully, producing the expected output.\n\nYour transmission module is now operational.\n\n+${result.earnedAura || result.auraEarned || 50} Aura Earned`
+                })
 
-                // Signal mission cleared to parent for victory overlay
-                setMissionCleared(true)
-                setClearInfo({
-                    auraEarned: result.auraEarned || result.earnedAura || 50,
+                // Innovation detection
+                if (result.innovationUnlocked) {
+                    setInnovationUnlocked(true)
+                    lines.push({
+                        type: "success",
+                        message: "> INNOVATION DETECTED: " + result.innovationReason,
+                    })
+                }
+
+                // The Finish button line — rendered as a special type in the terminal
+                lines.push({ type: "finish", message: "FINISH_MISSION" })
+
+                setTerminalOutput(lines)
+
+                // Store the clear info so the Finish button can trigger the popup
+                setPendingClearInfo({
+                    auraEarned: result.earnedAura || result.auraEarned || 50,
                     comboStreak: result.comboStreak || 0,
                     comboBonus: result.comboBonus || 0,
                 })
 
-                if (result.innovationUnlocked) {
-                    setInnovationUnlocked(true)
-                    setTimeout(() => {
-                        setTerminalOutput((prev) => [
-                            ...prev,
-                            {
-                                type: "system",
-                                message: "> INNOVATION DETECTED: " + result.innovationReason,
-                            },
-                        ])
-                    }, 2000)
-                }
+                // NOTE: We do NOT call setMissionCleared(true) here anymore.
+                // That only happens when the user clicks "Finish Mission" in the terminal.
+
             } else {
-                // Show validation errors from the rule engine or compiler
-                const errorLines: { type: "system" | "error" | "success" | "hint"; message: string }[] = [
-                    { type: "system", message: "> Validation or Compilation failed." },
+                // ── ERROR: Show diagnostics → Platypus → retry ───────────
+                const errorLines: TerminalLine[] = [
+                    { type: "system", message: "> Compilation or validation failed." },
                 ]
 
                 if (result.validationErrors && result.validationErrors.length > 0) {
@@ -106,12 +133,24 @@ export function EditorPanel({
                     }
                 }
 
-                if (result.explanation) {
-                    errorLines.push({ type: "hint", message: "Analysis: " + result.explanation })
+                if (result.diagnostics && result.diagnostics.length > 0) {
+                    // Only show the FIRST error diagnostic
+                    const firstDiag = result.diagnostics.find(
+                        (d: { type: string }) => d.type === "error"
+                    ) ?? result.diagnostics[0]
+
+                    errorLines.push({
+                        type: "error",
+                        message: `solution.c:${firstDiag.line}:${firstDiag.column}: ${firstDiag.type}: ${firstDiag.message}`,
+                        rawContext: firstDiag.rawContext,
+                        isDiagnostic: true
+                    })
+                } else if (result.stderr) {
+                    errorLines.push({ type: "error", message: result.stderr })
                 }
 
-                if (result.stderr) {
-                    errorLines.push({ type: "error", message: result.stderr })
+                if (result.explanation) {
+                    errorLines.push({ type: "hint", message: result.explanation })
                 }
 
                 if (result.ruleDescription) {
@@ -163,7 +202,7 @@ export function EditorPanel({
                 </div>
             </div>
 
-            {/* Editor Area with line numbers feel */}
+            {/* Editor Area */}
             <div className="flex-1 relative min-h-0 w-full overflow-hidden">
                 <Editor
                     height="100%"
@@ -177,7 +216,17 @@ export function EditorPanel({
                         fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
                         scrollBeyondLastLine: false,
                         smoothScrolling: true,
-                        padding: { top: 16 }
+                        padding: { top: 16 },
+                        // ── Autocomplete / IntelliSense disabled ────────────────
+                        quickSuggestions: false,
+                        suggestOnTriggerCharacters: false,
+                        wordBasedSuggestions: "off",
+                        acceptSuggestionOnEnter: "off",
+                        snippetSuggestions: "none",
+                        parameterHints: { enabled: false },
+                        suggest: { showWords: false },
+                        hover: { enabled: false },
+                        // ────────────────────────────────────────────────────────
                     }}
                 />
             </div>

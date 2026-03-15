@@ -1,20 +1,99 @@
-import { explainCompilerError } from './compilerExplanation'
+import { explainFirstDiagnostic } from './compilerExplanation'
 import { promises as fs } from 'fs'
 import path from 'path'
 import os from 'os'
 import { execFile, spawn } from 'child_process'
 import crypto from 'crypto'
+import { CompilerDiagnostic } from '@/types'
 
 export interface CompileExecutionResult {
     success: boolean
     output?: string
     compilerError?: string
+    diagnostics?: CompilerDiagnostic[]
     errors?: string
     explanation?: string
     exitCode?: number | null
+    executionTimeMs?: number
 }
 
 const EXECUTION_TIMEOUT_MS = 2000; // 5 seconds max
+const VIRTUAL_FILE_NAME = "solution.c";
+
+function sanitizeString(rawStr: string, srcPath: string, tempDir: string): string {
+    if (!rawStr) return "";
+    let sanitized = rawStr.split(srcPath).join(VIRTUAL_FILE_NAME);
+    // Escape backslashes for Regex
+    const tempDirRegex = new RegExp(tempDir.replace(/\\/g, '\\\\') + '\\\\[a-zA-Z0-9\\-_]+(?:\\.exe)?', 'g');
+    sanitized = sanitized.replace(tempDirRegex, "sandbox");
+    
+    // Also remove any remaining references to the exact exeName on windows
+    const exeExtPattern = new RegExp(VIRTUAL_FILE_NAME.replace('.c', '.exe'), 'g');
+    sanitized = sanitized.replace(exeExtPattern, "sandbox");
+
+    // ── Filter noisy GCC lines that confuse beginners ──────────────────
+    const NOISE_PATTERNS = [
+        /^In file included from/i,
+        /^C:[/\\].*gcc/i,
+        /^C:[/\\].*mingw/i,
+        /mingw/i,
+        /^cc1(\.exe)?:/i,
+        /^collect2/i,
+        /^ld\.exe:/i,
+        /^\/usr\/include/i,
+        /^\/usr\/lib/i,
+    ];
+    const lines = sanitized.split('\n');
+    const filtered = lines.filter(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return true; // keep blank lines for context
+        return !NOISE_PATTERNS.some(pat => pat.test(trimmed));
+    });
+    sanitized = filtered.join('\n');
+
+    return sanitized;
+}
+
+function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
+    const diagnostics: CompilerDiagnostic[] = [];
+    const lines = sanitizedStderr.split('\n');
+    
+    const diagnosticRegex = new RegExp(`^${VIRTUAL_FILE_NAME}:(\\d+):(\\d+):\\s*(error|warning|note|fatal error):\\s*(.+)$`);
+
+    let currentDiag: CompilerDiagnostic | null = null;
+    let contextLines: string[] = [];
+
+    for (const line of lines) {
+        const match = line.match(diagnosticRegex);
+        if (match) {
+            // Save the previous diagnostic
+            if (currentDiag) {
+                currentDiag.rawContext = contextLines.join('\n').trim();
+                diagnostics.push(currentDiag);
+            }
+            // Start a new one
+            currentDiag = {
+                line: parseInt(match[1], 10),
+                column: parseInt(match[2], 10),
+                type: (match[3] === 'fatal error' ? 'error' : match[3]) as "error" | "warning" | "note",
+                message: match[4].trim(),
+                rawContext: ""
+            };
+            contextLines = [];
+        } else if (currentDiag && line.trim() !== '') {
+            // Accumulate context lines (like the code snippet and the ^ pointer)
+            contextLines.push(line);
+        }
+    }
+
+    // Push the final diagnostic
+    if (currentDiag) {
+        currentDiag.rawContext = contextLines.join('\n').trim();
+        diagnostics.push(currentDiag);
+    }
+
+    return diagnostics;
+}
 
 export async function executeCode(code: string, input: string = ""): Promise<CompileExecutionResult> {
     const id = crypto.randomUUID();
@@ -43,6 +122,7 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
 
         // 3. Execute the compiled binary
         const result = await new Promise<CompileExecutionResult>((resolve) => {
+            const startTime = Date.now();
             const child = spawn(exePath);
             let outputRaw = '';
             let errorRaw = '';
@@ -68,12 +148,18 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
 
             child.on('close', (code, signal) => {
                 clearTimeout(timeoutId);
+                const executionTimeMs = Date.now() - startTime;
+
+                // Sanitize runtime output to hide path
+                const safeOutput = sanitizeString(outputRaw.trim(), srcPath, tempDir);
+                const safeError = sanitizeString(errorRaw.trim(), srcPath, tempDir);
 
                 if (isTimeout || signal === 'SIGKILL' || signal === 'SIGXCPU') {
                     resolve({
                         success: false,
-                        output: outputRaw.trim(),
-                        errors: "Execution Timeout: Your program took too long to finish. (Potential infinite loop)"
+                        output: safeOutput,
+                        errors: "Execution Timeout: Your program took too long to finish. (Potential infinite loop)",
+                        executionTimeMs
                     });
                     return;
                 }
@@ -81,9 +167,10 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
                 if (signal) {
                     resolve({
                         success: false,
-                        output: outputRaw.trim(),
-                        errors: errorRaw.trim() || `Runtime Error: Program terminated by signal ${signal}`,
-                        exitCode: code
+                        output: safeOutput,
+                        errors: safeError || `Runtime Error: Program terminated by signal ${signal}`,
+                        exitCode: code,
+                        executionTimeMs
                     });
                     return;
                 }
@@ -91,9 +178,10 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
                 if (code !== 0) {
                     resolve({
                         success: false,
-                        output: outputRaw.trim(),
-                        errors: errorRaw.trim() || `Program exited with code ${code}`,
-                        exitCode: code
+                        output: safeOutput,
+                        errors: safeError || `Program exited with code ${code}`,
+                        exitCode: code,
+                        executionTimeMs
                     });
                     return;
                 }
@@ -101,9 +189,10 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
                 // Success
                 resolve({
                     success: true,
-                    output: outputRaw.trim(),
-                    errors: errorRaw.trim() || "",
-                    exitCode: 0
+                    output: safeOutput,
+                    errors: safeError,
+                    exitCode: 0,
+                    executionTimeMs
                 });
             });
 
@@ -111,7 +200,8 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
                 clearTimeout(timeoutId);
                 resolve({
                     success: false,
-                    errors: `Execution Failed: ${err.message}`
+                    errors: `Execution Failed: ${sanitizeString(err.message, srcPath, tempDir)}`,
+                    executionTimeMs: Date.now() - startTime
                 });
             });
         });
@@ -121,11 +211,19 @@ export async function executeCode(code: string, input: string = ""): Promise<Com
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         if (error?.type === 'compile_error') {
-            const compilerOutput = error.stderr.trim();
+            const compilerOutputRaw = error.stderr.trim();
+            const sanitizedOutput = sanitizeString(compilerOutputRaw, srcPath, tempDir);
+            const diagnostics = parseGccDiagnostics(sanitizedOutput);
+
+            // Use the first error diagnostic for a targeted Platypus explanation
+            const explanationText = explainFirstDiagnostic(diagnostics)
+                ?? "There is a compilation error. Read the output above for details.";
+
             return {
                 success: false,
-                compilerError: compilerOutput,
-                explanation: explainCompilerError(compilerOutput)
+                compilerError: sanitizedOutput,
+                diagnostics,
+                explanation: explanationText
             };
         }
 

@@ -17,8 +17,10 @@ interface MissionWorkspaceProps {
 }
 
 type TerminalLine = {
-    type: "system" | "error" | "success" | "hint"
+    type: "system" | "error" | "success" | "hint" | "finish"
     message: string
+    rawContext?: string
+    isDiagnostic?: boolean
 }
 
 export interface MissionClearInfo {
@@ -43,11 +45,20 @@ export function MissionWorkspace({
     )
     const [missionCleared, setMissionCleared] = useState(false)
     const [clearInfo, setClearInfo] = useState<MissionClearInfo | null>(null)
+    const [pendingClearInfo, setPendingClearInfo] = useState<MissionClearInfo | null>(null)
     const [showIntro, setShowIntro] = useState(mission.order === 1)
 
     const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
         { type: "system", message: "> Terminal initialized. Ready for code input." },
     ])
+
+    // Called when user clicks "Finish Mission" in the terminal
+    const handleFinishMission = () => {
+        if (pendingClearInfo) {
+            setClearInfo(pendingClearInfo)
+            setMissionCleared(true)
+        }
+    }
 
     // Server sync for phase
     const syncPhase = async (newPhase: "TEACHING" | "MCQ" | "CODING") => {
@@ -75,6 +86,7 @@ export function MissionWorkspace({
                 innovationUnlocked={innovationUnlocked}
                 missionCleared={missionCleared}
                 clearInfo={clearInfo}
+                missionId={mission.id}
             />
 
             {/* Cinematic Level 1 Intro */}
@@ -97,7 +109,7 @@ export function MissionWorkspace({
             {/* Coding Phase: 3-Panel Layout */}
             {phase === "CODING" && (
                 <div className="flex w-full h-full p-2 gap-2 relative z-10">
-                    {/* LEFT: Briefing & Platypus Mentor */}
+                    {/* LEFT: Briefing */}
                     <section className="w-[28%] min-w-[280px] h-full bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
                         <LeftPanel mission={mission} missionCleared={missionCleared} attemptCount={attemptCount} />
                     </section>
@@ -112,6 +124,7 @@ export function MissionWorkspace({
                             setInnovationUnlocked={setInnovationUnlocked}
                             setMissionCleared={setMissionCleared}
                             setClearInfo={setClearInfo}
+                            setPendingClearInfo={setPendingClearInfo}
                         />
                     </section>
 
@@ -125,6 +138,7 @@ export function MissionWorkspace({
                             setHintsUsed={setHintsUsed}
                             attemptCount={attemptCount}
                             innovationUnlocked={innovationUnlocked}
+                            onFinishMission={handleFinishMission}
                         />
                     </section>
                 </div>
