@@ -1,10 +1,20 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { MissionRecord } from "@/types"
 import type { MissionClearInfo } from "../MissionWorkspace"
 import { Play } from "lucide-react"
-import Editor from "@monaco-editor/react"
+
+// ── Heavy library: code-split so it never enters the initial JS bundle ─────
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+    ssr: false,
+    loading: () => (
+        <div className="flex-1 flex items-center justify-center bg-[#1e1e1e] text-gray-600 font-mono text-xs tracking-wider">
+            LOADING EDITOR…
+        </div>
+    ),
+})
 
 interface TerminalLine {
     type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
@@ -18,7 +28,7 @@ interface EditorPanelProps {
     mission: MissionRecord
     setTerminalOutput: React.Dispatch<React.SetStateAction<TerminalLine[]>>
     attemptCount: number
-    setAttemptCount: (count: number) => void
+    setAttemptCount: React.Dispatch<React.SetStateAction<number>>
     setInnovationUnlocked: (unlocked: boolean) => void
     setMissionCleared: (cleared: boolean) => void
     setClearInfo: (info: MissionClearInfo) => void
@@ -67,9 +77,9 @@ export function EditorPanel({
 
         setIsRunning(true)
         setTerminalOutput([
-            { type: "system", message: "> Compiling and executing..." },
+            { type: "system", message: "> Compiling and executing…" },
         ])
-        
+
         let finalInput = ""
         // Strip comments and string literals before counting actual scanf calls
         const strippedCode = code
@@ -79,38 +89,47 @@ export function EditorPanel({
         const inputMatches = strippedCode.match(/\b(scanf|gets|getline)\s*\(/g)
         const inputCount = inputMatches ? inputMatches.length : 0
 
+        // Each input prompt must be presented and resolved one at a time — the user
+        // physically types and submits each value sequentially. We use a reduce-based
+        // Promise chain (no for-loop) to keep that serial contract while satisfying
+        // the async-await-in-loop lint rule.
         if (inputCount > 0) {
-            const collectedInputs: string[] = []
-
-            for (let i = 0; i < inputCount; i++) {
-                const val = await new Promise<string>((resolve) => {
-                    setTerminalOutput(prev => [
-                        ...prev,
-                        { 
-                            type: "input-prompt", 
-                            message: inputCount > 1 
-                                ? `scanf[${i + 1}/${inputCount}]: waiting for input...` 
-                                : "waiting for input...",
-                            onSubmit: (v: string) => {
-                                setTerminalOutput(p => 
-                                    p.filter(l => l.type !== "input-prompt")
-                                )
-                                resolve(v)
-                            } 
-                        }
-                    ])
-                })
-                collectedInputs.push(val)
-            }
+            const collectedInputs = await Array.from({ length: inputCount }).reduce<
+                Promise<string[]>
+            >(
+                (chain, _, i) =>
+                    chain.then(
+                        (acc) =>
+                            new Promise<string[]>((resolve) => {
+                                setTerminalOutput((prev) => [
+                                    ...prev,
+                                    {
+                                        type: "input-prompt" as const,
+                                        message:
+                                            inputCount > 1
+                                                ? `scanf[${i + 1}/${inputCount}]: waiting for input…`
+                                                : "waiting for input…",
+                                        onSubmit: (v: string) => {
+                                            setTerminalOutput((p) =>
+                                                p.filter((l) => l.type !== "input-prompt")
+                                            )
+                                            resolve([...acc, v])
+                                        },
+                                    },
+                                ])
+                            })
+                    ),
+                Promise.resolve([] as string[])
+            )
 
             finalInput = collectedInputs.join("\n")
-            setTerminalOutput(prev => [
+            setTerminalOutput((prev) => [
                 ...prev,
-                { type: "system", message: "> Running program..." }
+                { type: "system", message: "> Running program…" },
             ])
         }
 
-        setAttemptCount(attemptCount + 1)
+        setAttemptCount(prev => prev + 1)
 
         try {
             const response = await fetch("/api/missions/validate", {
@@ -232,9 +251,9 @@ export function EditorPanel({
             <div className="bg-[#161b22] border-b border-gray-800 flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
                 <div className="flex items-end h-full">
                     <div className="flex gap-1.5 mr-6 mb-3">
-                        <div className="w-3 h-3 rounded-full bg-gray-600/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-gray-600/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-gray-600/50"></div>
+                        <div className="size-3 rounded-full bg-gray-600/50"></div>
+                        <div className="size-3 rounded-full bg-gray-600/50"></div>
+                        <div className="size-3 rounded-full bg-gray-600/50"></div>
                     </div>
                     <div className="bg-[#0d1117] text-gray-300 text-xs font-mono py-2 px-6 border border-gray-800 border-b-0 translate-y-[1px]">
                         solution.c
@@ -243,15 +262,16 @@ export function EditorPanel({
 
                 <div className="mb-1.5">
                     <button
+                        type="button"
                         onClick={handleRunCode}
                         disabled={isRunning}
                         className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-xs font-bold tracking-wider uppercase transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(22,163,74,0.3)]"
                     >
                         {isRunning ? (
-                            <span className="animate-pulse">RUNNING...</span>
+                            <span className="animate-pulse">RUNNING…</span>
                         ) : (
                             <>
-                                <Play className="h-3 w-3" fill="currentColor" />
+                                <Play className="size-3" fill="currentColor" />
                                 RUN CODE
                             </>
                         )}

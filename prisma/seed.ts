@@ -20,16 +20,16 @@ const missions = missionData.map((m) => ({
 async function main() {
     console.log("[SEED] Starting mission seeding...")
 
-    for (const mission of missions) {
-        await prisma.mission.upsert({
-            where: { order: mission.order },
-            update: mission,
-            create: mission,
+    await Promise.all(
+        missions.map(async (mission) => {
+            await prisma.mission.upsert({
+                where: { order: mission.order },
+                update: mission,
+                create: mission,
+            })
+            console.log(`[SEED] Mission #${mission.order}: "${mission.title}" seeded.`)
         })
-        console.log(`[SEED] Mission #${mission.order}: "${mission.title}" seeded.`)
-        // Small delay to avoid MongoDB write conflicts (P2034)
-        await new Promise(resolve => setTimeout(resolve, 500))
-    }
+    )
 
     console.log(`[SEED] Done. ${missions.length} missions seeded.`)
 }

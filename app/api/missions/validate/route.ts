@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { executeCode } from '@/lib/compiler'
-import { detectInnovation } from '@/lib/validation/missionValidator'
+import { detectInnovation, validateMissionOutput } from '@/lib/validation/missionValidator'
 import {
     AURA_MISSION_COMPLETE,
     AURA_FIRST_ATTEMPT,
@@ -148,7 +148,24 @@ export async function POST(req: Request) {
             })
         }
 
-        // Code compiled and ran successfully — mission passes!
+        // 3. Strict Output Validation against secure backend data
+        const validationResult = validateMissionOutput(mission.order, input, finalStdout)
+
+        if (!validationResult.isCorrect) {
+            // Combo breaks on incorrect output
+            await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+
+            return NextResponse.json({
+                success: false,
+                stdout: finalStdout,
+                stderr: "",
+                validationErrors: [validationResult.feedbackMessage || "Output validation failed. Please check your implementation."],
+                comboBonus: 0,
+                comboStreak: 0
+            })
+        }
+
+        // Code compiled, executed, and output validated successfully — mission passes!
 
         // 3. Success! Calculate Rewards and Combos
         const isFirstTimeCompletion = userMission.status !== 'COMPLETED'

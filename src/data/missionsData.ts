@@ -220,3 +220,51 @@ export const missionDetails: Record<number, { description: string; briefing: str
         briefing: "Learn to declare and define functions in C. Understand parameter passing (by value vs by reference), return types, function prototypes, and recursive functions. Write modular, reusable code.",
     },
 };
+
+export interface SecureTestCase {
+    input: string;
+    expectedOutput: string;
+}
+
+export interface SecureMissionValidation {
+    id: number;
+    title: string;
+    requiredOutput?: string;
+    testCases?: SecureTestCase[];
+}
+
+export const secureMissionValidations: Record<number, SecureMissionValidation> = {
+    1: {
+        id: 1,
+        title: "The System Access",
+        requiredOutput: "Hello Agent",
+    },
+    2: {
+        id: 2,
+        title: "Variable Infiltration",
+        testCases: [
+            { input: "7", expectedOutput: "You entered: 7" },
+            { input: "42", expectedOutput: "You entered: 42" },
+        ],
+    },
+    3: {
+        id: 3,
+        title: "Control Flow Lockdown",
+        testCases: [
+            { input: "4", expectedOutput: "Even" },
+            { input: "5", expectedOutput: "Odd" },
+            { input: "0", expectedOutput: "Even" },
+            { input: "-3", expectedOutput: "Odd" },
+        ],
+    },
+    4: {
+        id: 4,
+        title: "Loop Protocol",
+        testCases: [
+            { input: "agent007", expectedOutput: "Access Granted" },
+            { input: "wrong\nwrong\nwrong", expectedOutput: "Wrong Password\nWrong Password\nSystem Locked" },
+            { input: "wrong\nagent007", expectedOutput: "Wrong Password\nAccess Granted" },
+        ],
+    },
+};
+

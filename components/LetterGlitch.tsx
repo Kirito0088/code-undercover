@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 
 const LetterGlitch = ({
   glitchColors = ['#2b4539', '#61dca3', '#61b3dc'],
@@ -23,11 +23,6 @@ const LetterGlitch = ({
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const fontSize = 16;
-  const lettersAndSymbols = Array.from(characters);
-
-  const getRandomChar = () => {
-    return lettersAndSymbols[Math.floor(Math.random() * lettersAndSymbols.length)];
-  };
 
   const initDrops = (columns: number) => {
     // Start each column at a random row so they don't all start at the top at once
@@ -58,14 +53,21 @@ const LetterGlitch = ({
     initDrops(columns);
   };
 
-  const draw = () => {
+  // getRandomChar is defined inside useCallback so it never appears in the
+  // dependency array — it closes over `characters` which IS a dep of the callback.
+  const draw = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = contextRef.current;
     if (!canvas || !ctx) return;
 
+    // Inlined so this closure is the only consumer; avoids an unstable dep warning.
+    const lettersAndSymbols = Array.from(characters);
+    const getRandomChar = () =>
+      lettersAndSymbols[Math.floor(Math.random() * lettersAndSymbols.length)];
+
     const { width, height } = canvas.getBoundingClientRect();
 
-    // Semi-transparent black overlay creates the fading trail effect
+    // Semi-transparent overlay creates the fading trail effect
     ctx.fillStyle = smooth ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.1)';
     ctx.fillRect(0, 0, width, height);
 
@@ -116,7 +118,7 @@ const LetterGlitch = ({
         dropsRef.current[i] = Math.floor(Math.random() * -20);
       }
     }
-  };
+  }, [smooth, glitchColors, fontSize, characters]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -125,11 +127,11 @@ const LetterGlitch = ({
     contextRef.current = canvas.getContext('2d');
     resizeCanvas();
 
-    // Fill initial black background
+    // Fill initial background
     const ctx = contextRef.current;
     if (ctx) {
       const { width, height } = canvas.getBoundingClientRect();
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#030712'; // gray-950 equivalent
       ctx.fillRect(0, 0, width, height);
     }
 
@@ -160,11 +162,10 @@ const LetterGlitch = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [glitchSpeed, smooth]);
+  }, [glitchSpeed, smooth, draw]);
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden">
+    <div className="relative w-full h-full bg-gray-950 overflow-hidden">
       <canvas ref={canvasRef} className="block w-full h-full" />
       {outerVignette && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,_rgba(0,0,0,0)_60%,_rgba(0,0,0,1)_100%)]"></div>

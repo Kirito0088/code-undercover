@@ -159,14 +159,16 @@ const missions = [
 async function main() {
     console.log("[SEED] Starting mission seeding...")
 
-    for (const mission of missions) {
-        await prisma.mission.upsert({
-            where: { order: mission.order },
-            update: mission,
-            create: mission,
+    await Promise.all(
+        missions.map(async function (mission) {
+            await prisma.mission.upsert({
+                where: { order: mission.order },
+                update: mission,
+                create: mission,
+            })
+            console.log("[SEED] Mission #" + mission.order + ': "' + mission.title + '" seeded.')
         })
-        console.log("[SEED] Mission #" + mission.order + ': "' + mission.title + '" seeded.')
-    }
+    )
 
     const questions = [
         {
@@ -193,11 +195,13 @@ async function main() {
         }
     ]
 
-    for (const q of questions) {
-        await prisma.dailyQuestion.create({
-            data: q
+    await Promise.all(
+        questions.map(async function (q) {
+            await prisma.dailyQuestion.create({
+                data: q
+            })
         })
-    }
+    )
     console.log("[SEED] Daily questions seeded.")
 
     console.log("[SEED] Done. " + missions.length + " missions seeded.")

@@ -1,7 +1,61 @@
+import { secureMissionValidations } from "@/src/data/missionsData"
+
 export interface ValidationResult {
     missionCleared: boolean;
     innovationUnlocked: boolean;
     innovationReason?: string;
+}
+
+export interface OutputValidationResult {
+    isCorrect: boolean;
+    feedbackMessage?: string;
+}
+
+/**
+ * Strict, case-sensitive output validation comparing compiler-produced stdout
+ * against expected outputs pulled directly from our secure backend data source.
+ */
+export function validateMissionOutput(
+    missionOrder: number,
+    userInput: string,
+    compilerOutput: string
+): OutputValidationResult {
+    const secureConfig = secureMissionValidations[missionOrder]
+    if (!secureConfig) {
+        // Fallback for safety: if no validation config exists, let it pass compile checks
+        return { isCorrect: true }
+    }
+
+    let expectedOutput = ""
+    const cleanUserOutput = compilerOutput.trim()
+
+    if (secureConfig.requiredOutput) {
+        expectedOutput = secureConfig.requiredOutput
+    } else if (secureConfig.testCases && secureConfig.testCases.length > 0) {
+        const cleanInput = userInput.trim()
+        // Find test case matching the execution input
+        const matchedTestCase = secureConfig.testCases.find(
+            (tc) => tc.input.trim() === cleanInput
+        )
+
+        if (matchedTestCase) {
+            expectedOutput = matchedTestCase.expectedOutput
+        } else {
+            // Default to first test case if input doesn't match exactly
+            expectedOutput = secureConfig.testCases[0].expectedOutput
+        }
+    }
+
+    const cleanExpectedOutput = expectedOutput.trim()
+
+    if (cleanUserOutput !== cleanExpectedOutput) {
+        return {
+            isCorrect: false,
+            feedbackMessage: `Platypus: That’s close, but the system access code requires exact precision. Your output: '${cleanUserOutput}'. Expected output: '${cleanExpectedOutput}'. Check your capitalization and spelling, Agent.`,
+        }
+    }
+
+    return { isCorrect: true }
 }
 
 export function detectInnovation(

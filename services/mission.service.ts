@@ -21,32 +21,34 @@ async function ensureMissionsSeeded(): Promise<void> {
         if (count === 0) {
             console.log("[MISSION] Mission collection is empty — auto-seeding from missionsData.ts...")
 
-            for (const m of missionData) {
-                const details = missionDetails[m.id]
-                await db.mission.upsert({
-                    where: { order: m.id },
-                    update: {
-                        title: m.title,
-                        description: details?.description ?? "",
-                        briefing: details?.briefing ?? "",
-                        difficulty: m.difficulty,
-                        language: m.language,
-                        auraReward: m.aura,
-                        teachingContent: m.teachingContent,
-                    },
-                    create: {
-                        order: m.id,
-                        title: m.title,
-                        description: details?.description ?? "",
-                        briefing: details?.briefing ?? "",
-                        difficulty: m.difficulty,
-                        language: m.language,
-                        auraReward: m.aura,
-                        teachingContent: m.teachingContent,
-                    },
+            await Promise.all(
+                missionData.map(async (m) => {
+                    const details = missionDetails[m.id]
+                    await db.mission.upsert({
+                        where: { order: m.id },
+                        update: {
+                            title: m.title,
+                            description: details?.description ?? "",
+                            briefing: details?.briefing ?? "",
+                            difficulty: m.difficulty,
+                            language: m.language,
+                            auraReward: m.aura,
+                            teachingContent: m.teachingContent,
+                        },
+                        create: {
+                            order: m.id,
+                            title: m.title,
+                            description: details?.description ?? "",
+                            briefing: details?.briefing ?? "",
+                            difficulty: m.difficulty,
+                            language: m.language,
+                            auraReward: m.aura,
+                            teachingContent: m.teachingContent,
+                        },
+                    })
+                    console.log(`[MISSION] Auto-seeded Mission #${m.id}: "${m.title}"`)
                 })
-                console.log(`[MISSION] Auto-seeded Mission #${m.id}: "${m.title}"`)
-            }
+            )
 
             console.log(`[MISSION] Auto-seed complete. ${missionData.length} missions ready.`)
         } else {
@@ -77,14 +79,15 @@ export async function getDashboardMissions(
     // Ensure missions are seeded before querying
     await ensureMissionsSeeded()
 
-    const missions = await db.mission.findMany({
-        where: { type: missionType },
-        orderBy: { order: "asc" },
-    })
-
-    const userMissions = await db.userMission.findMany({
-        where: { userId },
-    })
+    const [missions, userMissions] = await Promise.all([
+        db.mission.findMany({
+            where: { type: missionType },
+            orderBy: { order: "asc" },
+        }),
+        db.userMission.findMany({
+            where: { userId },
+        }),
+    ])
 
     // Build a lookup: missionId → status
     const statusMap = new Map<string, string>()
