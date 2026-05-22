@@ -2,7 +2,7 @@ import Link from "next/link"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { Code } from "lucide-react"
-import { db } from "@/lib/db"
+import { db, safeDbQuery } from "@/lib/db"
 import { ProfileMenu } from "./layout/ProfileMenu"
 import { NavBackButton } from "./layout/NavBackButton"
 
@@ -10,34 +10,33 @@ export default async function Navbar() {
     const session = await getServerSession(authOptions)
 
     let userStats: { name: string | null; email: string | null; auraPoints: number; auraLevel: number } | null = null
-    // let _completedCount = 0
 
     if (session?.user?.email) {
-        let dbUser = await db.user.findUnique({
-            where: { email: session.user.email },
-            select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true },
-        })
+        userStats = await safeDbQuery(
+            async () => {
+                let dbUser = await db.user.findUnique({
+                    where: { email: session.user!.email! },
+                    select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true },
+                })
 
-        // Defensive handling: auto-create missing user for orphaned sessions
-        if (!dbUser) {
-            dbUser = await db.user.create({
-                data: {
-                    email: session.user.email,
-                    name: session.user.name || "Agent",
-                    auraPoints: 0,
-                    auraLevel: 1,
-                },
-                select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true },
-            })
-        }
+                // Defensive handling: auto-create missing user for orphaned sessions
+                if (!dbUser) {
+                    dbUser = await db.user.create({
+                        data: {
+                            email: session.user!.email!,
+                            name: session.user!.name || "Agent",
+                            auraPoints: 0,
+                            auraLevel: 1,
+                        },
+                        select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true },
+                    })
+                }
 
-        userStats = dbUser;
-
-        if (dbUser.id) {
-            // _completedCount = await db.userMission.count({
-            //     where: { userId: dbUser.id, status: "COMPLETED" },
-            // })
-        }
+                return dbUser
+            },
+            null,
+            "Navbar"
+        )
     }
 
     return (
@@ -75,6 +74,12 @@ export default async function Navbar() {
                                 >
                                     LEADERBOARD
                                 </Link>
+                                <Link
+                                    href="/history"
+                                    className="text-sm font-mono text-gray-300 hover:text-cyan-400 transition-colors"
+                                >
+                                    HISTORY
+                                </Link>
                                 <ProfileMenu
                                     user={{
                                         name: userStats.name ?? "Agent",
@@ -84,6 +89,25 @@ export default async function Navbar() {
                                     }}
                                     completedMissions={0}
                                 />
+                            </>
+                        ) : session ? (
+                            /* Session exists but DB is down — show basic nav without crashing */
+                            <>
+                                <Link
+                                    href="/dashboard"
+                                    className="text-sm font-mono text-gray-300 hover:text-green-400 transition-colors"
+                                >
+                                    DASHBOARD
+                                </Link>
+                                <Link
+                                    href="/debug-lab"
+                                    className="text-sm font-mono text-gray-300 hover:text-red-400 transition-colors"
+                                >
+                                    DEBUG LAB
+                                </Link>
+                                <span className="text-sm font-mono text-yellow-400">
+                                    ⚠ DB Offline
+                                </span>
                             </>
                         ) : (
                             <>

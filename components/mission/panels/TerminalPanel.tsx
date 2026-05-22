@@ -1,13 +1,15 @@
 "use client"
 
+import { useRef, useEffect, useCallback } from "react"
 import { MissionRecord } from "@/types"
 import { Terminal as TerminalIcon, HelpCircle, CheckCircle } from "lucide-react"
 
 interface TerminalLine {
-    type: "system" | "error" | "success" | "hint" | "finish"
+    type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
     message: string
     rawContext?: string
     isDiagnostic?: boolean
+    onSubmit?: (val: string) => void
 }
 
 interface TerminalPanelProps {
@@ -29,6 +31,21 @@ export function TerminalPanel({
     setTerminalOutput,
     onFinishMission,
 }: TerminalPanelProps) {
+    const bottomRef = useRef<HTMLDivElement>(null)
+
+    // Auto-scroll to bottom whenever output changes
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [terminalOutput])
+
+    // Auto-focus input when it appears
+    const inputRef = useCallback((node: HTMLInputElement | null) => {
+        if (node) {
+            node.focus()
+            node.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        }
+    }, [])
+
     const handleRequestHint = async () => {
         if (hintsUsed >= 5) return
 
@@ -138,15 +155,36 @@ export function TerminalPanel({
                         )
                     }
 
+                    // ── Input Prompt (like a real terminal) ────────────
+                    if (line.type === "input-prompt") {
+                        return (
+                            <div key={index} className="mb-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-yellow-400 whitespace-nowrap">{line.message}</span>
+                                    <input 
+                                        type="text"
+                                        ref={inputRef}
+                                        className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono caret-green-400"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                line.onSubmit?.(e.currentTarget.value)
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    }
+
                     // ── Default render (system, success, unparsed errors) ─
                     return (
-                        <div key={index} className={"mb-2 text-sm " + getLineColor(line.type)}>
-                            <span className="inline-block whitespace-pre-wrap">{line.message}</span>
-                        </div>
+                        <div key={index} className={"mb-2 text-sm font-mono break-words " + getLineColor(line.type)} style={{ whiteSpace: "pre-wrap", tabSize: 4 }}>{line.message}</div>
                     )
                 })}
-                {/* Blinking cursor */}
+                {/* Blinking cursor + scroll anchor */}
                 <div className="w-2 h-4 bg-green-500 animate-pulse mt-1 inline-block"></div>
+                <div ref={bottomRef} />
             </div>
         </div>
     )

@@ -2,10 +2,12 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { hash } from "bcryptjs"
 
+const VALID_LANGUAGES = ["C", "Java", "Python", "DBMS"]
+
 export async function POST(req: Request) {
     try {
         const body = await req.json()
-        const { email, password, name } = body
+        const { email, password, name, preferredLanguage } = body
 
         // Validate required fields
         if (!email || !password) {
@@ -31,6 +33,9 @@ export async function POST(req: Request) {
                 { status: 400 }
             )
         }
+
+        // Validate preferred language (default to "C" if invalid/missing)
+        const language = VALID_LANGUAGES.includes(preferredLanguage) ? preferredLanguage : "C"
 
         // Normalize email
         const normalizedEmail = email.trim().toLowerCase()
@@ -61,6 +66,7 @@ export async function POST(req: Request) {
                 data: {
                     password: hashedPassword,
                     name: name || existingUser.name || normalizedEmail.split("@")[0],
+                    preferredLanguage: language,
                 },
             })
             console.log(`[REGISTER] Password initialized for existing user: ${newUser.id}`)
@@ -71,6 +77,7 @@ export async function POST(req: Request) {
                     email: normalizedEmail,
                     password: hashedPassword,
                     name: name || normalizedEmail.split("@")[0],
+                    preferredLanguage: language,
                 },
             })
             console.log(`[REGISTER] New user created: ${newUser.id}`)

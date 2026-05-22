@@ -1,9 +1,4 @@
 import { explainFirstDiagnostic } from './compilerExplanation'
-import { promises as fs } from 'fs'
-import path from 'path'
-import os from 'os'
-import { execFile, spawn } from 'child_process'
-import crypto from 'crypto'
 import { CompilerDiagnostic } from '@/types'
 
 export interface CompileExecutionResult {
@@ -17,19 +12,55 @@ export interface CompileExecutionResult {
     executionTimeMs?: number
 }
 
-const EXECUTION_TIMEOUT_MS = 2000; // 5 seconds max
-const VIRTUAL_FILE_NAME = "solution.c";
+// ─── Wandbox API Configuration ──────────────────────────────────────────────
+const WANDBOX_API_URL = "https://wandbox.org/api/compile.json";
+const WANDBOX_COMPILER = "gcc-13.2.0-c";   // GCC 13, C language
+const VIRTUAL_FILE_NAME = "solution.c";     // What we show to the user
+const WANDBOX_FILE_NAME = "prog.c";         // What Wandbox uses internally
 
-function sanitizeString(rawStr: string, srcPath: string, tempDir: string): string {
+// ─── Compile Cache (avoids redundant Wandbox calls) ─────────────────────────
+const CACHE_MAX_SIZE = 50;
+const compileCache = new Map<string, { result: CompileExecutionResult; timestamp: number }>();
+
+function getCacheKey(code: string, input: string): string {
+    // Simple hash: use code length + first/last chars + input to create a key.
+    // For exact matching we use the full content as key.
+    return `${code}\0${input}`;
+}
+
+function getCachedResult(code: string, input: string): CompileExecutionResult | null {
+    const key = getCacheKey(code, input);
+    const entry = compileCache.get(key);
+    if (!entry) return null;
+    // Cache entries expire after 5 minutes
+    if (Date.now() - entry.timestamp > 5 * 60 * 1000) {
+        compileCache.delete(key);
+        return null;
+    }
+    return entry.result;
+}
+
+function setCachedResult(code: string, input: string, result: CompileExecutionResult): void {
+    const key = getCacheKey(code, input);
+    // Evict oldest entries if cache is full
+    if (compileCache.size >= CACHE_MAX_SIZE) {
+        const firstKey = compileCache.keys().next().value;
+        if (firstKey !== undefined) compileCache.delete(firstKey);
+    }
+    compileCache.set(key, { result, timestamp: Date.now() });
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Sanitize Wandbox output: replace internal filenames with our virtual name
+ * and filter out noisy GCC lines.
+ */
+function sanitizeString(rawStr: string): string {
     if (!rawStr) return "";
-    let sanitized = rawStr.split(srcPath).join(VIRTUAL_FILE_NAME);
-    // Escape backslashes for Regex
-    const tempDirRegex = new RegExp(tempDir.replace(/\\/g, '\\\\') + '\\\\[a-zA-Z0-9\\-_]+(?:\\.exe)?', 'g');
-    sanitized = sanitized.replace(tempDirRegex, "sandbox");
-    
-    // Also remove any remaining references to the exact exeName on windows
-    const exeExtPattern = new RegExp(VIRTUAL_FILE_NAME.replace('.c', '.exe'), 'g');
-    sanitized = sanitized.replace(exeExtPattern, "sandbox");
+
+    // Replace Wandbox's internal filename with our user-friendly one
+    let sanitized = rawStr.split(WANDBOX_FILE_NAME).join(VIRTUAL_FILE_NAME);
 
     // ── Filter noisy GCC lines that confuse beginners ──────────────────
     const NOISE_PATTERNS = [
@@ -42,6 +73,7 @@ function sanitizeString(rawStr: string, srcPath: string, tempDir: string): strin
         /^ld\.exe:/i,
         /^\/usr\/include/i,
         /^\/usr\/lib/i,
+        /^\/opt\/wandbox/i,
     ];
     const lines = sanitized.split('\n');
     const filtered = lines.filter(line => {
@@ -54,10 +86,13 @@ function sanitizeString(rawStr: string, srcPath: string, tempDir: string): strin
     return sanitized;
 }
 
+/**
+ * Parse GCC diagnostic messages from sanitized stderr.
+ */
 function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
     const diagnostics: CompilerDiagnostic[] = [];
     const lines = sanitizedStderr.split('\n');
-    
+
     const diagnosticRegex = new RegExp(`^${VIRTUAL_FILE_NAME}:(\\d+):(\\d+):\\s*(error|warning|note|fatal error):\\s*(.+)$`);
 
     let currentDiag: CompilerDiagnostic | null = null;
@@ -95,146 +130,161 @@ function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
     return diagnostics;
 }
 
+// ─── Wandbox API Response ───────────────────────────────────────────────────
+interface WandboxResponse {
+    status?: string           // exit code as string, e.g. "0"
+    signal?: string           // signal name if killed, e.g. "Killed"
+    compiler_output?: string  // compiler stdout (rarely used)
+    compiler_error?: string   // compiler stderr (warnings/errors)
+    compiler_message?: string // combined compiler output
+    program_output?: string   // program stdout
+    program_error?: string    // program stderr (runtime errors)
+    program_message?: string  // combined program output
+}
+
+// ─── Main Entry Point ───────────────────────────────────────────────────────
+
 export async function executeCode(code: string, input: string = ""): Promise<CompileExecutionResult> {
-    const id = crypto.randomUUID();
-    const tempDir = os.tmpdir();
-    const srcPath = path.join(tempDir, `${id}.c`);
-    // On Windows, executables need .exe extension for easy spawn
-    const isWindows = os.platform() === 'win32';
-    const exeName = isWindows ? `${id}.exe` : id;
-    const exePath = path.join(tempDir, exeName);
+    // ── Check cache first (instant return for repeated submissions) ──
+    const cached = getCachedResult(code, input);
+    if (cached) {
+        console.log("[COMPILER] Cache hit — returning cached result");
+        return { ...cached, executionTimeMs: 0 };
+    }
+
+    const startTime = Date.now();
 
     try {
-        // 1. Write the source code to a temp file
-        await fs.writeFile(srcPath, code, 'utf8');
-
-        // 2. Compile the source code using local GCC
-        await new Promise<void>((resolve, reject) => {
-            execFile('gcc', [srcPath, '-o', exePath, '-Wall', '-O2'], (error, stdout, stderr) => {
-                if (error) {
-                    // Compilation failed
-                    reject({ type: 'compile_error', stderr: stderr || stdout || error.message });
-                } else {
-                    resolve();
-                }
-            });
+        // Build the request payload for Wandbox
+        const payloadStr = JSON.stringify({
+            compiler: WANDBOX_COMPILER,
+            code: code,
+            stdin: input,
+            options: "warning",              // Enable -Wall -Wextra
+            "compiler-option-raw": "-O2",    // Optimization level
         });
 
-        // 3. Execute the compiled binary
-        const result = await new Promise<CompileExecutionResult>((resolve) => {
-            const startTime = Date.now();
-            const child = spawn(exePath);
-            let outputRaw = '';
-            let errorRaw = '';
-            let isTimeout = false;
-
-            const timeoutId = setTimeout(() => {
-                isTimeout = true;
-                child.kill('SIGKILL');
-            }, EXECUTION_TIMEOUT_MS);
-
-            if (input) {
-                child.stdin.write(input);
-                child.stdin.end();
+        // Fetch with timeout (10s — student programs compile fast)
+        const doFetch = async (): Promise<Response> => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            try {
+                const res = await fetch(WANDBOX_API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Connection": "keep-alive",
+                    },
+                    body: payloadStr,
+                    signal: controller.signal,
+                });
+                return res;
+            } finally {
+                clearTimeout(timeoutId);
             }
+        };
 
-            child.stdout.on('data', (data) => {
-                outputRaw += data.toString();
-            });
+        let response: Response;
+        try {
+            response = await doFetch();
+        } catch {
+            // Retry once on network/timeout failure
+            console.warn("[COMPILER] First Wandbox call failed, retrying...");
+            response = await doFetch();
+        }
 
-            child.stderr.on('data', (data) => {
-                errorRaw += data.toString();
-            });
+        const executionTimeMs = Date.now() - startTime;
 
-            child.on('close', (code, signal) => {
-                clearTimeout(timeoutId);
-                const executionTimeMs = Date.now() - startTime;
-
-                // Sanitize runtime output to hide path
-                const safeOutput = sanitizeString(outputRaw.trim(), srcPath, tempDir);
-                const safeError = sanitizeString(errorRaw.trim(), srcPath, tempDir);
-
-                if (isTimeout || signal === 'SIGKILL' || signal === 'SIGXCPU') {
-                    resolve({
-                        success: false,
-                        output: safeOutput,
-                        errors: "Execution Timeout: Your program took too long to finish. (Potential infinite loop)",
-                        executionTimeMs
-                    });
-                    return;
-                }
-
-                if (signal) {
-                    resolve({
-                        success: false,
-                        output: safeOutput,
-                        errors: safeError || `Runtime Error: Program terminated by signal ${signal}`,
-                        exitCode: code,
-                        executionTimeMs
-                    });
-                    return;
-                }
-
-                if (code !== 0) {
-                    resolve({
-                        success: false,
-                        output: safeOutput,
-                        errors: safeError || `Program exited with code ${code}`,
-                        exitCode: code,
-                        executionTimeMs
-                    });
-                    return;
-                }
-
-                // Success
-                resolve({
-                    success: true,
-                    output: safeOutput,
-                    errors: safeError,
-                    exitCode: 0,
-                    executionTimeMs
-                });
-            });
-
-            child.on('error', (err) => {
-                clearTimeout(timeoutId);
-                resolve({
-                    success: false,
-                    errors: `Execution Failed: ${sanitizeString(err.message, srcPath, tempDir)}`,
-                    executionTimeMs: Date.now() - startTime
-                });
-            });
-        });
-
-        return result;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        if (error?.type === 'compile_error') {
-            const compilerOutputRaw = error.stderr.trim();
-            const sanitizedOutput = sanitizeString(compilerOutputRaw, srcPath, tempDir);
-            const diagnostics = parseGccDiagnostics(sanitizedOutput);
-
-            // Use the first error diagnostic for a targeted Platypus explanation
-            const explanationText = explainFirstDiagnostic(diagnostics)
-                ?? "There is a compilation error. Read the output above for details.";
-
+        if (!response.ok) {
             return {
                 success: false,
-                compilerError: sanitizedOutput,
-                diagnostics,
-                explanation: explanationText
+                errors: `Compiler service returned status ${response.status}. Please try again in a moment.`,
+                executionTimeMs,
             };
         }
 
-        console.error("[COMPILER] Failed to execute code locally:", error);
+        const result: WandboxResponse = await response.json();
+
+        // ── Handle Compilation Errors ───────────────────────────────────
+        const compilerStderr = result.compiler_error || "";
+        const sanitizedCompilerError = sanitizeString(compilerStderr);
+
+        // Check if compilation failed: compiler_error contains actual GCC error
+        // patterns AND there is no program_output (program never ran).
+        // Wandbox always sets `status` even on compile failure, so we can't
+        // rely on status being undefined.
+        const hasGccErrors = /\b(error|fatal error):/i.test(sanitizedCompilerError);
+        const programNeverRan = !result.program_output && !result.program_error;
+        const hasCompileErrors = sanitizedCompilerError.length > 0
+            && (hasGccErrors || programNeverRan);
+
+        if (hasCompileErrors) {
+            const diagnostics = parseGccDiagnostics(sanitizedCompilerError);
+            const explanationText = explainFirstDiagnostic(diagnostics)
+                ?? "There is a compilation error. Read the output above for details.";
+
+            const compileErrorResult: CompileExecutionResult = {
+                success: false,
+                compilerError: sanitizedCompilerError,
+                diagnostics,
+                explanation: explanationText,
+                executionTimeMs,
+            };
+            setCachedResult(code, input, compileErrorResult);
+            return compileErrorResult;
+        }
+
+        // ── Handle Runtime Results ──────────────────────────────────────
+        const programOutput = sanitizeString(result.program_output || "");
+        const programError = sanitizeString(result.program_error || "");
+        const exitCode = result.status !== undefined ? parseInt(result.status, 10) : null;
+
+        // Check for timeout / signal kill
+        if (result.signal) {
+            return {
+                success: false,
+                output: programOutput,
+                errors: result.signal === "Killed"
+                    ? "Execution Timeout: Your program took too long to finish. (Potential infinite loop)"
+                    : `Runtime Error: Program terminated by signal ${result.signal}`,
+                exitCode,
+                executionTimeMs,
+            };
+        }
+
+        // Check for non-zero exit code (runtime error / crash)
+        if (exitCode !== null && exitCode !== 0) {
+            return {
+                success: false,
+                output: programOutput,
+                errors: programError || `Program exited with code ${exitCode}`,
+                exitCode,
+                executionTimeMs,
+            };
+        }
+
+        // ── Success ───────────────────────────────────────────────────
+        const successResult: CompileExecutionResult = {
+            success: true,
+            output: programOutput,
+            // Pass along any compiler warnings (they don't prevent execution)
+            compilerError: sanitizedCompilerError || undefined,
+            diagnostics: sanitizedCompilerError ? parseGccDiagnostics(sanitizedCompilerError) : undefined,
+            errors: programError || undefined,
+            exitCode: exitCode ?? 0,
+            executionTimeMs,
+        };
+        setCachedResult(code, input, successResult);
+        return successResult;
+
+    } catch (error) {
+        const executionTimeMs = Date.now() - startTime;
+        console.error("[COMPILER] Wandbox API call failed:", error);
+
         return {
             success: false,
-            errors: `System Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            errors: `Compiler service is temporarily unavailable. Please try again. (${error instanceof Error ? error.message : 'Network error'})`,
+            executionTimeMs,
         };
-    } finally {
-        // 4. Cleanup temp files
-        try { await fs.unlink(srcPath); } catch { }
-        try { await fs.unlink(exePath); } catch { }
     }
 }

@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getDashboardMissions } from "@/services/mission.service"
+import { safeDbQuery } from "@/lib/db"
 import { BugOff } from "lucide-react"
 import { MissionCard } from "../dashboard/MissionCard"
 
@@ -12,7 +13,11 @@ export default async function DebugLabPage() {
         redirect("/login")
     }
 
-    const missions = await getDashboardMissions(session.user.id, "debug")
+    const missions = await safeDbQuery(
+        () => getDashboardMissions(session.user.id, "debug"),
+        [],
+        "DebugLabPage"
+    )
 
     // Removed unused user query
 

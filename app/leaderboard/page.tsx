@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { db } from "@/lib/db"
-import { Trophy, Shield, Cpu, ChevronLeft, ChevronRight, Award } from "lucide-react"
+import { db, safeDbQuery } from "@/lib/db"
+import { Trophy, Shield, Cpu, ChevronLeft, ChevronRight, Award, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
@@ -22,23 +22,37 @@ export default async function LeaderboardPage({
     const limit = 20
     const skip = (page - 1) * limit
 
-    const [totalUsers, users] = await Promise.all([
-        db.user.count(),
-        db.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                auraPoints: true,
-                auraLevel: true,
-                foxBadges: true,
-                missionsCompleted: true,
-            },
-            orderBy: { auraPoints: "desc" },
-            take: limit,
-            skip,
-        }),
-    ])
+    type LeaderboardUser = {
+        id: string
+        name: string | null
+        email: string | null
+        auraPoints: number
+        auraLevel: number
+        foxBadges: number
+        missionsCompleted: number
+    }
+
+    const [totalUsers, users] = await safeDbQuery<[number, LeaderboardUser[]]>(
+        () => Promise.all([
+            db.user.count(),
+            db.user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    auraPoints: true,
+                    auraLevel: true,
+                    foxBadges: true,
+                    missionsCompleted: true,
+                },
+                orderBy: { auraPoints: "desc" },
+                take: limit,
+                skip,
+            }),
+        ]),
+        [0, []],
+        "LeaderboardPage"
+    )
 
     const totalPages = Math.ceil(totalUsers / limit)
 

@@ -7,12 +7,20 @@ import { Input } from "@/components/ui/Input"
 import { Terminal, Code } from "lucide-react"
 import Link from "next/link"
 
+const LANGUAGES = [
+    { value: "C", label: "C / C++", icon: "⚙️" },
+    { value: "Java", label: "Java", icon: "☕" },
+    { value: "Python", label: "Python", icon: "🐍" },
+    { value: "DBMS", label: "DBMS", icon: "🗄️" },
+]
+
 export default function RegisterPage() {
     const router = useRouter()
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         password: "",
+        preferredLanguage: "C",
     })
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
@@ -43,8 +51,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col justify-center py-12 sm:px-6 lg:px-8 bg-black/40 relative overflow-hidden">
-            <div className="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-green-900/10 via-black to-black"></div>
+            <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-12 sm:px-6 lg:px-8">
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="flex justify-center">
@@ -128,6 +135,60 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
+                        {/* Language Selector */}
+                        <div>
+                            <label className="block text-sm font-medium leading-6 text-gray-300 font-mono mb-3">
+                                SELECT_SPECIALIZATION
+                            </label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {LANGUAGES.map((lang) => (
+                                    <label
+                                        key={lang.value}
+                                        className={`
+                                            relative flex items-center gap-3 cursor-pointer rounded-lg px-4 py-3 
+                                            border transition-all duration-200 group
+                                            ${formData.preferredLanguage === lang.value
+                                                ? "border-green-500/60 bg-green-500/10 shadow-[0_0_12px_rgba(22,163,74,0.15)] ring-1 ring-green-500/30"
+                                                : "border-gray-700/50 bg-black/30 hover:border-gray-600 hover:bg-black/50"
+                                            }
+                                        `}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="preferredLanguage"
+                                            value={lang.value}
+                                            checked={formData.preferredLanguage === lang.value}
+                                            onChange={(e) => setFormData({ ...formData, preferredLanguage: e.target.value })}
+                                            className="sr-only"
+                                        />
+                                        {/* Custom radio indicator */}
+                                        <span className={`
+                                            flex-shrink-0 h-4 w-4 rounded-full border-2 transition-all duration-200
+                                            flex items-center justify-center
+                                            ${formData.preferredLanguage === lang.value
+                                                ? "border-green-500 bg-green-500"
+                                                : "border-gray-600 bg-transparent group-hover:border-gray-500"
+                                            }
+                                        `}>
+                                            {formData.preferredLanguage === lang.value && (
+                                                <span className="h-1.5 w-1.5 rounded-full bg-black" />
+                                            )}
+                                        </span>
+                                        <span className="text-lg">{lang.icon}</span>
+                                        <span className={`
+                                            text-sm font-mono font-medium tracking-wide transition-colors
+                                            ${formData.preferredLanguage === lang.value
+                                                ? "text-green-400"
+                                                : "text-gray-400 group-hover:text-gray-300"
+                                            }
+                                        `}>
+                                            {lang.label}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
                         <div>
                             <Button type="submit" className="w-full font-mono font-bold tracking-wider" disabled={loading}>
                                 {loading ? "ENCRYPTING_PAYLOAD..." : "REQUEST_ACCESS"}
@@ -143,6 +204,6 @@ export default function RegisterPage() {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
     )
 }

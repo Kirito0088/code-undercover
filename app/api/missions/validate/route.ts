@@ -51,37 +51,49 @@ function getComboBonus(streak: number): number {
     return 0
 }
 
-// Normalize output for comparison: trim and use Unix newlines
-function normalizeOutput(str: string): string {
-    return str.trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-}
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions)
+        // Parse request body and authenticate in parallel
+        const [session, body] = await Promise.all([
+            getServerSession(authOptions),
+            req.json(),
+        ])
+
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { missionId, code } = await req.json()
+        const { missionId, code, input = "" } = body
         if (!missionId || !code || typeof code !== 'string' || code.length > 10000) {
             return NextResponse.json({ error: 'Missing or invalid code' }, { status: 400 })
         }
 
-        const mission = await db.mission.findUnique({ where: { id: missionId } })
-        const userMission = await db.userMission.findUnique({
-            where: { userId_missionId: { userId: session.user.id, missionId } }
-        })
-        const user = await db.user.findUnique({ where: { id: session.user.id } })
+        // Fetch mission, user, and upsert UserMission in parallel — all independent
+        const [mission, user, userMission] = await Promise.all([
+            db.mission.findUnique({ where: { id: missionId } }),
+            db.user.findUnique({ where: { id: session.user.id } }),
+            db.userMission.upsert({
+                where: { userId_missionId: { userId: session.user.id, missionId } },
+                update: {},
+                create: {
+                    userId: session.user.id,
+                    missionId,
+                    status: 'ACTIVE',
+                    startedAt: new Date(),
+                }
+            }),
+        ])
 
-        if (!mission || !userMission || !user) {
+        if (!mission || !user) {
             return NextResponse.json({ error: 'Entities not found' }, { status: 404 })
         }
 
-        await db.userMission.update({
+        // Fire-and-forget: increment attempt count (non-blocking)
+        db.userMission.update({
             where: { id: userMission.id },
             data: { attemptCount: userMission.attemptCount + 1 }
-        })
+        }).catch(e => console.error('[VALIDATE] attemptCount update failed:', e))
 
         const rules: ValidationRules = mission.validationRules
             ? JSON.parse(mission.validationRules)
@@ -107,79 +119,36 @@ export async function POST(req: Request) {
             })
         }
 
-        // 2. Dynamic Execution & Strict Test Case Validation
-        let finalStdout = ""
-        let finalStderr = ""
-        let testCaseFailed = false
-        let totalExecutionTimeMs = 0
-        const validationFailures: string[] = []
+        // 2. Compile & Run — syntax check only, no output matching
+        const runRes = await executeCode(code, input)
+        const totalExecutionTimeMs = runRes.executionTimeMs || 0
+        const finalStdout = runRes.output || ""
 
-        // Build test cases list from rules.
-        // If no testCases and no requiredOutput → no output matching required (freeform mission)
-        const hasExpectedOutput = !!(rules.testCases?.length || rules.requiredOutput)
-        const testCases = rules.testCases
-            || (rules.requiredOutput ? [{ input: "", output: rules.requiredOutput }] : [])
-
-        for (let i = 0; i < testCases.length; i++) {
-            const tc = testCases[i]
-            const runRes = await executeCode(code, tc.input)
-
-            if (runRes.executionTimeMs) {
-                totalExecutionTimeMs += runRes.executionTimeMs
-            }
-
-            if (!runRes.success) {
-                // Compilation error or runtime crash
-                await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
-                return NextResponse.json({
-                    success: false,
-                    stdout: "",
-                    stderr: runRes.compilerError || runRes.errors || "Execution failed",
-                    diagnostics: runRes.diagnostics,
-                    explanation: runRes.explanation,
-                    validationErrors: ["Compilation failed. Fix your syntax errors."],
-                    comboBonus: 0,
-                    comboStreak: 0
-                })
-            }
-
-            finalStdout = runRes.output || ""
-            finalStderr = runRes.errors || ""
-
-            // ── Output Validation: ENABLED ──────────────────────────────────────
-            // If the mission has expected output, the actual output MUST match.
-            if (tc.output !== undefined && tc.output !== null) {
-                const expectedNorm = normalizeOutput(tc.output)
-                const actualNorm = normalizeOutput(finalStdout)
-
-                if (expectedNorm !== "" && actualNorm !== expectedNorm) {
-                    testCaseFailed = true
-                    validationFailures.push(
-                        `Test case ${i + 1}${tc.input ? ` (input: "${tc.input}")` : ''}: expected output "${tc.output}", but got "${finalStdout.trim() || "(empty)"}"`
-                    )
-                }
-            }
-        }
-
-        // If no test cases / requiredOutput — still check if mission has no expected output logic
-        // (fallback for freeform missions: pass as long as code compiles and runs)
-        if (!hasExpectedOutput && testCases.length === 0) {
-            // Freeform mission: any successful execution counts as a pass
-            testCaseFailed = false
-        }
-
-        if (testCaseFailed) {
-            // Combo Breaks
+        if (!runRes.success) {
+            // Compilation error, runtime crash, or compiler service issue
             await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+
+            const errorDetail = runRes.compilerError || runRes.errors || "Execution failed"
+            const isServiceError = errorDetail.includes("Compiler service") || errorDetail.includes("temporarily unavailable")
+            const validationMsg = isServiceError
+                ? "Compiler service is temporarily busy. Please wait a moment and try again."
+                : runRes.compilerError
+                    ? "Compilation failed. Fix your syntax errors."
+                    : runRes.errors || "Execution failed."
+
             return NextResponse.json({
                 success: false,
-                stdout: finalStdout,
-                stderr: finalStderr,
-                validationErrors: validationFailures,
+                stdout: "",
+                stderr: errorDetail,
+                diagnostics: runRes.diagnostics,
+                explanation: runRes.explanation,
+                validationErrors: [validationMsg],
                 comboBonus: 0,
                 comboStreak: 0
             })
         }
+
+        // Code compiled and ran successfully — mission passes!
 
         // 3. Success! Calculate Rewards and Combos
         const isFirstTimeCompletion = userMission.status !== 'COMPLETED'
@@ -242,6 +211,7 @@ export async function POST(req: Request) {
             data: {
                 status: 'COMPLETED',
                 completedAt: new Date(),
+                submittedCode: code,
                 innovationUnlocked: isInnovation ? true : undefined
             }
         })
@@ -249,7 +219,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             stdout: finalStdout,
-            stderr: finalStderr,
+            stderr: "",
             validationErrors: [],
             earnedAura,
             innovationUnlocked: isInnovation,

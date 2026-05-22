@@ -40,6 +40,7 @@ export interface UserMissionRecord {
     hintsUsed: number
     attemptCount: number
     innovationUnlocked: boolean
+    submittedCode: string | null
     startedAt: Date | null
     completedAt: Date | null
 }

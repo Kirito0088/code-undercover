@@ -1,9 +1,69 @@
 import { db } from "@/lib/db"
+import { missions as missionData, missionDetails } from "@/src/data/missionsData"
 import type { DashboardMission, MissionStatus } from "@/types"
+
+// ─── Auto-seed guard ───
+// Tracks whether we've already verified/seeded the Mission collection
+// this server lifecycle. Prevents redundant checks on every request.
+let missionsSeeded = false
+
+/**
+ * Ensures the Mission collection in the database is populated.
+ * If the collection is empty, it auto-seeds from the static missionsData.ts.
+ * This runs once per server lifecycle (cached via `missionsSeeded` flag).
+ */
+async function ensureMissionsSeeded(): Promise<void> {
+    if (missionsSeeded) return
+
+    try {
+        const count = await db.mission.count()
+
+        if (count === 0) {
+            console.log("[MISSION] Mission collection is empty — auto-seeding from missionsData.ts...")
+
+            for (const m of missionData) {
+                const details = missionDetails[m.id]
+                await db.mission.upsert({
+                    where: { order: m.id },
+                    update: {
+                        title: m.title,
+                        description: details?.description ?? "",
+                        briefing: details?.briefing ?? "",
+                        difficulty: m.difficulty,
+                        language: m.language,
+                        auraReward: m.aura,
+                        teachingContent: m.teachingContent,
+                    },
+                    create: {
+                        order: m.id,
+                        title: m.title,
+                        description: details?.description ?? "",
+                        briefing: details?.briefing ?? "",
+                        difficulty: m.difficulty,
+                        language: m.language,
+                        auraReward: m.aura,
+                        teachingContent: m.teachingContent,
+                    },
+                })
+                console.log(`[MISSION] Auto-seeded Mission #${m.id}: "${m.title}"`)
+            }
+
+            console.log(`[MISSION] Auto-seed complete. ${missionData.length} missions ready.`)
+        } else {
+            console.log(`[MISSION] Mission collection already has ${count} entries — skipping auto-seed.`)
+        }
+
+        missionsSeeded = true
+    } catch (error) {
+        // Don't set missionsSeeded = true on error, so it retries next request
+        console.error("[MISSION] Auto-seed failed:", error)
+    }
+}
 
 /**
  * Get all missions with computed status for a specific user.
  * Logic:
+ *  - Ensure missions exist in DB (auto-seed if empty).
  *  - Find all missions ordered by `order`.
  *  - Find all UserMission records for this user.
  *  - The first mission with no COMPLETED UserMission is ACTIVE.
@@ -14,6 +74,9 @@ export async function getDashboardMissions(
     userId: string,
     missionType: string = "standard"
 ): Promise<DashboardMission[]> {
+    // Ensure missions are seeded before querying
+    await ensureMissionsSeeded()
+
     const missions = await db.mission.findMany({
         where: { type: missionType },
         orderBy: { order: "asc" },
@@ -142,5 +205,7 @@ export async function canAccessMission(
  * Get a single mission by ID with full details.
  */
 export async function getMissionById(missionId: string) {
+    // Ensure missions exist before looking one up
+    await ensureMissionsSeeded()
     return db.mission.findUnique({ where: { id: missionId } })
 }

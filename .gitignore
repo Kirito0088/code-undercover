@@ -46,3 +46,17 @@ node_modules
 *.exe
 *.o
 compile_commands.json
+
+# Local MongoDB data
+/mongodb_data
+fix_mongodb.bat
+start.bat
+
+# Temporary logs and debug files
+*-err.txt
+*-error.log
+*-out.txt
+*.log
+tc-errors.txt
+generate_error.txt
+/tmp/

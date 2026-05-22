@@ -109,27 +109,49 @@ const missions = [
     },
     {
         order: 4,
-        title: "Syntax Glitch: Missing Terminator",
-        description: "An encrypted module failed to compile. We believe a junior operative missed a critical character. Fix the code to restore functionality.",
-        briefing: "Debug missions test your ability to read compiler errors. Find the missing semicolon in the provided code so it outputs 'Module Restored'.",
-        type: "debug",
-        goal: "Fix the syntax error so the program compiles.",
-        startingCode: "#include <stdio.h>\n\nint main() {\n    printf(\"Module Restored\")\n    return 0;\n}",
+        title: "Loop Protocol",
+        description: "You are a secret agent trying to access a classified system. The system password is 'agent007'. You have maximum 3 attempts. Use a loop to allow repeated password attempts. If the password is correct, print 'Access Granted'. If incorrect, print 'Wrong Password'. After 3 failed attempts, print 'System Locked'.",
+        briefing: "Agent, a classified terminal has been discovered at the enemy base. The password is 'agent007' — but the system only allows 3 attempts before permanent lockdown. Write a loop-based access protocol: read the password each attempt, print 'Access Granted' if correct (and break), 'Wrong Password' if wrong, and 'System Locked' after 3 failures.",
+        difficulty: "MEDIUM",
         language: "C",
-        auraReward: 50,
+        goal: "Write a C program that uses a loop to allow 3 password attempts. Password: 'agent007'. Print 'Access Granted' on correct input, 'Wrong Password' on incorrect, and 'System Locked' after 3 failures.",
+        startingCode: "#include <stdio.h>\n#include <string.h>\n\nint main() {\n    // Agent, write your access protocol here.\n    // Password: \"agent007\"\n    // Max attempts: 3\n    \n    return 0;\n}",
+        auraReward: 250,
         teachingContent: JSON.stringify([
             {
-                title: "Debugging Semicolons",
-                content: "In C, every statement must end with a semicolon (;). Missing them causes cascade compiler errors on the next line."
+                title: "Loops in C",
+                content: "Loops let you repeat a block of code. for loop: for(init; condition; update) { ... }. while loop: while(condition) { ... }. do-while: do { ... } while(condition); — runs at least once. Use break to exit early, continue to skip an iteration."
+            },
+            {
+                title: "String Comparison",
+                content: "strcmp(str1, str2) from <string.h> compares two strings. Returns 0 if equal. Use scanf(\"%s\", variable) to read a string (no & needed for char arrays)."
             }
         ]),
-        mcqContent: JSON.stringify([]),
+        mcqContent: JSON.stringify([
+            {
+                id: 1,
+                question: "Which loop guarantees at least one execution?",
+                options: ["for loop", "while loop", "do-while loop", "infinite loop"],
+                correctIndex: 2
+            },
+            {
+                id: 2,
+                question: "What does strcmp() return when two strings are equal?",
+                options: ["1", "-1", "0", "true"],
+                correctIndex: 2
+            },
+            {
+                id: 3,
+                question: "Which keyword immediately exits a loop?",
+                options: ["return", "exit", "continue", "break"],
+                correctIndex: 3
+            }
+        ]),
         validationRules: JSON.stringify({
-            requiredKeywords: ["printf", "Module Restored"],
-            testCases: [
-                { input: "", output: "Module Restored" }
-            ],
-            description: "Fix the code to output 'Module Restored'."
+            requiredKeywords: ["for", "strcmp"],
+            forbiddenPatterns: ["// Agent, write your access protocol here"],
+            minLength: 100,
+            description: "Your code must use a for/while loop with strcmp() to check the password 'agent007'. Print 'Access Granted', 'Wrong Password', or 'System Locked'."
         })
     }
 ]

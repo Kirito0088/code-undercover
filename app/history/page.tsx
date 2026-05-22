@@ -1,0 +1,208 @@
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import { db, safeDbQuery } from "@/lib/db"
+import { Terminal, Clock, Zap, Award, ChevronRight, Shield, Code2 } from "lucide-react"
+import { HistoryCard } from "./HistoryCard"
+
+export const metadata = {
+    title: "Mission History | Code Undercover",
+    description: "Review the code you wrote to complete each mission.",
+}
+
+interface CompletedMission {
+    id: string
+    missionId: string
+    missionOrder: number
+    missionTitle: string
+    difficulty: string
+    language: string
+    auraReward: number
+    submittedCode: string | null
+    attemptCount: number
+    hintsUsed: number
+    innovationUnlocked: boolean
+    completedAt: Date | null
+}
+
+export default async function HistoryPage() {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+        redirect("/login")
+    }
+
+    const completedMissions = await safeDbQuery(
+        async () => {
+            const records = await db.userMission.findMany({
+                where: {
+                    userId: session.user.id,
+                    status: "COMPLETED",
+                },
+                include: {
+                    mission: {
+                        select: {
+                            id: true,
+                            order: true,
+                            title: true,
+                            difficulty: true,
+                            language: true,
+                            auraReward: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    mission: {
+                        order: "asc",
+                    },
+                },
+            })
+
+            return records.map((um): CompletedMission => ({
+                id: um.id,
+                missionId: um.missionId,
+                missionOrder: um.mission.order,
+                missionTitle: um.mission.title,
+                difficulty: um.mission.difficulty,
+                language: um.mission.language,
+                auraReward: um.mission.auraReward,
+                submittedCode: um.submittedCode,
+                attemptCount: um.attemptCount,
+                hintsUsed: um.hintsUsed,
+                innovationUnlocked: um.innovationUnlocked,
+                completedAt: um.completedAt,
+            }))
+        },
+        [],
+        "HistoryPage.completedMissions"
+    )
+
+    const user = await safeDbQuery(
+        () =>
+            db.user.findUnique({
+                where: { id: session.user.id },
+                select: { name: true, auraPoints: true, auraLevel: true, missionsCompleted: true },
+            }),
+        null,
+        "HistoryPage.user"
+    )
+
+    const totalAttempts = completedMissions.reduce((sum, m) => sum + m.attemptCount, 0)
+    const totalAura = completedMissions.reduce((sum, m) => sum + m.auraReward, 0)
+    const innovations = completedMissions.filter((m) => m.innovationUnlocked).length
+
+    return (
+        <div className="flex-1 bg-black/40 min-h-screen py-10">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="mb-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center">
+                            <Clock className="w-5 h-5 text-cyan-400" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-white tracking-tight">
+                                Mission History
+                            </h1>
+                            <p className="text-sm text-gray-500 font-mono mt-0.5">
+                                Agent {user?.name || session.user.name || "Unknown"} — Classified Records
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stats Bar */}
+                {completedMissions.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-green-500/30 transition-colors">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Shield className="w-4 h-4 text-green-400" />
+                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Missions</span>
+                            </div>
+                            <span className="text-2xl font-black text-white">{completedMissions.length}</span>
+                        </div>
+                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-yellow-500/30 transition-colors">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Zap className="w-4 h-4 text-yellow-400" />
+                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Aura Earned</span>
+                            </div>
+                            <span className="text-2xl font-black text-white">{totalAura}</span>
+                        </div>
+                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-cyan-500/30 transition-colors">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Terminal className="w-4 h-4 text-cyan-400" />
+                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Attempts</span>
+                            </div>
+                            <span className="text-2xl font-black text-white">{totalAttempts}</span>
+                        </div>
+                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-purple-500/30 transition-colors">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Award className="w-4 h-4 text-purple-400" />
+                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Innovations</span>
+                            </div>
+                            <span className="text-2xl font-black text-white">{innovations}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Timeline */}
+                {completedMissions.length > 0 ? (
+                    <div className="relative">
+                        {/* Vertical line */}
+                        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-gradient-to-b from-green-500/40 via-cyan-500/20 to-transparent" />
+
+                        <div className="space-y-6">
+                            {completedMissions.map((mission, index) => (
+                                <div key={mission.id} className="relative flex gap-5">
+                                    {/* Timeline node */}
+                                    <div className="flex-shrink-0 relative z-10">
+                                        <div className="w-[47px] h-[47px] rounded-full bg-gray-950 border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.15)]">
+                                            <span className="text-green-400 font-mono text-xs font-bold">
+                                                {String(mission.missionOrder).padStart(2, "0")}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Card */}
+                                    <div className="flex-1 min-w-0">
+                                        <HistoryCard mission={mission} index={index} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* End cap */}
+                        <div className="relative flex gap-5 mt-6">
+                            <div className="flex-shrink-0 relative z-10">
+                                <div className="w-[47px] h-[47px] rounded-full bg-gray-950 border-2 border-gray-700 flex items-center justify-center">
+                                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                                </div>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="text-gray-600 font-mono text-sm">More missions await, Agent...</span>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    /* Empty State */
+                    <div className="text-center py-24">
+                        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gray-900/60 border border-gray-800 flex items-center justify-center">
+                            <Code2 className="w-10 h-10 text-gray-700" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-400 mb-2">No Missions Completed Yet</h2>
+                        <p className="text-gray-600 font-mono text-sm max-w-md mx-auto">
+                            Complete your first mission to see your code history here. Every solution you write will be preserved in your classified records.
+                        </p>
+                        <a
+                            href="/dashboard"
+                            className="inline-flex items-center gap-2 mt-6 bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase transition-colors shadow-[0_0_15px_rgba(22,163,74,0.3)]"
+                        >
+                            Go to Dashboard
+                            <ChevronRight className="w-4 h-4" />
+                        </a>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}

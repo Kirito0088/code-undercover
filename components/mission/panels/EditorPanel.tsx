@@ -7,10 +7,11 @@ import { Play } from "lucide-react"
 import Editor from "@monaco-editor/react"
 
 interface TerminalLine {
-    type: "system" | "error" | "success" | "hint" | "finish"
+    type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
     message: string
     rawContext?: string
     isDiagnostic?: boolean
+    onSubmit?: (val: string) => void
 }
 
 interface EditorPanelProps {
@@ -49,10 +50,65 @@ export function EditorPanel({
     const [isRunning, setIsRunning] = useState(false)
 
     const handleRunCode = async () => {
+        // Quick client-side pre-check to avoid unnecessary roundtrips
+        const trimmedCode = code.trim()
+        if (trimmedCode.length < 10) {
+            setTerminalOutput([
+                { type: "error", message: "Your code is too short. Write a complete C program." },
+            ])
+            return
+        }
+        if (!/\bmain\s*\(/.test(trimmedCode)) {
+            setTerminalOutput([
+                { type: "error", message: "Missing main() function. Every C program needs an int main() { ... } entry point." },
+            ])
+            return
+        }
+
         setIsRunning(true)
         setTerminalOutput([
             { type: "system", message: "> Compiling and executing..." },
         ])
+        
+        let finalInput = ""
+        // Strip comments and string literals before counting actual scanf calls
+        const strippedCode = code
+            .replace(/\/\/.*$/gm, "")           // remove single-line comments
+            .replace(/\/\*[\s\S]*?\*\//g, "")   // remove multi-line comments
+            .replace(/"(?:[^"\\]|\\.)*"/g, "")   // remove string literals
+        const inputMatches = strippedCode.match(/\b(scanf|gets|getline)\s*\(/g)
+        const inputCount = inputMatches ? inputMatches.length : 0
+
+        if (inputCount > 0) {
+            const collectedInputs: string[] = []
+
+            for (let i = 0; i < inputCount; i++) {
+                const val = await new Promise<string>((resolve) => {
+                    setTerminalOutput(prev => [
+                        ...prev,
+                        { 
+                            type: "input-prompt", 
+                            message: inputCount > 1 
+                                ? `scanf[${i + 1}/${inputCount}]: waiting for input...` 
+                                : "waiting for input...",
+                            onSubmit: (v: string) => {
+                                setTerminalOutput(p => 
+                                    p.filter(l => l.type !== "input-prompt")
+                                )
+                                resolve(v)
+                            } 
+                        }
+                    ])
+                })
+                collectedInputs.push(val)
+            }
+
+            finalInput = collectedInputs.join("\n")
+            setTerminalOutput(prev => [
+                ...prev,
+                { type: "system", message: "> Running program..." }
+            ])
+        }
 
         setAttemptCount(attemptCount + 1)
 
@@ -60,7 +116,7 @@ export function EditorPanel({
             const response = await fetch("/api/missions/validate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ missionId: mission.id, code }),
+                body: JSON.stringify({ missionId: mission.id, code, input: finalInput }),
             })
 
             const result = await response.json()
@@ -71,10 +127,11 @@ export function EditorPanel({
                     { type: "system", message: "> Compilation successful." },
                 ]
 
-                // Show program output
-                if (result.stdout && result.stdout.trim()) {
+                // Build interactive-style terminal output
+                const rawOutput = (result.stdout || "").trim()
+                if (rawOutput) {
                     lines.push({ type: "system", message: "─── Program Output ───────────────────" })
-                    lines.push({ type: "success", message: result.stdout.trim() })
+                    lines.push({ type: "success", message: rawOutput })
                     lines.push({ type: "system", message: "──────────────────────────────────────" })
                 }
 

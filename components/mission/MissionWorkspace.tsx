@@ -17,10 +17,11 @@ interface MissionWorkspaceProps {
 }
 
 type TerminalLine = {
-    type: "system" | "error" | "success" | "hint" | "finish"
+    type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
     message: string
     rawContext?: string
     isDiagnostic?: boolean
+    onSubmit?: (val: string) => void
 }
 
 export interface MissionClearInfo {
@@ -46,7 +47,10 @@ export function MissionWorkspace({
     const [missionCleared, setMissionCleared] = useState(false)
     const [clearInfo, setClearInfo] = useState<MissionClearInfo | null>(null)
     const [pendingClearInfo, setPendingClearInfo] = useState<MissionClearInfo | null>(null)
-    const [showIntro, setShowIntro] = useState(mission.order === 1)
+    const [showIntro, setShowIntro] = useState(
+        mission.order === 1 && (!userMission.phase || userMission.phase === "TEACHING")
+    )
+    const [showGrantedIntro, setShowGrantedIntro] = useState(false)
 
     const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
         { type: "system", message: "> Terminal initialized. Ready for code input." },
@@ -54,6 +58,21 @@ export function MissionWorkspace({
 
     // Called when user clicks "Finish Mission" in the terminal
     const handleFinishMission = () => {
+        if (pendingClearInfo) {
+            if (mission.order === 1) {
+                // Only Level 1 gets the cinematic door animation
+                setShowGrantedIntro(true)
+            } else {
+                // All other levels skip the animation and go straight to results
+                setClearInfo(pendingClearInfo)
+                setMissionCleared(true)
+            }
+        }
+    }
+
+    // Called when the access-granted intro finishes playing
+    const handleGrantedIntroComplete = () => {
+        setShowGrantedIntro(false)
         if (pendingClearInfo) {
             setClearInfo(pendingClearInfo)
             setMissionCleared(true)
@@ -74,8 +93,18 @@ export function MissionWorkspace({
         }
     }
 
+    // Called when Teaching Phase completes → transition to MCQ
+    const handleTeachingComplete = () => {
+        syncPhase("MCQ")
+    }
+
+    // Called when Level Intro (denied flow) finishes → transition to Teaching Briefing
+    const handleIntroComplete = () => {
+        setShowIntro(false)
+    }
+
     return (
-        <div className="flex h-screen w-full bg-black text-white overflow-hidden relative font-mono selection:bg-green-500/30">
+        <div className="flex h-[calc(100vh-4rem)] w-full bg-black text-white overflow-hidden relative font-mono selection:bg-green-500/30">
             {/* Background ambient glow */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.04)_0%,transparent_70%)] pointer-events-none"></div>
 
@@ -89,14 +118,19 @@ export function MissionWorkspace({
                 missionId={mission.id}
             />
 
-            {/* Cinematic Level 1 Intro */}
-            {showIntro && (
-                <LevelIntro onComplete={() => setShowIntro(false)} />
+            {/* Cinematic Level 1 Intro (plays BEFORE teaching briefing) */}
+            {phase === "TEACHING" && showIntro && (
+                <LevelIntro onComplete={handleIntroComplete} accessGranted={false} />
             )}
 
             {/* Full-screen Phases */}
-            {phase === "TEACHING" && (
-                <TeachingPhase mission={mission} onComplete={() => syncPhase("MCQ")} />
+            {phase === "TEACHING" && !showIntro && (
+                <TeachingPhase mission={mission} onComplete={handleTeachingComplete} />
+            )}
+
+            {/* Access Granted Intro (after successful code execution) */}
+            {showGrantedIntro && (
+                <LevelIntro onComplete={handleGrantedIntroComplete} accessGranted={true} />
             )}
 
             {phase === "MCQ" && (

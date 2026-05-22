@@ -22,18 +22,57 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
 
     // Guarantee at least one fallback question so the component never renders against an empty array
     if (!Array.isArray(questions) || questions.length === 0) {
-        questions = [
-            {
-                id: 1,
-                question: "What happens when a dangling pointer is dereferenced?",
-                options: [
-                    "It automatically returns NULL",
-                    "It safely crashes the program",
-                    "It accesses undefined memory, causing unpredictable behavior or vulnerabilities",
-                ],
-                correctIndex: 2,
-            },
-        ]
+        if (mission.order === 1) {
+            questions = [
+                {
+                    id: 1,
+                    question: "What is the primary function of printf() in C?",
+                    options: [
+                        "To take input from the user",
+                        "To display output on the screen",
+                        "To perform mathematical operations",
+                        "To load variables directly into memory",
+                    ],
+                    correctIndex: 1,
+                },
+                {
+                    id: 2,
+                    question: "Which header file must be included to use the printf() function?",
+                    options: [
+                        "<math.h>",
+                        "<string.h>",
+                        "<stdlib.h>",
+                        "<stdio.h>",
+                    ],
+                    correctIndex: 3,
+                },
+            ]
+        } else {
+            questions = [
+                {
+                    id: 1,
+                    question: "What is the main use of scanf() in C?",
+                    options: [
+                        "To print output",
+                        "To take input from user",
+                        "To perform calculations",
+                        "To store data permanently",
+                    ],
+                    correctIndex: 1,
+                },
+                {
+                    id: 2,
+                    question: "In C-language Which symbol is used before variables in scanf()?",
+                    options: [
+                        "#",
+                        "@",
+                        "&",
+                        "%",
+                    ],
+                    correctIndex: 2,
+                },
+            ]
+        }
     }
 
     const [currentQIndex, setCurrentQIndex] = useState(0)

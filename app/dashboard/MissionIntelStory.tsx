@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/Button"
-import { ArrowLeft, Info } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 export function MissionIntelStory() {
     const [isVisible, setIsVisible] = useState(false)
@@ -40,8 +40,14 @@ export function MissionIntelStory() {
                         <div className="absolute left-0 right-0 top-1/2 -mt-[0.5px] h-[1px] bg-gradient-to-r from-transparent via-[#2a3746] to-transparent z-[0]"></div>
                         <h2 className="text-base font-mono tracking-[0.3em] font-bold text-gray-300 bg-[#161f2e] px-4 z-10">MISSION INTEL</h2>
                     </div>
-                    <button className="text-emerald-500 hover:text-emerald-400 transition-colors">
-                        <Info className="h-5 w-5" />
+                    <button
+                        onClick={handleContinue}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white font-mono text-xs tracking-wider uppercase transition-all duration-200 hover:bg-white/5 px-3 py-1.5 rounded border border-transparent hover:border-gray-700"
+                    >
+                        SKIP INTRO
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.323-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.5a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-9a1 1 0 0 1 1-1Z" />
+                        </svg>
                     </button>
                 </div>
 
