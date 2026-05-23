@@ -253,12 +253,12 @@ export function EditorPanel({
             {/* Neutral Window Header */}
             <div className="bg-[#161b22] border-b border-gray-800 flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
                 <div className="flex items-end h-full">
-                    <div className="flex gap-1.5 mr-6 mb-3">
+                    <div className="hidden sm:flex gap-1.5 mr-6 mb-3">
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                     </div>
-                    <div className="bg-[#0d1117] text-gray-300 text-xs font-mono py-2 px-6 border border-gray-800 border-b-0 translate-y-[1px]">
+                    <div className="bg-[#0d1117] text-gray-300 text-xs font-mono py-2 px-3 sm:px-6 border border-gray-800 border-b-0 translate-y-[1px]">
                         solution.c
                     </div>
                 </div>
@@ -268,7 +268,7 @@ export function EditorPanel({
                         type="button"
                         onClick={handleRunCode}
                         disabled={isRunning}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-xs font-bold tracking-wider uppercase transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(22,163,74,0.3)]"
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-3 sm:px-4 py-1.5 rounded text-xs font-bold tracking-wider uppercase transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(22,163,74,0.3)] whitespace-nowrap flex-shrink-0"
                     >
                         {isRunning ? (
                             <span className="animate-pulse">RUNNING…</span>
