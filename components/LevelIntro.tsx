@@ -145,48 +145,6 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                 )}
 
                 <div className="absolute inset-0 flex">
-                    {/* LEFT SIDE: Detective Platypus & Info */}
-                    {!accessGranted && (
-                        <div className="w-[45%] flex flex-col justify-center z-20 relative pl-16 pr-8">
-
-                            {/* Mission Information Panel */}
-                            <div className={cn(
-                                "mb-8 relative z-30 bg-black/60 p-8 rounded-lg backdrop-blur-md shadow-[0_0_40px_rgba(0,0,0,0.8)] transform -translate-y-16 mt-32 max-w-md transition-all duration-500",
-                                isDeniedPhase
-                                    ? "border border-red-900/60 border-l-[6px] border-l-red-500"
-                                    : "border border-cyan-900/60 border-l-[6px] border-l-cyan-500"
-                            )}>
-                                <h3 className={cn(
-                                    "font-mono text-xs tracking-[0.3em] font-bold mb-3 transition-colors duration-500",
-                                    isDeniedPhase
-                                        ? "text-red-400 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]"
-                                        : "text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]"
-                                )}>LEVEL.1</h3>
-                                <h1 className="text-5xl font-black tracking-widest text-[#f8fafc] mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] font-sans">SYSTEM BREACH</h1>
-                                <p className="text-gray-300 text-[15px] leading-relaxed font-mono opacity-90">
-                                    Bypass the primary firewall grid to access the inner sanctum.
-                                    Security protocols are active. Bio-signature scanning required.
-                                </p>
-                            </div>
-
-                            {/* Detective Platypus */}
-                            <div className="absolute -left-20 -bottom-32 w-[700px] h-[950px] pointer-events-none z-20">
-                                <div className="w-full h-full relative animate-[float_4s_ease-in-out_infinite]">
-                                    <Image
-                                        src="/characters/detective_platypus.png"
-                                        alt="Detective Platypus"
-                                        fill
-                                        sizes="(max-width: 1200px) 45vw, 700px"
-                                        className="object-cover object-top scale-110"
-                                    />
-                                    {/* Bottom dark gradient fading into the floor */}
-                                    <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#050a12] via-[#050a12] to-transparent"></div>
-                                    {/* Left dark gradient for shadow */}
-                                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black/80 to-transparent"></div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* CENTER/RIGHT: Sci-Fi Security Door */}
                     <div className="flex-1 flex flex-col items-center justify-center z-10 p-12 relative">
