@@ -20,10 +20,14 @@ const SOURCE_FILE_NAME = 'prog.c'
 const BINARY_NAME = process.platform === 'win32' ? 'prog.exe' : 'prog'
 
 /** Compilation flags */
-const GCC_FLAGS = '-Wall -Wextra -O2'
+const GCC_FLAGS = '-Wall -Wextra -O0 -pipe'
+
+/** Maximum time (ms) allowed for the C compilation to finish */
+const COMPILATION_TIMEOUT_MS = 4000
 
 /** Maximum time (ms) allowed for the compiled binary to run */
-const EXECUTION_TIMEOUT_MS = 3_000
+const EXECUTION_TIMEOUT_MS = 3000
+
 
 // ─── Result Interface ────────────────────────────────────────────────────────
 
@@ -254,15 +258,17 @@ export async function executeCode(
 
         let compileStderr = ''
         try {
-            await execAsync(gccCommand)
+            await execAsync(gccCommand, { timeout: COMPILATION_TIMEOUT_MS, killSignal: 'SIGKILL' })
         } catch (compileError: unknown) {
             // GCC exits non-zero on any error/warning-as-error; capture stderr
-            if (
-                compileError &&
-                typeof compileError === 'object' &&
-                'stderr' in compileError
-            ) {
-                compileStderr = String((compileError as { stderr: string }).stderr)
+            if (compileError && typeof compileError === 'object') {
+                if ('killed' in compileError && (compileError as { killed: boolean }).killed) {
+                    compileStderr = `error: Compilation Timeout: Your program took longer than ${COMPILATION_TIMEOUT_MS / 1000}s to compile.`
+                } else if ('stderr' in compileError) {
+                    compileStderr = String((compileError as { stderr: string }).stderr)
+                } else if ('message' in compileError) {
+                    compileStderr = String((compileError as { message: string }).message)
+                }
             }
         }
 
