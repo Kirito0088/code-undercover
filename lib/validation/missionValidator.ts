@@ -12,8 +12,29 @@ export interface OutputValidationResult {
 }
 
 /**
- * Strict, case-sensitive output validation comparing compiler-produced stdout
- * against expected outputs pulled directly from our secure backend data source.
+ * Normalizes a compiler output string for beginner-friendly comparison.
+ * Strips case sensitivity, collapses whitespace, and removes trailing punctuation
+ * so minor formatting differences don't block mission completion.
+ */
+function normalizeOutput(str: string): string {
+    return str
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, " ")          // collapse consecutive whitespace to single space
+        .replace(/[.!?]+$/, "")        // strip trailing punctuation (., !, ?)
+}
+
+/**
+ * Normalized output validation comparing compiler-produced stdout against
+ * expected outputs pulled directly from our secure backend data source.
+ *
+ * Normalization is intentionally beginner-friendly:
+ *   - Case-insensitive (lowercase both sides)
+ *   - Whitespace-tolerant (trim + collapse consecutive spaces)
+ *   - Trailing punctuation is stripped before comparison
+ *
+ * Critically, validation still depends entirely on the real stdout produced by
+ * the Local GCC compiler. Source code is never parsed for pass/fail logic.
  */
 export function validateMissionOutput(
     missionOrder: number,
@@ -27,7 +48,7 @@ export function validateMissionOutput(
     }
 
     let expectedOutput = ""
-    const cleanUserOutput = compilerOutput.trim()
+    const rawUserOutput = compilerOutput.trim()
 
     if (secureConfig.requiredOutput) {
         expectedOutput = secureConfig.requiredOutput
@@ -46,12 +67,10 @@ export function validateMissionOutput(
         }
     }
 
-    const cleanExpectedOutput = expectedOutput.trim()
-
-    if (cleanUserOutput !== cleanExpectedOutput) {
+    if (normalizeOutput(rawUserOutput) !== normalizeOutput(expectedOutput)) {
         return {
             isCorrect: false,
-            feedbackMessage: `Platypus: That’s close, but the system access code requires exact precision. Your output: '${cleanUserOutput}'. Expected output: '${cleanExpectedOutput}'. Check your capitalization and spelling, Agent.`,
+            feedbackMessage: `Platypus: Not quite, Agent. We intercepted your transmission, but the payload was incorrect. Your output: '${rawUserOutput}'. Expected meaning: '${expectedOutput}'. Check what you are passing into your printf function.`,
         }
     }
 
