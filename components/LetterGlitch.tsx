@@ -2,6 +2,8 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 
+const fontSize = 16;
+
 const LetterGlitch = ({
   glitchColors = ['#2b4539', '#61dca3', '#61b3dc'],
   glitchSpeed = 50,
@@ -22,16 +24,14 @@ const LetterGlitch = ({
   const dropsRef = useRef<number[]>([]);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  const fontSize = 16;
-
-  const initDrops = (columns: number) => {
+  const initDrops = useCallback((columns: number) => {
     // Start each column at a random row so they don't all start at the top at once
     dropsRef.current = Array.from({ length: columns }, () =>
       Math.floor(Math.random() * -50)
     );
-  };
+  }, []);
 
-  const resizeCanvas = () => {
+  const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
@@ -51,7 +51,7 @@ const LetterGlitch = ({
 
     const columns = Math.ceil(rect.width / fontSize);
     initDrops(columns);
-  };
+  }, [initDrops]);
 
   // getRandomChar is defined inside useCallback so it never appears in the
   // dependency array — it closes over `characters` which IS a dep of the callback.
@@ -118,7 +118,7 @@ const LetterGlitch = ({
         dropsRef.current[i] = Math.floor(Math.random() * -20);
       }
     }
-  }, [smooth, glitchColors, fontSize, characters]);
+  }, [smooth, glitchColors, characters]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -162,7 +162,7 @@ const LetterGlitch = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  }, [glitchSpeed, smooth, draw]);
+  }, [glitchSpeed, smooth, draw, resizeCanvas]);
 
   return (
     <div className="relative w-full h-full bg-gray-950 overflow-hidden">

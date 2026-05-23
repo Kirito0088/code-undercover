@@ -39,15 +39,15 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+            <div className="mx-auto w-full max-w-md">
                 <div className="flex justify-center">
                     <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                         <KeyRound className="h-6 w-6 text-yellow-500" />
                     </div>
                 </div>
-                <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">
+                <h2 className="mt-6 text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
                     Passphrase Recovery
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-400">
@@ -55,8 +55,8 @@ export default function ForgotPasswordPage() {
                 </p>
             </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="backdrop-blur-xl bg-gray-900/40 py-8 px-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 sm:rounded-xl sm:px-10 border-t border-gray-800">
+            <div className="mt-8 mx-auto w-full max-w-md">
+                <div className="backdrop-blur-xl bg-gray-900/40 py-6 sm:py-8 px-4 sm:px-10 shadow-[0_0_30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 rounded-xl border-t border-gray-800">
 
                     {submitted ? (
                         <div className="text-center py-4">

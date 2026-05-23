@@ -80,7 +80,7 @@ function sanitizeString(raw: string, tmpDir: string): string {
     if (!raw) return ''
 
     // Replace the full temp-dir path prefix so users only see "solution.c"
-    let s = raw
+    const s = raw
         .split(path.join(tmpDir, SOURCE_FILE_NAME)).join(VIRTUAL_FILE_NAME)
         .split(SOURCE_FILE_NAME).join(VIRTUAL_FILE_NAME)
         // Windows: also handle forward-slash variants GCC emits

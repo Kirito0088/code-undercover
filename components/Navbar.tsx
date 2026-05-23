@@ -5,6 +5,7 @@ import { Code } from "lucide-react"
 import { db, safeDbQuery } from "@/lib/db"
 import { ProfileMenu } from "./layout/ProfileMenu"
 import { NavBackButton } from "./layout/NavBackButton"
+import { MobileNav } from "./layout/MobileNav"
 
 export default async function Navbar() {
     const session = await getServerSession(authOptions)
@@ -53,7 +54,8 @@ export default async function Navbar() {
                         <NavBackButton />
                     </div>
 
-                    <div className="flex items-center space-x-4">
+                    {/* Desktop Navigation - hidden on mobile */}
+                    <div className="hidden md:flex items-center space-x-4">
                         {session && userStats ? (
                             <>
                                 <Link
@@ -126,6 +128,21 @@ export default async function Navbar() {
                             </>
                         )}
                     </div>
+
+                    {/* Mobile Navigation */}
+                    <MobileNav isAuthenticated={!!(session && userStats)}>
+                        {session && userStats && (
+                            <ProfileMenu
+                                user={{
+                                    name: userStats.name ?? "Agent",
+                                    email: userStats.email ?? "",
+                                    auraPoints: userStats.auraPoints,
+                                    auraLevel: userStats.auraLevel,
+                                }}
+                                completedMissions={0}
+                            />
+                        )}
+                    </MobileNav>
                 </div>
             </div>
         </nav>
