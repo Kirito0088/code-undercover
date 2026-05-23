@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export interface LevelIntroProps {

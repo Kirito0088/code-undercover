@@ -127,7 +127,7 @@ export function TerminalPanel({
                                 <div className="flex items-center gap-2 px-3 py-2 bg-green-900/20 border-b border-green-800/30">
                                     <div className="relative w-6 h-6 rounded-full overflow-hidden border border-green-500/60 flex-shrink-0 bg-[#0a1610]">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src="/characters/platypus.png" alt="Platypus" className="w-full h-full object-cover object-top scale-[1.4] translate-y-1" />
+                                        <img src="/characters/platipus.png" alt="Platypus" className="w-full h-full object-cover object-top scale-[1.4] translate-y-1" />
                                     </div>
                                     <span className="text-green-400 text-xs font-bold tracking-wider uppercase">Platypus</span>
                                     <span className="text-green-700 text-xs font-mono ml-auto">Coding Mentor</span>

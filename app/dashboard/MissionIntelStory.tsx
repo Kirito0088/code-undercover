@@ -60,7 +60,7 @@ export function MissionIntelStory() {
                         {/* Platypus Agent */}
                         <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 relative">
                             <img
-                                src="/characters/platypus.png"
+                                src="/characters/platipus.png"
                                 alt="Agent"
                                 className="w-full h-full object-contain filter drop-shadow-xl"
                             />
@@ -111,7 +111,7 @@ export function MissionIntelStory() {
                                 {/* Small Avatar Bubble */}
                                 <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#374151] bg-[#1e293b] shrink-0 absolute -left-5 -top-5 shadow-xl">
                                     <img
-                                        src="/characters/platypus.png"
+                                        src="/characters/platipus.png"
                                         alt="Agent Small"
                                         className="w-full h-full object-cover transform scale-[1.3] translate-y-1"
                                     />
