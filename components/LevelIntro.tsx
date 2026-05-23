@@ -176,8 +176,8 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                                         src="/characters/detective_platypus.png"
                                         alt="Detective Platypus"
                                         fill
+                                        sizes="(max-width: 1200px) 45vw, 700px"
                                         className="object-cover object-top scale-110"
-                                        priority
                                     />
                                     {/* Bottom dark gradient fading into the floor */}
                                     <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#050a12] via-[#050a12] to-transparent"></div>
