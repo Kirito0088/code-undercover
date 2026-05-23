@@ -9,6 +9,7 @@ import { TeachingPhase } from "./phases/TeachingPhase"
 import { MCQPhase } from "./phases/MCQPhase"
 import { CharacterManager } from "./CharacterManager"
 import { LevelIntro } from "../LevelIntro"
+import { cn } from "@/lib/utils"
 
 interface MissionWorkspaceProps {
     mission: MissionRecord
@@ -47,10 +48,11 @@ export function MissionWorkspace({
     const [missionCleared, setMissionCleared] = useState(false)
     const [clearInfo, setClearInfo] = useState<MissionClearInfo | null>(null)
     const [pendingClearInfo, setPendingClearInfo] = useState<MissionClearInfo | null>(null)
-    const [showIntro, setShowIntro] = useState(
+     const [showIntro, setShowIntro] = useState(
         mission.order === 1 && (!userMission.phase || userMission.phase === "TEACHING")
     )
     const [showGrantedIntro, setShowGrantedIntro] = useState(false)
+    const [activeTab, setActiveTab] = useState<"briefing" | "editor" | "terminal">("editor")
 
     const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
         { type: "system", message: "> Terminal initialized. Ready for code input." },
@@ -142,14 +144,60 @@ export function MissionWorkspace({
 
             {/* Coding Phase: 3-Panel Layout */}
             {phase === "CODING" && (
-                <div className="flex w-full h-full p-2 gap-2 relative z-10">
+                <div className="flex flex-col md:flex-row w-full h-full p-2 gap-2 relative z-10">
+                    {/* Mobile Tabs Header */}
+                    <div className="flex md:hidden bg-gray-950 border border-gray-800 rounded-lg p-1 gap-1 flex-shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("briefing")}
+                            className={cn(
+                                "flex-1 py-2 px-3 text-xs font-bold tracking-wider uppercase rounded font-mono transition-all text-center border",
+                                activeTab === "briefing"
+                                    ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                    : "text-gray-400 hover:text-white border-transparent bg-transparent"
+                            )}
+                        >
+                            Briefing
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("editor")}
+                            className={cn(
+                                "flex-1 py-2 px-3 text-xs font-bold tracking-wider uppercase rounded font-mono transition-all text-center border",
+                                activeTab === "editor"
+                                    ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                    : "text-gray-400 hover:text-white border-transparent bg-transparent"
+                            )}
+                        >
+                            Editor
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("terminal")}
+                            className={cn(
+                                "flex-1 py-2 px-3 text-xs font-bold tracking-wider uppercase rounded font-mono transition-all text-center border",
+                                activeTab === "terminal"
+                                    ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                    : "text-gray-400 hover:text-white border-transparent bg-transparent"
+                            )}
+                        >
+                            Terminal
+                        </button>
+                    </div>
+
                     {/* LEFT: Briefing */}
-                    <section className="w-[28%] min-w-[280px] h-full bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+                    <section className={cn(
+                        "w-full md:w-[28%] md:min-w-[280px] flex-1 md:h-full bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex-col relative",
+                        activeTab === "briefing" ? "flex" : "hidden md:flex"
+                    )}>
                         <LeftPanel mission={mission} missionCleared={missionCleared} attemptCount={attemptCount} />
                     </section>
 
                     {/* CENTER: Editor */}
-                    <section className="flex-1 h-full bg-gray-950/90 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative min-w-0 min-h-0">
+                    <section className={cn(
+                        "w-full md:w-auto flex-1 md:h-full bg-gray-950/90 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex-col relative min-w-0 min-h-0",
+                        activeTab === "editor" ? "flex" : "hidden md:flex"
+                    )}>
                         <EditorPanel
                             mission={mission}
                             setTerminalOutput={setTerminalOutput}
@@ -159,11 +207,15 @@ export function MissionWorkspace({
                             setMissionCleared={setMissionCleared}
                             setClearInfo={setClearInfo}
                             setPendingClearInfo={setPendingClearInfo}
+                            onRunStarted={() => setActiveTab("terminal")}
                         />
                     </section>
 
                     {/* RIGHT: Terminal & Hints */}
-                    <section className="w-[28%] min-w-[280px] h-full bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+                    <section className={cn(
+                        "w-full md:w-[28%] md:min-w-[280px] flex-1 md:h-full bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex-col relative",
+                        activeTab === "terminal" ? "flex" : "hidden md:flex"
+                    )}>
                         <TerminalPanel
                             mission={mission}
                             terminalOutput={terminalOutput}

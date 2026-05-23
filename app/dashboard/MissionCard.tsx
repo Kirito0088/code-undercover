@@ -38,7 +38,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
     const isActive = mission.status === "ACTIVE"
 
     const handleAccept = async () => {
-        if (isLocked) return
+        if (isLocked || loading) return
         setLoading(true)
 
         try {
@@ -52,12 +52,13 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
 
             if (res.ok && data.redirect) {
                 router.push(data.redirect)
+                // Keep loading state true so button remains disabled while routing
+                return
             }
         } catch {
             console.error("Failed to accept mission")
-        } finally {
-            setLoading(false)
         }
+        setLoading(false)
     }
 
     return (

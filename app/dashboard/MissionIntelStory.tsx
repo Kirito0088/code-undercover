@@ -52,7 +52,7 @@ export function MissionIntelStory() {
                 </div>
 
                 {/* Scrollable Content Container */}
-                <div className="p-6 md:p-8 flex-1 overflow-visible pt-6 relative flex flex-col">
+                <div className="p-6 md:p-8 flex-1 overflow-y-auto custom-scrollbar pt-6 relative flex flex-col">
 
                     {/* Top Section */}
                     <div className="flex flex-col md:flex-row gap-6 mb-6 items-start relative z-10">
@@ -68,8 +68,9 @@ export function MissionIntelStory() {
 
                         <div className="flex flex-col gap-4 flex-1">
                             {/* Agent Speech Bubble */}
-                            <div className="relative bg-[#d1d5db] text-gray-900 px-5 py-4 rounded-xl rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
-                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#d1d5db] border-b-[16px] border-b-transparent transform"></div>
+                            <div className="relative bg-[#d1d5db] text-gray-900 px-5 py-4 rounded-xl md:rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
+                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#d1d5db] border-b-[16px] border-b-transparent transform md:block hidden"></div>
+                                <div className="absolute -top-[14px] left-10 w-0 h-0 border-b-[16px] border-b-[#d1d5db] border-r-[16px] border-r-transparent transform md:hidden"></div>
                                 To master the code, you must know its history, Agent. Let&apos;s start with the origins of the C programming language.
                             </div>
 

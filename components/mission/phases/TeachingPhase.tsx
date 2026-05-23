@@ -34,8 +34,8 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
         ]
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center p-6 bg-[#0a0a0a]/95 z-40">
-            <div className="max-w-5xl w-full bg-[#0a0a0a] border border-green-500/20 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-xl relative flex flex-col">
+        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#0a0a0a]/95 z-40 overflow-y-auto">
+            <div className="max-w-5xl w-full bg-[#0a0a0a] border border-green-500/20 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
                 {/* Top gradient accent bar */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
 
@@ -50,7 +50,7 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                 </div>
 
                 {/* ─── Middle: Slides Grid ─── */}
-                <div className="px-8 pb-6 flex-1">
+                <div className="px-6 md:px-8 pb-6 flex-1 overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {slides.map(
                             (slide: { title: string; content: string | string[] }, index: number) => {
@@ -89,17 +89,13 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                 </div>
 
                 {/* ─── Bottom Row: Platypus left, Button right ─── */}
-                <div className="flex items-end justify-between px-8 pb-8 pt-4 border-t border-gray-800/50">
+                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-gray-800/50 flex-shrink-0">
                     {/* Platypus + Label */}
                     <div className="flex flex-col items-center shrink-0">
-                        <span className="text-xs font-bold text-green-400 font-mono tracking-[0.2em] uppercase mb-2">
+                        <span className="text-[10px] md:text-xs font-bold text-green-400 font-mono tracking-[0.2em] uppercase mb-1">
                             AGENT BRIEFING
                         </span>
-                        {/* ── PLATYPUS SIZE CONTROL ─────────────────────
-                             Change h-XX and w-XX below to resize the character
-                             Current: h-60 w-60 — increase/decrease as needed
-                        ─────────────────────────────────────────────── */}
-                        <div className="relative h-40 w-40">
+                        <div className="relative h-20 w-20 md:h-40 md:w-40">
                             <Image
                                 src="/characters/platipus.png"
                                 alt="Lead Mentor"
@@ -114,10 +110,10 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                     {/* Proceed Button */}
                     <button
                         onClick={onComplete}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-bold tracking-widest font-mono uppercase transition-all group shadow-[0_0_20px_rgba(22,163,74,0.4)] hover:shadow-[0_0_30px_rgba(22,163,74,0.6)]"
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2.5 md:px-8 md:py-3 rounded-lg text-xs md:text-sm font-bold tracking-widest font-mono uppercase transition-all group shadow-[0_0_20px_rgba(22,163,74,0.4)] hover:shadow-[0_0_30px_rgba(22,163,74,0.6)] ml-4"
                     >
-                        PROCEED TO MCQ
-                        <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
+                        PROCEED
+                        <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-2 transition-transform" />
                     </button>
                 </div>
             </div>

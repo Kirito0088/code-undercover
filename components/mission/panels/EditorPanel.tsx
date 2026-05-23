@@ -33,6 +33,7 @@ interface EditorPanelProps {
     setMissionCleared: (cleared: boolean) => void
     setClearInfo: (info: MissionClearInfo) => void
     setPendingClearInfo: (info: MissionClearInfo | null) => void
+    onRunStarted?: () => void
 }
 
 export function EditorPanel({
@@ -42,6 +43,7 @@ export function EditorPanel({
     setAttemptCount,
     setInnovationUnlocked,
     setPendingClearInfo,
+    onRunStarted,
 }: EditorPanelProps) {
     const defaultCode = mission.startingCode || [
         "// Mission: " + mission.title,
@@ -79,6 +81,7 @@ export function EditorPanel({
         setTerminalOutput([
             { type: "system", message: "> Compiling and executing…" },
         ])
+        onRunStarted?.()
 
         let finalInput = ""
         // Strip comments and string literals before counting actual scanf calls
