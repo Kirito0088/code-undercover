@@ -5,6 +5,7 @@ import { LogOut, Terminal, Sparkles, Award, Shield } from "lucide-react"
 import Image from "next/image"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
 import { signOut } from "next-auth/react"
+import Link from "next/link"
 
 interface ProfileMenuProps {
   user: {
@@ -37,9 +38,17 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-[#1C1C24] border border-[#323242] hover:border-[#3F3F52] transition-all group"
       >
-        <div className="h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30 overflow-hidden relative">
+        <Link
+          href="/profile"
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsOpen(false)
+          }}
+          className="h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30 overflow-hidden relative hover:bg-indigo-500/20 hover:scale-105 transition-all"
+          title="View Settings"
+        >
           <Shield className="h-4 w-4 text-indigo-400" />
-        </div>
+        </Link>
         <div className="text-left hidden sm:block">
           <div className="text-sm font-medium text-[#F1F1F5] leading-none">{user.name || "Agent"}</div>
           <div className="text-xs text-[#8B8BA7] mt-0.5">Aura Lvl {user.auraLevel}</div>
@@ -105,7 +114,15 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
           </div>
 
           {/* Actions */}
-          <div className="p-3 border-t border-[#323242] bg-[#14141A]">
+          <div className="p-3 border-t border-[#323242] bg-[#14141A] flex flex-col gap-1.5">
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] border border-[#323242] transition-all"
+            >
+              <Shield className="h-4 w-4 text-indigo-400" /> View Settings
+            </Link>
+            <div className="border-t border-[#323242] my-0.5"></div>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-red-400 hover:bg-red-500/10 transition-colors"

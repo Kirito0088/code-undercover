@@ -4,20 +4,110 @@
 
 @layer base {
   :root {
-    --background: #14141A;
-    --foreground: #F1F1F5;
+    --bg-base: #14141A;
+    --bg-surface: #1C1C24;
+    --bg-elevated: #22222B;
+    --bg-surface-hover: #2A2A35;
+    --border-default: #323242;
+    --border-hover: #3F3F52;
+    --text-primary: #F1F1F5;
+    --text-secondary: #8B8BA7;
+    --text-muted: #5C5C7A;
+
+    --background: var(--bg-base);
+    --foreground: var(--text-primary);
+  }
+
+  html.light {
+    --bg-base: #F4F4F8;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #EEEEF4;
+    --bg-surface-hover: #EBEBEF;
+    --border-default: #DDDDE8;
+    --border-hover: #CFCFD9;
+    --text-primary: #14141A;
+    --text-secondary: #5C5C7A;
+    --text-muted: #8B8BA7;
+
+    --background: var(--bg-base);
+    --foreground: var(--text-primary);
   }
 
   body {
     @apply antialiased min-h-screen;
     background-color: var(--background);
     color: var(--foreground);
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   ::selection {
     background-color: rgba(14, 185, 77, 0.3);
   }
 }
+
+/* ─── Light Mode Token Overrides (Hardcoded Tailwind Hex Utility Support) ─── */
+html.light .bg-\[\#14141A\] {
+  background-color: var(--bg-base) !important;
+}
+
+html.light .bg-\[\#14141A\]\/90 {
+  background-color: rgba(244, 244, 248, 0.9) !important;
+}
+
+html.light .bg-\[\#1C1C24\] {
+  background-color: var(--bg-surface) !important;
+}
+
+html.light .bg-\[\#1C1C24\]\/50 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+html.light .bg-\[\#1C1C24\]\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.light .bg-\[\#2A2A35\] {
+  background-color: var(--bg-surface-hover) !important;
+}
+
+html.light .hover\:bg-\[\#2A2A35\]:hover {
+  background-color: var(--bg-surface-hover) !important;
+}
+
+html.light .border-\[\#323242\] {
+  border-color: var(--border-default) !important;
+}
+
+html.light .hover\:border-\[\#3F3F52\]:hover {
+  border-color: var(--border-hover) !important;
+}
+
+html.light .text-\[\#F1F1F5\] {
+  color: var(--text-primary) !important;
+}
+
+html.light .text-\[\#8B8BA7\] {
+  color: var(--text-secondary) !important;
+}
+
+html.light .text-\[\#5C5C7A\] {
+  color: var(--text-muted) !important;
+}
+
+/* Specific component overrides for light mode */
+html.light input, 
+html.light textarea,
+html.light select {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light input::placeholder, 
+html.light textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
 
 /* ─── Character Animations ─── */
 @keyframes float {

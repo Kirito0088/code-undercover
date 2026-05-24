@@ -26,7 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            const t = localStorage.getItem('cu_theme');
+            if (t === 'light') document.documentElement.classList.add('light');
+          } catch(e) {}
+        ` }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >

@@ -11,11 +11,11 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        surface: "#1C1C24",
-        elevated: "#22222B",
-        "surface-hover": "#2A2A35",
-        border: "#323242",
-        "border-hover": "#3F3F52",
+        surface: "var(--bg-surface)",
+        elevated: "var(--bg-elevated)",
+        "surface-hover": "var(--bg-surface-hover)",
+        border: "var(--border-default)",
+        "border-hover": "var(--border-hover)",
         indigo: {
           50: "#EAFBF0",
           100: "#D4F6E1",

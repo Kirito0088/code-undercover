@@ -1,0 +1,92 @@
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { db } from "@/lib/db"
+
+export async function PATCH(req: Request) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const body = await req.json().catch(() => ({}))
+        const { name, email } = body
+
+        // Validation
+        if (name !== undefined) {
+            if (typeof name !== "string" || name.trim().length === 0) {
+                return NextResponse.json({ error: "Name cannot be empty" }, { status: 400 })
+            }
+            if (name.length > 50) {
+                return NextResponse.json({ error: "Name must be under 50 characters" }, { status: 400 })
+            }
+        }
+
+        if (email !== undefined) {
+            if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
+            }
+        }
+
+        // Get current user to check for changes and collisions
+        const currentUser = await db.user.findUnique({
+            where: { id: session.user.id },
+            select: { email: true }
+        })
+
+        if (!currentUser) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 })
+        }
+
+        const updateData: { name?: string; email?: string } = {}
+        if (name !== undefined) updateData.name = name.trim()
+        if (email !== undefined) {
+            const normalizedEmail = email.trim().toLowerCase()
+            if (normalizedEmail !== currentUser.email?.toLowerCase()) {
+                // Collision check
+                const existingUser = await db.user.findUnique({
+                    where: { email: normalizedEmail }
+                })
+                if (existingUser) {
+                    return NextResponse.json({ error: "Email already in use" }, { status: 409 })
+                }
+                updateData.email = normalizedEmail
+            }
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json({ success: true, message: "No changes requested" })
+        }
+
+        const updatedUser = await db.user.update({
+            where: { id: session.user.id },
+            data: updateData,
+            select: { name: true, email: true }
+        })
+
+        return NextResponse.json({ success: true, user: updatedUser })
+    } catch (error: unknown) {
+        console.error("[Profile API Error]:", error)
+        const err = error as { code?: string }
+        if (err.code === 'P2002') {
+            return NextResponse.json({ error: "Email already in use" }, { status: 409 })
+        }
+        return NextResponse.json({ error: "Failed to update profile settings" }, { status: 500 })
+    }
+}
+
+export async function DELETE(req: Request) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        // Stubbed delete action: returns success as per constraints
+        return NextResponse.json({ success: true, message: "Account deletion stub successful." })
+    } catch (error: unknown) {
+        console.error("[Profile DELETE Error]:", error)
+        return NextResponse.json({ error: "Failed to delete account" }, { status: 500 })
+    }
+}
