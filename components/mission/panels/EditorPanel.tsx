@@ -10,7 +10,7 @@ import { Play } from "lucide-react"
 const Editor = dynamic(() => import("@monaco-editor/react"), {
     ssr: false,
     loading: () => (
-        <div className="flex-1 flex items-center justify-center bg-[#0A0A0F] text-[#3A3A52] font-mono text-xs">
+        <div className="flex-1 flex items-center justify-center bg-[#14141A] text-[#3A3A52] font-mono text-xs">
             Loading editor...
         </div>
     ),
@@ -249,16 +249,16 @@ export function EditorPanel({
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#0A0A0F] rounded-xl overflow-hidden border border-[#22222E] shadow-2xl relative">
+        <div className="flex flex-col h-full bg-[#14141A] rounded-xl overflow-hidden border border-[#323242] shadow-2xl relative">
             {/* Neutral Window Header */}
-            <div className="bg-[#111118] border-b border-[#22222E] flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
+            <div className="bg-[#1C1C24] border-b border-[#323242] flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
                 <div className="flex items-end h-full">
                     <div className="hidden sm:flex gap-1.5 mr-6 mb-3">
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                     </div>
-                    <div className="bg-[#0A0A0F] text-[#F1F1F5] text-xs font-mono py-2 px-3 sm:px-6 border border-[#22222E] border-b-0 translate-y-[1px] rounded-t-md">
+                    <div className="bg-[#14141A] text-[#F1F1F5] text-xs font-mono py-2 px-3 sm:px-6 border border-[#323242] border-b-0 translate-y-[1px] rounded-t-md">
                         solution.c
                     </div>
                 </div>

@@ -94,7 +94,7 @@ export default async function HistoryPage() {
     const innovations = completedMissions.filter((m) => m.innovationUnlocked).length
 
     return (
-        <div className="flex-1 bg-[#0A0A0F] min-h-screen py-8">
+        <div className="flex-1 bg-[#14141A] min-h-screen py-8">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -116,28 +116,28 @@ export default async function HistoryPage() {
                 {/* Stats Bar */}
                 {completedMissions.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
                                 <Shield className="size-4 text-indigo-400" />
                                 <span className="text-xs text-[#5C5C7A] font-medium">Missions Completed</span>
                             </div>
                             <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{completedMissions.length}</span>
                         </div>
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
                                 <Zap className="size-4 text-indigo-400" />
                                 <span className="text-xs text-[#5C5C7A] font-medium">Aura Earned</span>
                             </div>
                             <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{totalAura} AP</span>
                         </div>
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
                                 <Terminal className="size-4 text-indigo-400" />
                                 <span className="text-xs text-[#5C5C7A] font-medium">Total Attempts</span>
                             </div>
                             <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{totalAttempts}</span>
                         </div>
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
                                 <Award className="size-4 text-indigo-400" />
                                 <span className="text-xs text-[#5C5C7A] font-medium">Innovations</span>
@@ -151,15 +151,15 @@ export default async function HistoryPage() {
                 {completedMissions.length > 0 ? (
                     <div className="relative">
                         {/* Vertical line */}
-                        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-gradient-to-b from-indigo-500/30 via-[#22222E] to-transparent" />
+                        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-gradient-to-b from-indigo-500/30 via-[#323242] to-transparent" />
 
                         <div className="space-y-6">
                             {completedMissions.map((mission, index) => (
                                 <div key={mission.id} className="relative flex gap-5">
                                     {/* Timeline node */}
                                     <div className="flex-shrink-0 relative z-10">
-                                        <div className="size-[47px] rounded-full bg-[#0A0A0F] border-2 border-indigo-500/30 flex items-center justify-center">
-                                            <span className="text-[#818CF8] font-mono text-xs font-semibold">
+                                        <div className="size-[47px] rounded-full bg-[#14141A] border-2 border-indigo-500/30 flex items-center justify-center">
+                                            <span className="text-[#39D375] font-mono text-xs font-semibold">
                                                 {String(mission.missionOrder).padStart(2, "0")}
                                             </span>
                                         </div>
@@ -176,7 +176,7 @@ export default async function HistoryPage() {
                         {/* End cap */}
                         <div className="relative flex gap-5 mt-6">
                             <div className="flex-shrink-0 relative z-10">
-                                <div className="size-[47px] rounded-full bg-[#0A0A0F] border border-[#22222E] flex items-center justify-center">
+                                <div className="size-[47px] rounded-full bg-[#14141A] border border-[#323242] flex items-center justify-center">
                                     <ChevronRight className="size-4 text-[#5C5C7A]" />
                                 </div>
                             </div>
@@ -188,7 +188,7 @@ export default async function HistoryPage() {
                 ) : (
                     /* Empty State */
                     <div className="text-center py-24">
-                        <div className="size-20 mx-auto mb-6 rounded-2xl bg-[#111118] border border-[#22222E] flex items-center justify-center">
+                        <div className="size-20 mx-auto mb-6 rounded-2xl bg-[#1C1C24] border border-[#323242] flex items-center justify-center">
                             <Code2 className="size-10 text-[#5C5C7A]" />
                         </div>
                         <h2 className="text-lg font-semibold text-[#F1F1F5] mb-2">No Missions Completed Yet</h2>

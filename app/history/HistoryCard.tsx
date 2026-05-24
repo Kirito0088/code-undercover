@@ -41,7 +41,7 @@ function getDifficultyStyle(difficulty: string) {
         case "HARD":
             return { color: "text-red-400", border: "border-red-500/20", bg: "bg-red-500/10" }
         default:
-            return { color: "text-[#5C5C7A]", border: "border-[#22222E]", bg: "bg-[#111118]" }
+            return { color: "text-[#5C5C7A]", border: "border-[#323242]", bg: "bg-[#1C1C24]" }
     }
 }
 
@@ -75,13 +75,13 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
 
     return (
         <div
-            className="group bg-[#111118] border border-[#22222E] rounded-xl overflow-hidden transition-all duration-300 hover:border-[#2E2E3F]"
+            className="group bg-[#1C1C24] border border-[#323242] rounded-xl overflow-hidden transition-all duration-300 hover:border-[#3F3F52]"
             style={{ animationDelay: `${index * 80}ms` }}
         >
             {/* Card Header — always visible */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-5 text-left hover:bg-[#1C1C28]/50 transition-colors"
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-[#2A2A35]/50 transition-colors"
             >
                 <div className="flex items-center gap-4 min-w-0">
                     <div>
@@ -132,16 +132,16 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                     isExpanded ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
                 }`}
             >
-                <div className="border-t border-[#22222E]">
+                <div className="border-t border-[#323242]">
                     {mission.submittedCode ? (
                         <div className="relative">
                             {/* Code Header */}
-                            <div className="flex items-center justify-between px-5 py-3 bg-[#16161F] border-b border-[#22222E]">
+                            <div className="flex items-center justify-between px-5 py-3 bg-[#22222B] border-b border-[#323242]">
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-[#22222E]" />
-                                        <div className="w-2 h-2 rounded-full bg-[#22222E]" />
-                                        <div className="w-2 h-2 rounded-full bg-[#22222E]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#323242]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#323242]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#323242]" />
                                     </div>
                                     <span className="text-xs font-mono text-[#8B8BA7]">
                                         solution.c
@@ -152,7 +152,7 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                                 </div>
                                 <button
                                     onClick={handleCopy}
-                                    className="flex items-center gap-1.5 text-xs font-mono text-[#8B8BA7] hover:text-indigo-400 transition-colors px-2 py-1 rounded hover:bg-[#1C1C28]"
+                                    className="flex items-center gap-1.5 text-xs font-mono text-[#8B8BA7] hover:text-indigo-400 transition-colors px-2 py-1 rounded hover:bg-[#2A2A35]"
                                     title="Copy code"
                                 >
                                     {copied ? (
@@ -170,7 +170,7 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                             </div>
 
                             {/* Code Block */}
-                            <div className="bg-[#0A0A0F] overflow-x-auto custom-scrollbar">
+                            <div className="bg-[#14141A] overflow-x-auto custom-scrollbar">
                                 <pre className="p-5 text-sm leading-relaxed">
                                     <code className="text-[#8B8BA7] font-mono whitespace-pre">
                                         {mission.submittedCode}

@@ -47,10 +47,10 @@ export function LeftPanel({ mission, missionCleared, attemptCount }: LeftPanelPr
     }
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-[#0D0D14] border-r border-[#22222E] overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col h-full bg-[#0D0D14] border-r border-[#323242] overflow-y-auto custom-scrollbar">
             <div className="flex flex-col justify-center min-h-full py-8 p-4 md:p-6 gap-6 w-full max-w-2xl mx-auto">
                 {/* Briefing Container */}
-                <div className="bg-[#111118] border border-[#22222E] rounded-xl p-6 w-full">
+                <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 w-full">
                     <div className="flex items-center justify-between gap-3 mb-4">
                         <span className="text-xs uppercase tracking-wider text-[#5C5C7A] font-medium">
                             Level {mission.order}

@@ -26,7 +26,7 @@ export default async function DebugLabPage() {
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
     return (
-        <div className="flex-1 bg-[#0A0A0F] py-8">
+        <div className="flex-1 bg-[#14141A] py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Header */}
@@ -43,12 +43,12 @@ export default async function DebugLabPage() {
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-8 bg-[#111118] rounded-xl p-5 border border-red-500/20">
+                <div className="mb-8 bg-[#1C1C24] rounded-xl p-5 border border-red-500/20">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-[#8B8BA7]">Debug Progress</span>
                         <span className="text-xs font-mono text-red-400">{completedCount}/{totalCount} Restored</span>
                     </div>
-                    <div className="w-full bg-[#1C1C28] rounded-full h-1.5">
+                    <div className="w-full bg-[#2A2A35] rounded-full h-1.5">
                         <div
                             className="bg-red-500 h-1.5 rounded-full transition-all duration-500"
                             style={{ width: `${progressPercent}%` }}

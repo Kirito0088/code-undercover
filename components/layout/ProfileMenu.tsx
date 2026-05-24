@@ -35,7 +35,7 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-[#111118] border border-[#22222E] hover:border-[#2E2E3F] transition-all group"
+        className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-[#1C1C24] border border-[#323242] hover:border-[#3F3F52] transition-all group"
       >
         <div className="h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/30 overflow-hidden relative">
           <Shield className="h-4 w-4 text-indigo-400" />
@@ -47,12 +47,12 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-72 rounded-xl bg-[#111118] border border-[#22222E] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-3 w-72 rounded-xl bg-[#1C1C24] border border-[#323242] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header ID Card Style */}
-          <div className="relative p-5 bg-gradient-to-b from-indigo-900/20 to-[#111118] border-b border-[#22222E]">
+          <div className="relative p-5 bg-gradient-to-b from-indigo-900/20 to-[#1C1C24] border-b border-[#323242]">
             <div className="absolute top-0 inset-x-0 h-1 bg-indigo-500"></div>
             <div className="flex gap-4 items-center">
-              <div className="h-16 w-16 rounded-lg bg-[#0A0A0F] border border-indigo-500/20 flex items-center justify-center relative overflow-hidden flex-shrink-0">
+              <div className="h-16 w-16 rounded-lg bg-[#14141A] border border-indigo-500/20 flex items-center justify-center relative overflow-hidden flex-shrink-0">
                 <div className="absolute inset-0 bg-indigo-500/10 pattern-grid opacity-50"></div>
                 <Shield className="h-8 w-8 text-indigo-400" />
               </div>
@@ -74,20 +74,20 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
           </div>
 
           {/* Stats Grid */}
-          <div className="p-4 grid grid-cols-2 gap-3 bg-[#0A0A0F]/50">
-            <div className="bg-[#0A0A0F] rounded-lg p-3 border border-[#22222E]">
+          <div className="p-4 grid grid-cols-2 gap-3 bg-[#14141A]/50">
+            <div className="bg-[#14141A] rounded-lg p-3 border border-[#323242]">
               <div className="text-xs text-[#5C5C7A] mb-1 flex items-center gap-1">
                 <Terminal className="h-3 w-3" /> Aura Level
               </div>
               <div className="text-xl font-semibold text-[#F1F1F5]">{user.auraLevel}</div>
             </div>
-            <div className="bg-[#0A0A0F] rounded-lg p-3 border border-[#22222E]">
+            <div className="bg-[#14141A] rounded-lg p-3 border border-[#323242]">
               <div className="text-xs text-indigo-400 mb-1 flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Aura Points
               </div>
               <div className="text-xl font-semibold text-indigo-400">{user.auraPoints}</div>
             </div>
-            <div className="bg-[#0A0A0F] rounded-lg p-3 border border-[#22222E] col-span-2 flex items-center justify-between">
+            <div className="bg-[#14141A] rounded-lg p-3 border border-[#323242] col-span-2 flex items-center justify-between">
               <div>
                 <div className="text-xs text-[#5C5C7A] mb-0.5">Missions Completed</div>
                 <div className="text-lg font-semibold text-[#F1F1F5]">{completedMissions}</div>
@@ -105,7 +105,7 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
           </div>
 
           {/* Actions */}
-          <div className="p-3 border-t border-[#22222E] bg-[#0A0A0F]">
+          <div className="p-3 border-t border-[#323242] bg-[#14141A]">
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-red-400 hover:bg-red-500/10 transition-colors"

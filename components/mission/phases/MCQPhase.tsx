@@ -106,7 +106,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
         if (selectedOption === index) {
             return `${base} bg-indigo-500/5 border-indigo-500/60`
         }
-        return `${base} bg-[#0A0A0F] border-[#22222E] hover:border-indigo-500/40`
+        return `${base} bg-[#14141A] border-[#323242] hover:border-indigo-500/40`
     }
 
     const getLabelClass = (index: number) => {
@@ -114,12 +114,12 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
         if (selectedOption === index) {
             return `${base} bg-indigo-500 text-white border-indigo-400`
         }
-        return `${base} text-[#5C5C7A] border-[#22222E]`
+        return `${base} text-[#5C5C7A] border-[#323242]`
     }
 
     if (!q) {
         return (
-            <div className="absolute inset-0 flex items-center justify-center p-8 bg-[#0A0A0F] z-30">
+            <div className="absolute inset-0 flex items-center justify-center p-8 bg-[#14141A] z-30">
                 <div className="text-center">
                     <AlertTriangle className="h-10 w-10 text-amber-400 mx-auto mb-4" />
                     <p className="text-[#8B8BA7] text-sm">No question available. Proceeding to mission...</p>
@@ -135,7 +135,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
     }
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 bg-[#0A0A0F] z-30 overflow-y-auto">
+        <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 bg-[#14141A] z-30 overflow-y-auto">
             <div className="max-w-2xl w-full my-auto">
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-10">
@@ -151,7 +151,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                 </div>
 
                 {/* Question Card */}
-                <div className="bg-[#111118] border border-[#22222E] p-5 sm:p-8 rounded-2xl shadow-2xl backdrop-blur-md">
+                <div className="bg-[#1C1C24] border border-[#323242] p-5 sm:p-8 rounded-2xl shadow-2xl backdrop-blur-md">
                     <h3 className="text-lg sm:text-xl font-medium text-[#F1F1F5] mb-6 sm:mb-8 leading-relaxed">
                         {q.question}
                     </h3>

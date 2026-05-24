@@ -80,9 +80,9 @@ export function TerminalPanel({
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#0A0A0F] border-l border-[#22222E] relative font-mono">
+        <div className="flex flex-col h-full bg-[#14141A] border-l border-[#323242] relative font-mono">
             {/* Terminal Header & Hints */}
-            <div className="h-9 bg-[#0A0A0F] border-b border-[#22222E] flex items-center justify-between px-4 flex-shrink-0">
+            <div className="h-9 bg-[#14141A] border-b border-[#323242] flex items-center justify-between px-4 flex-shrink-0">
                 <div className="flex items-center gap-2 text-xs font-mono text-[#5C5C7A]">
                     <TerminalIcon className="h-4 w-4" />
                     Terminal Output
@@ -91,7 +91,7 @@ export function TerminalPanel({
                 <button
                     onClick={handleRequestHint}
                     disabled={hintsUsed >= 5}
-                    className="flex items-center gap-2 border border-[#22222E] bg-[#111118] hover:border-amber-500/30 text-[#8B8BA7] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 border border-[#323242] bg-[#1C1C24] hover:border-amber-500/30 text-[#8B8BA7] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
                 >
                     <HelpCircle className="h-3 w-3 text-amber-400" />
                     Request Hint ({hintsUsed}/5)
@@ -113,7 +113,7 @@ export function TerminalPanel({
                                     {line.message.split('error:')[0]}
                                 </div>
                                 {line.rawContext && (
-                                    <pre className="bg-[#111118] border-l-2 border-red-500/40 p-2 text-xs text-[#8B8BA7] font-mono overflow-x-auto whitespace-pre">
+                                    <pre className="bg-[#1C1C24] border-l-2 border-red-500/40 p-2 text-xs text-[#8B8BA7] font-mono overflow-x-auto whitespace-pre">
                                         {line.rawContext}
                                     </pre>
                                 )}
@@ -127,7 +127,7 @@ export function TerminalPanel({
                             <div key={index} className="mb-4 bg-amber-500/5 border border-amber-500/15 rounded-lg overflow-hidden">
                                 {/* Platypus Header */}
                                 <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/10">
-                                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#0A0A0F]">
+                                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#14141A]">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src="/characters/platipus.png" alt="Platypus" className="w-full h-full object-cover object-top scale-[1.4] translate-y-1" />
                                     </div>

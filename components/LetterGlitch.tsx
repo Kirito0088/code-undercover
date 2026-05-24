@@ -5,7 +5,7 @@ import { useRef, useEffect, useCallback } from 'react';
 const fontSize = 16;
 
 const LetterGlitch = ({
-  glitchColors = ['#312e81', '#6366f1', '#818cf8'],
+  glitchColors = ['#312e81', '#0EB94D', '#39D375'],
   glitchSpeed = 50,
   centerVignette = false,
   outerVignette = true,
@@ -88,7 +88,7 @@ const LetterGlitch = ({
         // Characters just behind the leading one get the primary glitch color
         if (y - fontSize > 0) {
           const trailChar = getRandomChar();
-          ctx.fillStyle = glitchColors[0] || '#6366f1';
+          ctx.fillStyle = glitchColors[0] || '#0EB94D';
           ctx.globalAlpha = 0.8;
           ctx.fillText(trailChar, x, y - fontSize);
           ctx.globalAlpha = 1;
@@ -131,7 +131,7 @@ const LetterGlitch = ({
     const ctx = contextRef.current;
     if (ctx) {
       const { width, height } = canvas.getBoundingClientRect();
-      ctx.fillStyle = '#0A0A0F';
+      ctx.fillStyle = '#14141A';
       ctx.fillRect(0, 0, width, height);
     }
 
@@ -165,7 +165,7 @@ const LetterGlitch = ({
   }, [glitchSpeed, smooth, draw, resizeCanvas]);
 
   return (
-    <div className="relative w-full h-full bg-[#0A0A0F] overflow-hidden">
+    <div className="relative w-full h-full bg-[#14141A] overflow-hidden">
       <canvas ref={canvasRef} className="block w-full h-full" />
       {outerVignette && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,_rgba(0,0,0,0)_60%,_rgba(0,0,0,1)_100%)]"></div>

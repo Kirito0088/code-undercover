@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#14141A]">
 
             <div className="mx-auto w-full max-w-sm">
                 <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="mt-8 mx-auto w-full max-w-sm">
-                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
+                <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
 
                     {submitted ? (
                         <div className="text-center py-4">
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
                             </div>
                             <Link
                                 href="/login"
-                                className="inline-block mt-6 text-sm font-medium text-[#818CF8] hover:text-indigo-300 transition-colors"
+                                className="inline-block mt-6 text-sm font-medium text-[#39D375] hover:text-indigo-300 transition-colors"
                             >
                                 Back to Log In
                             </Link>
@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                     {!submitted && (
                         <div className="mt-6 text-center text-xs text-[#8B8BA7]">
                             Remember your password?{" "}
-                            <Link href="/login" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                            <Link href="/login" className="font-medium text-[#39D375] hover:text-indigo-300 transition-colors">
                                 Log in
                             </Link>
                         </div>

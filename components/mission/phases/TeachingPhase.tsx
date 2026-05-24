@@ -34,10 +34,10 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
         ]
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#0A0A0F]/98 z-40 overflow-y-auto">
-            <div className="max-w-5xl w-full bg-[#111118] border border-[#22222E] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
+        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#14141A]/98 z-40 overflow-y-auto">
+            <div className="max-w-5xl w-full bg-[#1C1C24] border border-[#323242] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
                 {/* Top border bar */}
-                <div className="absolute top-0 inset-x-0 h-px bg-[#22222E]" />
+                <div className="absolute top-0 inset-x-0 h-px bg-[#323242]" />
 
                 {/* ─── Top: Centered Mission Title ─── */}
                 <div className="flex flex-col items-center pt-10 pb-6 px-8">
@@ -60,7 +60,7 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                 return (
                                     <div
                                         key={index}
-                                        className={`bg-[#16161F] border border-[#22222E] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
+                                        className={`bg-[#22222B] border border-[#323242] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
                                             }`}
                                         style={{ animationDelay: `${index * 200}ms` }}
                                     >
@@ -89,7 +89,7 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                 </div>
 
                 {/* ─── Bottom Row: Platypus left, Button right ─── */}
-                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-[#22222E] flex-shrink-0">
+                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-[#323242] flex-shrink-0">
                     {/* Platypus + Label */}
                     <div className="flex flex-col items-center shrink-0">
                         <span className="text-xs font-semibold text-[#5C5C7A] uppercase mb-1">

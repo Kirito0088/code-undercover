@@ -34,7 +34,7 @@ function ResetPasswordForm() {
                 </p>
                 <Link
                     href="/forgot-password"
-                    className="inline-block text-sm font-medium text-[#818CF8] hover:text-indigo-300 transition-colors"
+                    className="inline-block text-sm font-medium text-[#39D375] hover:text-indigo-300 transition-colors"
                 >
                     Request new link
                 </Link>
@@ -96,7 +96,7 @@ function ResetPasswordForm() {
                 </p>
                 <Link
                     href="/login"
-                    className="inline-block text-sm font-medium text-[#818CF8] hover:text-indigo-300 transition-colors"
+                    className="inline-block text-sm font-medium text-[#39D375] hover:text-indigo-300 transition-colors"
                 >
                     Log in to your account
                 </Link>
@@ -160,7 +160,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#14141A]">
             <div className="mx-auto w-full max-w-sm">
                 <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
                     Reset your password
@@ -171,7 +171,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div className="mt-8 mx-auto w-full max-w-sm">
-                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
+                <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
                     <Suspense fallback={<div className="text-center text-indigo-400 text-sm">Loading interface...</div>}>
                         <ResetPasswordForm />
                     </Suspense>

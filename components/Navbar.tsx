@@ -41,7 +41,7 @@ export default async function Navbar() {
     }
 
     return (
-        <nav className="border-b border-[#22222E] bg-[#0A0A0F]/90 backdrop-blur-sm sticky top-0 z-50 h-14">
+        <nav className="border-b border-[#323242] bg-[#14141A]/90 backdrop-blur-sm sticky top-0 z-50 h-14">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                 <div className="flex justify-between h-full items-center">
                     <div className="flex items-center">
@@ -60,25 +60,25 @@ export default async function Navbar() {
                             <>
                                 <Link
                                     href="/dashboard"
-                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     Dashboard
                                 </Link>
                                 <Link
                                     href="/debug-lab"
-                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     Debug Lab
                                 </Link>
                                 <Link
                                     href="/leaderboard"
-                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     Leaderboard
                                 </Link>
                                 <Link
                                     href="/history"
-                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     History
                                 </Link>
@@ -97,13 +97,13 @@ export default async function Navbar() {
                             <>
                                 <Link
                                     href="/dashboard"
-                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     Dashboard
                                 </Link>
                                 <Link
                                     href="/debug-lab"
-                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     Debug Lab
                                 </Link>

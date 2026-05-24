@@ -108,15 +108,15 @@ export function MissionWorkspace({
     }
 
     return (
-        <div className="flex h-[calc(100vh-3.5rem)] w-full bg-[#0A0A0F] text-[#F1F1F5] overflow-hidden flex-col relative selection:bg-indigo-500/30">
+        <div className="flex h-[calc(100vh-3.5rem)] w-full bg-[#14141A] text-[#F1F1F5] overflow-hidden flex-col relative selection:bg-indigo-500/30">
             {/* Top Workspace Header (h-14) */}
-            <header className="h-14 w-full bg-[#131318] border-b border-[#22222E] flex items-center justify-between px-6 z-20 flex-shrink-0">
+            <header className="h-14 w-full bg-[#131318] border-b border-[#323242] flex items-center justify-between px-6 z-20 flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <Link href="/dashboard" className="flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
                         <ChevronLeft className="w-4 h-4" />
                         <span>Dashboard</span>
                     </Link>
-                    <div className="h-4 w-px bg-[#22222E]" />
+                    <div className="h-4 w-px bg-[#323242]" />
                     <h1 className="text-[#F1F1F5] font-headline font-bold text-sm tracking-wide">
                         {String(mission.order).padStart(2, "0")}. {mission.title}
                     </h1>
@@ -152,7 +152,7 @@ export function MissionWorkspace({
 
                 {/* Right Area: AP Indicator */}
                 <div className="flex items-center gap-4">
-                    <div className="text-xs text-indigo-400 font-mono flex items-center gap-1.5 bg-indigo-500/5 border border-[#22222E] px-2.5 py-1 rounded-md">
+                    <div className="text-xs text-indigo-400 font-mono flex items-center gap-1.5 bg-indigo-500/5 border border-[#323242] px-2.5 py-1 rounded-md">
                         <Zap className="w-3.5 h-3.5" />
                         <span>+{mission.auraReward} AP</span>
                     </div>
@@ -162,7 +162,7 @@ export function MissionWorkspace({
             {/* Content Body Container */}
             <div className="flex-1 min-h-0 w-full relative flex flex-col">
                 {/* Background ambient glow */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.04)_0%,transparent_70%)] pointer-events-none"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(14, 185, 77, 0.04)_0%,transparent_70%)] pointer-events-none"></div>
 
                 {/* Character Overlay Manager */}
                 <CharacterManager
@@ -200,14 +200,14 @@ export function MissionWorkspace({
                 {phase === "CODING" && (
                     <div className="flex flex-col md:flex-row w-full h-full relative z-10 min-h-0">
                         {/* Mobile Tabs Header */}
-                        <div className="flex md:hidden bg-[#111118] border-b border-[#22222E] p-2 gap-1 flex-shrink-0 w-full">
+                        <div className="flex md:hidden bg-[#1C1C24] border-b border-[#323242] p-2 gap-1 flex-shrink-0 w-full">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab("briefing")}
                                 className={cn(
                                     "flex-1 py-2 px-3 text-xs font-medium rounded transition-all text-center border",
                                     activeTab === "briefing"
-                                        ? "bg-[#1C1C28] text-[#F1F1F5] border-[#22222E]"
+                                        ? "bg-[#2A2A35] text-[#F1F1F5] border-[#323242]"
                                         : "text-[#8B8BA7] hover:text-[#F1F1F5] border-transparent bg-transparent"
                                 )}
                             >
@@ -219,7 +219,7 @@ export function MissionWorkspace({
                                 className={cn(
                                     "flex-1 py-2 px-3 text-xs font-medium rounded transition-all text-center border",
                                     activeTab === "editor"
-                                        ? "bg-[#1C1C28] text-[#F1F1F5] border-[#22222E]"
+                                        ? "bg-[#2A2A35] text-[#F1F1F5] border-[#323242]"
                                         : "text-[#8B8BA7] hover:text-[#F1F1F5] border-transparent bg-transparent"
                                 )}
                             >
@@ -231,7 +231,7 @@ export function MissionWorkspace({
                                 className={cn(
                                     "flex-1 py-2 px-3 text-xs font-medium rounded transition-all text-center border",
                                     activeTab === "terminal"
-                                        ? "bg-[#1C1C28] text-[#F1F1F5] border-[#22222E]"
+                                        ? "bg-[#2A2A35] text-[#F1F1F5] border-[#323242]"
                                         : "text-[#8B8BA7] hover:text-[#F1F1F5] border-transparent bg-transparent"
                                 )}
                             >

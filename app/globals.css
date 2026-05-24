@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: #0A0A0F;
+    --background: #14141A;
     --foreground: #F1F1F5;
   }
 
@@ -15,7 +15,7 @@
   }
 
   ::selection {
-    background-color: rgba(99, 102, 241, 0.3);
+    background-color: rgba(14, 185, 77, 0.3);
   }
 }
 
@@ -44,11 +44,11 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(14, 185, 77, 0.2);
   border-radius: 2px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(14, 185, 77, 0.4);
 }
 
 /* ─── ACCESS DENIED Animations ─── */

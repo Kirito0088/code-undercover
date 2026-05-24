@@ -81,7 +81,7 @@ export function DailyChallenge() {
 
     if (status === "loading") {
         return (
-            <div className="bg-[#111118] border border-[#22222E] rounded-xl p-6 flex justify-center items-center my-8">
+            <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 flex justify-center items-center my-8">
                 <Loader2 className="animate-spin text-indigo-400" />
             </div>
         )
@@ -89,7 +89,7 @@ export function DailyChallenge() {
 
     if (status === "completed" && !result) {
         return (
-            <div className="bg-[#111118]/50 border border-[#22222E] rounded-xl p-6 my-8 text-center flex items-center justify-center flex-col">
+            <div className="bg-[#1C1C24]/50 border border-[#323242] rounded-xl p-6 my-8 text-center flex items-center justify-center flex-col">
                 <Zap className="h-8 w-8 text-amber-400 mb-2 opacity-50" />
                 <h3 className="text-[#8B8BA7] font-medium">Daily Challenge Completed</h3>
                 <p className="text-[#5C5C7A] text-sm mt-1">Return tomorrow for another chance to earn Aura.</p>
@@ -98,9 +98,9 @@ export function DailyChallenge() {
     }
 
     return (
-        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-6 my-8 relative overflow-hidden shadow-2xl">
+        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 my-8 relative overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="flex items-center gap-2 mb-6 border-b border-[#22222E] pb-4">
+            <div className="flex items-center gap-2 mb-6 border-b border-[#323242] pb-4">
                 <Zap className="h-5 w-5 text-amber-400" />
                 <h2 className="text-sm font-medium text-[#F1F1F5] tracking-tight">
                     Daily Challenge
@@ -128,7 +128,7 @@ export function DailyChallenge() {
                                 className={`text-left p-4 rounded-lg border transition-all text-sm
                                     ${selectedOption === opt
                                         ? "border-indigo-500/60 bg-indigo-500/5 text-[#F1F1F5]"
-                                        : "border-[#22222E] hover:border-indigo-500/40 bg-[#0A0A0F] text-[#8B8BA7] hover:text-[#F1F1F5]"
+                                        : "border-[#323242] hover:border-indigo-500/40 bg-[#14141A] text-[#8B8BA7] hover:text-[#F1F1F5]"
                                     }
                                 `}
                             >

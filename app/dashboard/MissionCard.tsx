@@ -64,10 +64,10 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
     return (
         <div
             className={`relative rounded-xl p-6 border transition-all duration-300 shadow-lg overflow-hidden group ${isLocked
-                ? "bg-[#0D0D14] border-[#22222E] opacity-50"
+                ? "bg-[#0D0D14] border-[#323242] opacity-50"
                 : isCompleted
-                    ? "bg-[#111118] border-emerald-500/20"
-                    : "bg-[#111118] border-[#22222E] hover:border-[#2E2E3F] hover:bg-[#14141C]"
+                    ? "bg-[#1C1C24] border-emerald-500/20"
+                    : "bg-[#1C1C24] border-[#323242] hover:border-[#3F3F52] hover:bg-[#14141C]"
                 } ${isActive && !isCompleted ? "border-l-2 border-l-indigo-500" : ""}`}
         >
             {/* Header */}
@@ -82,7 +82,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                             In Progress
                         </span>
                     )}
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${isLocked ? "bg-[#1C1C28] text-[#5C5C7A] border-[#22222E]" : `${diff.bg} ${diff.color} ${diff.border}`
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${isLocked ? "bg-[#2A2A35] text-[#5C5C7A] border-[#323242]" : `${diff.bg} ${diff.color} ${diff.border}`
                         }`}>
                         {mission.difficulty}
                     </span>
@@ -102,7 +102,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
             </p>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#22222E]">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#323242]">
                 <div className="flex items-center gap-3">
                     <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-[#3A3A52]" : "text-[#5C5C7A]"}`}>
                         <Code className="h-3 w-3" /> {mission.language}

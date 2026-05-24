@@ -8,7 +8,7 @@ export default async function Home() {
   const session = await getServerSession(authOptions)
 
   return (
-    <div className="relative isolate overflow-hidden flex-1 flex flex-col justify-center w-full min-h-[calc(100vh-56px)] bg-[#0A0A0F]">
+    <div className="relative isolate overflow-hidden flex-1 flex flex-col justify-center w-full min-h-[calc(100vh-56px)] bg-[#14141A]">
       
       {/* ─── Hero Section ─── */}
       {/* Desktop layout (side-by-side) */}
@@ -16,7 +16,7 @@ export default async function Home() {
         {/* Left: copy */}
         <div className="flex-1 max-w-xl">
           {/* Eyebrow */}
-          <span className="inline-flex items-center gap-2 bg-[#1C1C28] border border-[#22222E] text-[#8B8BA7] text-xs px-3 py-1 rounded-full mb-8">
+          <span className="inline-flex items-center gap-2 bg-[#2A2A35] border border-[#323242] text-[#8B8BA7] text-xs px-3 py-1 rounded-full mb-8">
             Free · Open Beta
           </span>
 
@@ -72,7 +72,7 @@ export default async function Home() {
       {/* Mobile / Tablet layout (stacked) */}
       <div className="flex flex-col items-center text-center px-6 sm:px-8 py-16 lg:hidden w-full max-w-2xl mx-auto">
         {/* Eyebrow */}
-        <span className="inline-flex items-center gap-2 bg-[#1C1C28] border border-[#22222E] text-[#8B8BA7] text-xs px-3 py-1 rounded-full mb-6">
+        <span className="inline-flex items-center gap-2 bg-[#2A2A35] border border-[#323242] text-[#8B8BA7] text-xs px-3 py-1 rounded-full mb-6">
           Free · Open Beta
         </span>
 
@@ -132,7 +132,7 @@ export default async function Home() {
             { icon: Play,     title: "Run Real Code",          desc: "Live C compiler in the browser. See actual program output instantly." },
             { icon: Zap,      title: "Earn as You Learn",      desc: "Aura Points, rank progression, combo streaks, and daily challenges." },
           ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-[#111118] border border-[#22222E] rounded-xl p-6 text-left transition-colors hover:border-[#2E2E3F] hover:bg-[#14141C]">
+            <div key={title} className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 text-left transition-colors hover:border-[#3F3F52] hover:bg-[#14141C]">
               <div className="w-9 h-9 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex items-center justify-center mb-4">
                 <Icon className="w-4 h-4 text-indigo-400" />
               </div>

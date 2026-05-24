@@ -64,7 +64,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#14141A]">
 
             <div className="mx-auto w-full max-w-sm">
                 <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
@@ -76,7 +76,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-8 mx-auto w-full max-w-sm">
-                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
+                <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         {error && (
@@ -127,7 +127,7 @@ export default function LoginPage() {
                                     id="remember-me"
                                     name="remember-me"
                                     type="checkbox"
-                                    className="h-4 w-4 rounded border-[#22222E] bg-[#0A0A0F] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#0A0A0F]"
+                                    className="h-4 w-4 rounded border-[#323242] bg-[#14141A] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#14141A]"
                                 />
                                 <label htmlFor="remember-me" className="ml-2 block text-xs text-[#8B8BA7]">
                                     Remember me
@@ -135,7 +135,7 @@ export default function LoginPage() {
                             </div>
 
                             <div className="text-xs">
-                                <Link href="/forgot-password" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                                <Link href="/forgot-password" className="font-medium text-[#39D375] hover:text-indigo-300 transition-colors">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -151,10 +151,10 @@ export default function LoginPage() {
                     {/* Divider */}
                     <div className="relative mt-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-[#22222E]" />
+                            <div className="w-full border-t border-[#323242]" />
                         </div>
                         <div className="relative flex justify-center text-xs">
-                            <span className="bg-[#111118] px-3 text-[#5C5C7A] font-medium">
+                            <span className="bg-[#1C1C24] px-3 text-[#5C5C7A] font-medium">
                                 or
                             </span>
                         </div>
@@ -167,9 +167,9 @@ export default function LoginPage() {
                             onClick={handleGoogleSignIn}
                             disabled={googleLoading}
                             className="w-full flex items-center justify-center gap-3 rounded-md px-4 py-2.5 
-                                       bg-[#0A0A0F] border border-[#22222E] 
+                                       bg-[#14141A] border border-[#323242] 
                                        text-[#8B8BA7] text-sm
-                                       hover:bg-[#1C1C28] hover:border-[#2E2E3F] 
+                                       hover:bg-[#2A2A35] hover:border-[#3F3F52] 
                                        focus:outline-none focus:ring-2 focus:ring-indigo-500/30 
                                        transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -192,7 +192,7 @@ export default function LoginPage() {
 
                     <div className="mt-6 text-center text-xs text-[#8B8BA7]">
                         Don&apos;t have an account?{" "}
-                        <Link href="/register" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                        <Link href="/register" className="font-medium text-[#39D375] hover:text-indigo-300 transition-colors">
                             Sign up
                         </Link>
                     </div>

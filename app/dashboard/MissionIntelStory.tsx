@@ -26,23 +26,23 @@ export function MissionIntelStory() {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0F]/98 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#14141A]/98 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-700">
 
             {/* Main Panel */}
-            <div className="w-full max-w-5xl bg-[#111118] border border-[#22222E] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[95vh] md:h-auto md:max-h-[95vh]">
+            <div className="w-full max-w-5xl bg-[#1C1C24] border border-[#323242] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[95vh] md:h-auto md:max-h-[95vh]">
 
                 {/* Top Header */}
-                <div className="h-14 border-b border-[#22222E] bg-[#16161F] flex items-center justify-between px-6 shrink-0">
+                <div className="h-14 border-b border-[#323242] bg-[#22222B] flex items-center justify-between px-6 shrink-0">
                     <button onClick={handleContinue} className="text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div className="flex items-center space-x-4 flex-1 justify-center relative">
-                        <div className="absolute left-0 right-0 top-1/2 -mt-[0.5px] h-[1px] bg-[#22222E] z-[0]"></div>
-                        <h2 className="text-sm font-medium text-[#8B8BA7] bg-[#16161F] px-4 z-10">MISSION INTEL</h2>
+                        <div className="absolute left-0 right-0 top-1/2 -mt-[0.5px] h-[1px] bg-[#323242] z-[0]"></div>
+                        <h2 className="text-sm font-medium text-[#8B8BA7] bg-[#22222B] px-4 z-10">MISSION INTEL</h2>
                     </div>
                     <button
                         onClick={handleContinue}
-                        className="flex items-center gap-2 text-[#8B8BA7] hover:text-[#F1F1F5] text-xs font-medium transition-all duration-200 hover:bg-[#1C1C28] px-3 py-1.5 rounded border border-[#22222E] hover:border-[#2E2E3F]"
+                        className="flex items-center gap-2 text-[#8B8BA7] hover:text-[#F1F1F5] text-xs font-medium transition-all duration-200 hover:bg-[#2A2A35] px-3 py-1.5 rounded border border-[#323242] hover:border-[#3F3F52]"
                     >
                         SKIP INTRO
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -68,9 +68,9 @@ export function MissionIntelStory() {
 
                         <div className="flex flex-col gap-4 flex-1">
                             {/* Agent Speech Bubble */}
-                            <div className="relative bg-[#1C1C28] border border-[#22222E] text-[#F1F1F5] px-5 py-4 rounded-xl md:rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
-                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#1C1C28] border-b-[16px] border-b-transparent transform md:block hidden"></div>
-                                <div className="absolute -top-[14px] left-10 w-0 h-0 border-b-[16px] border-b-[#1C1C28] border-r-[16px] border-r-transparent transform md:hidden"></div>
+                            <div className="relative bg-[#2A2A35] border border-[#323242] text-[#F1F1F5] px-5 py-4 rounded-xl md:rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
+                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#2A2A35] border-b-[16px] border-b-transparent transform md:block hidden"></div>
+                                <div className="absolute -top-[14px] left-10 w-0 h-0 border-b-[16px] border-b-[#2A2A35] border-r-[16px] border-r-transparent transform md:hidden"></div>
                                 To master the code, you must know its history, Agent. Let&apos;s start with the origins of the C programming language.
                             </div>
 
@@ -84,7 +84,7 @@ export function MissionIntelStory() {
                     </div>
 
                     {/* Separator full line */}
-                    <div className="w-full h-[1px] bg-[#22222E] mb-8"></div>
+                    <div className="w-full h-[1px] bg-[#323242] mb-8"></div>
 
                     {/* Two-column layout grid below separator */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-10 relative pb-4">
@@ -99,7 +99,7 @@ export function MissionIntelStory() {
                             </div>
 
                             {/* Large Retro Computer Image */}
-                            <div className="w-full rounded-xl bg-black overflow-hidden border border-[#22222E] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-0.5">
+                            <div className="w-full rounded-xl bg-black overflow-hidden border border-[#323242] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-0.5">
                                 <img
                                     src="/characters/retro_computer.png"
                                     alt="1970s Terminal"
@@ -108,9 +108,9 @@ export function MissionIntelStory() {
                             </div>
 
                             {/* Second Speech bubble row */}
-                            <div className="flex items-start gap-4 mt-6 border border-[#22222E] bg-[#16161F] p-5 rounded-xl relative">
+                            <div className="flex items-start gap-4 mt-6 border border-[#323242] bg-[#22222B] p-5 rounded-xl relative">
                                 {/* Small Avatar Bubble */}
-                                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#22222E] bg-[#111118] shrink-0 absolute -left-5 -top-5 shadow-xl">
+                                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#323242] bg-[#1C1C24] shrink-0 absolute -left-5 -top-5 shadow-xl">
                                     <img
                                         src="/characters/platipus.png"
                                         alt="Agent Small"
@@ -128,7 +128,7 @@ export function MissionIntelStory() {
                         <div className="md:col-span-4 flex flex-col relative z-20 pr-4">
 
                             {/* Floating ID Card picture */}
-                            <div className="w-[140px] h-[180px] shrink-0 absolute -top-16 md:-top-24 right-4 md:left-4 mb-6 rounded-xl overflow-hidden border border-[#22222E] shadow-[0_0_20px_rgba(0,0,0,0.8)] bg-[#111118] transform hidden md:block">
+                            <div className="w-[140px] h-[180px] shrink-0 absolute -top-16 md:-top-24 right-4 md:left-4 mb-6 rounded-xl overflow-hidden border border-[#323242] shadow-[0_0_20px_rgba(0,0,0,0.8)] bg-[#1C1C24] transform hidden md:block">
                                 <img
                                     src="/characters/dennis_ritchie.png"
                                     alt="Dennis Ritchie"
@@ -146,7 +146,7 @@ export function MissionIntelStory() {
                                     <div className="text-sm text-[#8B8BA7]">The Architect</div>
                                 </div>
 
-                                <div className="w-full h-[1px] bg-[#22222E]"></div>
+                                <div className="w-full h-[1px] bg-[#323242]"></div>
 
                                 {/* Location / Era */}
                                 <div className="flex flex-col">
@@ -155,7 +155,7 @@ export function MissionIntelStory() {
                                     <div className="text-sm text-[#8B8BA7]">Circa 1972</div>
                                 </div>
 
-                                <div className="w-full h-[1px] bg-[#22222E]"></div>
+                                <div className="w-full h-[1px] bg-[#323242]"></div>
 
                                 {/* Briefing text */}
                                 <div className="flex flex-col">
@@ -173,7 +173,7 @@ export function MissionIntelStory() {
                 </div>
 
                 {/* Footer actions */}
-                <div className="w-full border-t border-[#22222E] p-6 pr-8 bg-[#111118] flex justify-end shrink-0">
+                <div className="w-full border-t border-[#323242] p-6 pr-8 bg-[#1C1C24] flex justify-end shrink-0">
                     <Button
                         onClick={handleContinue}
                         className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-8 rounded-md h-12 transition-colors border-none"

@@ -57,7 +57,7 @@ export default async function LeaderboardPage({
     const totalPages = Math.ceil(totalUsers / limit)
 
     return (
-        <div className="flex-1 bg-[#0A0A0F] py-8 min-h-[calc(100vh-4rem)]">
+        <div className="flex-1 bg-[#14141A] py-8 min-h-[calc(100vh-4rem)]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
@@ -73,10 +73,10 @@ export default async function LeaderboardPage({
                 </div>
 
                 {/* Leaderboard Table/List */}
-                <div className="bg-[#111118] border border-[#22222E] rounded-xl overflow-hidden">
+                <div className="bg-[#1C1C24] border border-[#323242] rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-[#16161F] border-b border-[#22222E] text-xs text-[#8B8BA7]">
+                            <thead className="bg-[#22222B] border-b border-[#323242] text-xs text-[#8B8BA7]">
                                 <tr>
                                     <th className="px-6 py-4 font-medium">RANK</th>
                                     <th className="px-6 py-4 font-medium">AGENT</th>
@@ -87,7 +87,7 @@ export default async function LeaderboardPage({
                                     <th className="px-6 py-4 font-medium text-right text-indigo-400">AURA POINTS</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#22222E]/50">
+                            <tbody className="divide-y divide-[#323242]/50">
                                 {users.map((u, i) => {
                                     const rank = skip + i + 1
                                     const isCurrentUser = u.id === session.user.id
@@ -98,7 +98,7 @@ export default async function LeaderboardPage({
                                             className={`transition-colors ${
                                                 isCurrentUser
                                                     ? "bg-indigo-500/5 hover:bg-indigo-500/10"
-                                                    : "hover:bg-[#1C1C28]/40"
+                                                    : "hover:bg-[#2A2A35]/40"
                                             }`}
                                         >
                                             <td className="px-6 py-4 font-mono text-sm">
@@ -114,7 +114,7 @@ export default async function LeaderboardPage({
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`h-8 w-8 rounded bg-[#0A0A0F] border flex items-center justify-center shrink-0 ${isCurrentUser ? "border-indigo-500/40" : "border-[#22222E]"
+                                                    <div className={`h-8 w-8 rounded bg-[#14141A] border flex items-center justify-center shrink-0 ${isCurrentUser ? "border-indigo-500/40" : "border-[#323242]"
                                                         }`}>
                                                         <Shield className={`h-4 w-4 ${isCurrentUser ? "text-indigo-400" : "text-[#5C5C7A]"}`} />
                                                     </div>
@@ -137,7 +137,7 @@ export default async function LeaderboardPage({
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right align-middle font-mono text-xs">
-                                                <span className="inline-flex items-center gap-1.5 bg-[#0A0A0F] border border-[#22222E] px-2.5 py-1 rounded text-[#8B8BA7]">
+                                                <span className="inline-flex items-center gap-1.5 bg-[#14141A] border border-[#323242] px-2.5 py-1 rounded text-[#8B8BA7]">
                                                     <Cpu className="h-3 w-3 text-[#5C5C7A]" />
                                                     Lvl {u.auraLevel}
                                                 </span>
@@ -177,7 +177,7 @@ export default async function LeaderboardPage({
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between border-t border-[#22222E] px-6 py-4 bg-[#16161F]">
+                        <div className="flex items-center justify-between border-t border-[#323242] px-6 py-4 bg-[#22222B]">
                             <div className="text-xs font-mono text-[#8B8BA7]">
                                 Page {page} of {totalPages}
                             </div>
@@ -185,7 +185,7 @@ export default async function LeaderboardPage({
                                 {page > 1 && (
                                     <Link
                                         href={`/leaderboard?page=${page - 1}`}
-                                        className="p-2 bg-[#111118] border border-[#22222E] rounded hover:bg-[#1C1C28] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
+                                        className="p-2 bg-[#1C1C24] border border-[#323242] rounded hover:bg-[#2A2A35] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Link>
@@ -193,7 +193,7 @@ export default async function LeaderboardPage({
                                 {page < totalPages && (
                                     <Link
                                         href={`/leaderboard?page=${page + 1}`}
-                                        className="p-2 bg-[#111118] border border-[#22222E] rounded hover:bg-[#1C1C28] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
+                                        className="p-2 bg-[#1C1C24] border border-[#323242] rounded hover:bg-[#2A2A35] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </Link>

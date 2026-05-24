@@ -58,17 +58,17 @@ export default function IntroPage() {
 
 
     if (!shouldPlay) {
-        return <div className="fixed inset-0 bg-[#0A0A0F] z-50 pointer-events-none" />
+        return <div className="fixed inset-0 bg-[#14141A] z-50 pointer-events-none" />
     }
 
     return (
-        <div className="fixed inset-0 z-50 bg-[#0A0A0F] flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-[#14141A] flex items-center justify-center">
             {/* SKIP Button */}
             <button
                 type="button"
                 onClick={handleVideoEnd}
                 aria-label="Skip intro video"
-                className="absolute top-6 right-8 z-[70] flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-all duration-200 bg-[#111118]/80 hover:bg-[#1C1C28] px-3.5 py-1.5 rounded-md border border-[#22222E] hover:border-[#2E2E3F] backdrop-blur-sm shadow-md"
+                className="absolute top-6 right-8 z-[70] flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-all duration-200 bg-[#1C1C24]/80 hover:bg-[#2A2A35] px-3.5 py-1.5 rounded-md border border-[#323242] hover:border-[#3F3F52] backdrop-blur-sm shadow-md"
             >
                 Skip Intro
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5" aria-hidden="true">
@@ -81,7 +81,7 @@ export default function IntroPage() {
                 <button
                     type="button"
                     aria-label="Click or press Enter to start the intro video"
-                    className="absolute inset-0 z-[60] w-full flex flex-col items-center justify-center bg-[#0A0A0F]/80 backdrop-blur-sm cursor-pointer appearance-none border-0 p-0"
+                    className="absolute inset-0 z-[60] w-full flex flex-col items-center justify-center bg-[#14141A]/80 backdrop-blur-sm cursor-pointer appearance-none border-0 p-0"
                     onClick={handleManualStart}
                 >
                     <div className="text-indigo-400 text-sm font-medium tracking-wide animate-pulse border border-indigo-500/20 bg-indigo-500/5 px-6 py-3.5 rounded-lg transition-colors">
@@ -118,7 +118,7 @@ export default function IntroPage() {
                 onEnded={handleVideoEnd}
                 onError={handleVideoEnd}
                 aria-label="Code Undercover intro cinematic"
-                className={`relative z-50 w-full h-full object-contain transition-opacity duration-[2000ms] bg-[#0A0A0F] ${
+                className={`relative z-50 w-full h-full object-contain transition-opacity duration-[2000ms] bg-[#14141A] ${
                     isFadingOut ? "opacity-0" : "opacity-100"
                 }`}
                 style={{ pointerEvents: "none" }}

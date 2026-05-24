@@ -59,7 +59,7 @@ export default async function DashboardPage() {
     const apToNextRank = nextRank === "Max Rank" ? 0 : nextThreshold - (user?.auraPoints ?? 0)
 
     return (
-        <div className="flex-grow bg-[#0A0A0F] min-h-[calc(100vh-3.5rem)] relative">
+        <div className="flex-grow bg-[#14141A] min-h-[calc(100vh-3.5rem)] relative">
             <MissionIntelStory />
             
             <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
@@ -67,8 +67,8 @@ export default async function DashboardPage() {
                 {/* Left Sidebar */}
                 <aside className="w-full md:w-[250px] shrink-0 flex flex-col gap-6">
                     {/* User Profile Block */}
-                    <div className="bg-[#111118] border border-[#22222E] rounded-xl p-5 flex flex-col items-center">
-                        <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-3 shadow-[0_0_15px_rgba(79,70,229,0.5)] text-white">
+                    <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-5 flex flex-col items-center">
+                        <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-3 shadow-[0_0_15px_rgba(14, 185, 77, 0.5)] text-white">
                             {(user?.name || session.user.name || "U")[0].toUpperCase()}
                         </div>
                         <h2 className="text-lg font-bold text-[#F1F1F5] truncate max-w-full">
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
                                 <span>Aura Progress</span>
                                 <span>{user?.auraPoints ?? 0} / {nextThreshold} AP</span>
                             </div>
-                            <div className="h-2 w-full bg-[#1C1C28] rounded-full overflow-hidden">
+                            <div className="h-2 w-full bg-[#2A2A35] rounded-full overflow-hidden">
                                 <div 
                                     className="h-full bg-indigo-500 rounded-full relative transition-all duration-500"
                                     style={{ width: `${Math.min(100, ((user?.auraPoints ?? 0) / nextThreshold) * 100)}%` }}
@@ -98,27 +98,27 @@ export default async function DashboardPage() {
                     </div>
 
                     {/* Navigation List */}
-                    <nav className="flex flex-col gap-1 bg-[#111118] border border-[#22222E] rounded-xl p-3">
-                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 bg-[#1C1C28] text-[#F1F1F5] rounded-lg font-medium text-sm transition-colors">
+                    <nav className="flex flex-col gap-1 bg-[#1C1C24] border border-[#323242] rounded-xl p-3">
+                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 bg-[#2A2A35] text-[#F1F1F5] rounded-lg font-medium text-sm transition-colors">
                             <LayoutDashboard className="w-4 h-4 text-indigo-400" />
                             Dashboard
                         </Link>
-                        <a href="#missions-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#1C1C28]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                        <a href="#missions-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
                             <Rocket className="w-4 h-4 text-[#8B8BA7]" />
                             Missions
                         </a>
-                        <Link href="/history" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#1C1C28]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                        <Link href="/history" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
                             <History className="w-4 h-4 text-[#8B8BA7]" />
                             History
                         </Link>
-                        <a href="#challenge-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#1C1C28]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                        <a href="#challenge-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
                             <Target className="w-4 h-4 text-[#8B8BA7]" />
                             Daily Challenge
                         </a>
                     </nav>
 
                     {/* Stats Summary */}
-                    <div className="bg-[#111118] border border-[#22222E] rounded-xl p-5 flex flex-col gap-4">
+                    <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-5 flex flex-col gap-4">
                         <h3 className="text-xs font-bold text-[#5C5C7A] uppercase tracking-wider">Agent Stats</h3>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -180,28 +180,28 @@ export default async function DashboardPage() {
 
                     {/* Top Metric Stats Row */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
                                 <Bolt className="w-4 h-4 text-indigo-400" />
                                 Total Aura
                             </span>
                             <span className="text-2xl font-bold font-mono text-[#e4e1e9]">{user?.auraPoints ?? 0} <span className="text-xs text-[#5C5C7A] font-sans">AP</span></span>
                         </div>
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4 text-[#4ae176]" />
                                 Missions Done
                             </span>
                             <span className="text-2xl font-bold font-mono text-[#e4e1e9]">{completedCount}/{totalCount}</span>
                         </div>
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
                                 <Flame className="w-4 h-4 text-[#ffb95f]" />
                                 Combo Streak
                             </span>
                             <span className="text-2xl font-bold font-mono text-[#e4e1e9]">x{user?.comboStreak ?? 0}</span>
                         </div>
-                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
                                 <Shield className="w-4 h-4 text-[#c0c1ff]" />
                                 Current Rank
@@ -211,12 +211,12 @@ export default async function DashboardPage() {
                     </div>
 
                     {/* Overall Progress Bar */}
-                    <div className="bg-[#111118] border border-[#22222E] rounded-xl p-5">
+                    <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-5">
                         <div className="flex justify-between items-end mb-3">
                             <h3 className="text-lg font-bold text-[#e4e1e9]">Campaign Progress</h3>
                             <span className="text-sm text-[#908fa0] font-mono">{completedCount} of {totalCount} missions completed · {progressPercent}%</span>
                         </div>
-                        <div className="h-3 w-full bg-[#1C1C28] rounded-full overflow-hidden">
+                        <div className="h-3 w-full bg-[#2A2A35] rounded-full overflow-hidden">
                             <div 
                                 className="h-full bg-indigo-500 rounded-full relative transition-all duration-1000 ease-out"
                                 style={{ width: `${progressPercent}%` }}
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                             </div>
 
                             {missions.length === 0 && !dbOffline && (
-                                <div className="text-center py-20 bg-[#111118] border border-[#22222E] rounded-xl">
+                                <div className="text-center py-20 bg-[#1C1C24] border border-[#323242] rounded-xl">
                                     <Terminal className="size-12 text-[#5C5C7A] mx-auto mb-4" />
                                     <p className="text-[#8B8BA7] font-mono">No missions available. Check back soon, Agent.</p>
                                 </div>

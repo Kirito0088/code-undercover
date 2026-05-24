@@ -50,7 +50,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#14141A]">
 
             <div className="mx-auto w-full max-w-sm">
                 <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
@@ -62,7 +62,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="mt-8 mx-auto w-full max-w-sm">
-                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
+                <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         {error && (
@@ -137,7 +137,7 @@ export default function RegisterPage() {
                                             border transition-all duration-200 group
                                             ${formData.preferredLanguage === lang.value
                                                 ? "border-indigo-500/60 bg-indigo-500/5 text-[#F1F1F5]"
-                                                : "border-[#22222E] bg-[#0A0A0F] hover:border-indigo-500/40 text-[#8B8BA7]"
+                                                : "border-[#323242] bg-[#14141A] hover:border-indigo-500/40 text-[#8B8BA7]"
                                             }
                                         `}
                                     >
@@ -155,7 +155,7 @@ export default function RegisterPage() {
                                             flex items-center justify-center
                                             ${formData.preferredLanguage === lang.value
                                                 ? "border-indigo-500 bg-indigo-500"
-                                                : "border-[#22222E] bg-transparent group-hover:border-indigo-500/40"
+                                                : "border-[#323242] bg-transparent group-hover:border-indigo-500/40"
                                             }
                                         `}>
                                             {formData.preferredLanguage === lang.value && (
@@ -180,7 +180,7 @@ export default function RegisterPage() {
 
                     <div className="mt-6 text-center text-xs text-[#8B8BA7]">
                         Already have an account?{" "}
-                        <Link href="/login" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                        <Link href="/login" className="font-medium text-[#39D375] hover:text-indigo-300 transition-colors">
                             Log in
                         </Link>
                     </div>
