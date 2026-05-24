@@ -5,7 +5,6 @@ import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Terminal, Shield } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -29,9 +28,8 @@ export default function LoginPage() {
             })
 
             if (res?.error) {
-                setError("Invalid credentials. Access denied.")
+                setError("Incorrect email or password.")
             } else {
-                // Fetch session to get user ID for per-user intro check
                 const session = await getSession()
                 const userId = session?.user?.id
 
@@ -43,13 +41,12 @@ export default function LoginPage() {
                         router.push("/intro")
                     }
                 } else {
-                    // Fallback: if we can't get userId, always show intro
                     router.push("/intro")
                 }
                 router.refresh()
             }
         } catch {
-            setError("System malfunction during authentication.")
+            setError("Something went wrong. Please try again.")
         } finally {
             setLoading(false)
         }
@@ -67,40 +64,32 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
 
-            <div className="mx-auto w-full max-w-md">
-                <div className="flex justify-center">
-                    <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-[0_0_15px_rgba(22,163,74,0.3)]">
-                        <Shield className="h-6 w-6 text-green-500" />
-                    </div>
-                </div>
-                <h2 className="mt-6 text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    Agent Authentication
+            <div className="mx-auto w-full max-w-sm">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                    Welcome back
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-400">
-                    Enter your credentials to access the terminal
+                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                    Continue your learning journey
                 </p>
             </div>
 
-            <div className="mt-8 mx-auto w-full max-w-md">
-                <div className="backdrop-blur-xl bg-gray-900/40 py-6 sm:py-8 px-4 sm:px-10 shadow-[0_0_30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 rounded-xl border-t border-gray-800 relative">
+            <div className="mt-8 mx-auto w-full max-w-sm">
+                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         {error && (
-                            <div className="rounded-md bg-red-500/10 p-4 ring-1 ring-red-500/30 font-mono text-sm">
-                                <div className="flex">
-                                    <Terminal className="h-5 w-5 text-red-500 mr-2" />
-                                    <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider">{error}</h3>
-                                </div>
+                            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
+                                {error}
                             </div>
                         )}
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                                AGENT_ID / EMAIL
+                            <label htmlFor="email" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                Email Address
                             </label>
-                            <div className="mt-2 text-white">
+                            <div className="mt-2">
                                 <Input
                                     id="email"
                                     name="email"
@@ -109,15 +98,14 @@ export default function LoginPage() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
-                                    placeholder="agent@codeundercover.com"
+                                    placeholder="name@email.com"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                                PASSPHRASE
+                            <label htmlFor="password" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                Password
                             </label>
                             <div className="mt-2">
                                 <Input
@@ -128,35 +116,34 @@ export default function LoginPage() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
                                     placeholder="••••••••"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-between gap-y-2">
+                        <div className="flex items-center justify-between gap-y-2">
                             <div className="flex items-center">
                                 <input
                                     id="remember-me"
                                     name="remember-me"
                                     type="checkbox"
-                                    className="h-4 w-4 rounded border-gray-800 bg-black/50 text-green-600 focus:ring-green-600 focus:ring-offset-gray-900"
+                                    className="h-4 w-4 rounded border-[#22222E] bg-[#0A0A0F] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#0A0A0F]"
                                 />
-                                <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-400">
-                                    Keep terminal active
+                                <label htmlFor="remember-me" className="ml-2 block text-xs text-[#8B8BA7]">
+                                    Remember me
                                 </label>
                             </div>
 
-                            <div className="text-sm">
-                                <Link href="/forgot-password" className="font-semibold text-green-500 hover:text-green-400 transition-colors">
-                                    Forgot passphrase?
+                            <div className="text-xs">
+                                <Link href="/forgot-password" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                                    Forgot password?
                                 </Link>
                             </div>
                         </div>
 
                         <div>
-                            <Button type="submit" className="w-full font-mono font-bold tracking-wider" disabled={loading}>
-                                {loading ? "AUTHENTICATING..." : "INITIATE_LOGIN"}
+                            <Button type="submit" className="w-full text-sm font-medium" disabled={loading}>
+                                {loading ? "Signing in..." : "Sign In"}
                             </Button>
                         </div>
                     </form>
@@ -164,11 +151,11 @@ export default function LoginPage() {
                     {/* Divider */}
                     <div className="relative mt-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-700/50" />
+                            <div className="w-full border-t border-[#22222E]" />
                         </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="bg-gray-900/80 px-3 text-gray-500 font-mono text-xs tracking-widest">
-                                OR
+                        <div className="relative flex justify-center text-xs">
+                            <span className="bg-[#111118] px-3 text-[#5C5C7A] font-medium">
+                                or
                             </span>
                         </div>
                     </div>
@@ -180,10 +167,10 @@ export default function LoginPage() {
                             onClick={handleGoogleSignIn}
                             disabled={googleLoading}
                             className="w-full flex items-center justify-center gap-3 rounded-md px-4 py-2.5 
-                                       bg-white/5 border border-gray-700/50 
-                                       text-gray-300 font-mono text-sm tracking-wider
-                                       hover:bg-white/10 hover:border-gray-600 
-                                       focus:outline-none focus:ring-2 focus:ring-green-500/30 
+                                       bg-[#0A0A0F] border border-[#22222E] 
+                                       text-[#8B8BA7] text-sm
+                                       hover:bg-[#1C1C28] hover:border-[#2E2E3F] 
+                                       focus:outline-none focus:ring-2 focus:ring-indigo-500/30 
                                        transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {googleLoading ? (
@@ -199,14 +186,14 @@ export default function LoginPage() {
                                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                                 </svg>
                             )}
-                            {googleLoading ? "CONNECTING..." : "SIGN_IN_WITH_GOOGLE"}
+                            {googleLoading ? "Connecting..." : "Sign in with Google"}
                         </button>
                     </div>
 
-                    <div className="mt-6 text-center text-sm text-gray-400">
-                        Don&apos;t have clearance?{" "}
-                        <Link href="/register" className="font-semibold text-green-500 hover:text-green-400 transition-colors">
-                            Request access now.
+                    <div className="mt-6 text-center text-xs text-[#8B8BA7]">
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                            Sign up
                         </Link>
                     </div>
                 </div>

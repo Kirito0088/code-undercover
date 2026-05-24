@@ -2,118 +2,147 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { BookOpen, Play, Zap } from "lucide-react"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
 
   return (
-    <div className="relative isolate overflow-hidden flex-1 flex flex-col justify-center w-full min-h-[calc(100vh-80px)] xl:min-h-0 py-8 lg:py-0">
-      {/* Background Gradients */}
-      <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-        <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#16a34a] to-[#047857] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style={{ clipPath: "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" }}></div>
-      </div>
+    <div className="relative isolate overflow-hidden flex-1 flex flex-col justify-center w-full min-h-[calc(100vh-56px)] bg-[#0A0A0F]">
+      
+      {/* ─── Hero Section ─── */}
+      {/* Desktop layout (side-by-side) */}
+      <div className="hidden lg:flex mx-auto max-w-7xl px-8 items-center w-full gap-16 min-h-[calc(100vh-56px-150px)] pt-12">
+        {/* Left: copy */}
+        <div className="flex-1 max-w-xl">
+          {/* Eyebrow */}
+          <span className="inline-flex items-center gap-2 bg-[#1C1C28] border border-[#22222E] text-[#8B8BA7] text-xs px-3 py-1 rounded-full mb-8">
+            Free · Open Beta
+          </span>
 
-      {/* ─── Desktop Layout (side-by-side) ─── */}
-      <div className="hidden lg:flex mx-auto max-w-7xl px-6 lg:items-center lg:px-8 w-full gap-12">
-        <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
-          <div>
-            <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold leading-6 text-green-400 ring-1 ring-inset ring-green-500/20">
-              Agent initialization sequence complete
-            </span>
-          </div>
-          <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
-            Welcome to <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">Code-Undercover</span>
+          {/* H1 */}
+          <h1 className="text-5xl font-semibold text-[#F1F1F5] tracking-tight leading-[1.1]">
+            Learn C programming<br />
+            by building real programs.
           </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-300">
-            Code Undercover is a mission-based learning platform where you solve real engineering challenges, build production-ready code, and level up your problem-solving skills in an immersive gamified environment.
+
+          {/* Sub */}
+          <p className="mt-5 text-lg text-[#8B8BA7] leading-relaxed max-w-md">
+            Mission-based C curriculum with live code execution, instant feedback, and a structured path from beginner to systems programmer.
           </p>
-          <div className="mt-10 flex items-center gap-x-6">
+
+          {/* CTAs */}
+          <div className="mt-10 flex items-center gap-4">
             {session ? (
               <Link href="/dashboard">
-                <Button size="lg" className="text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
-                  Start your Mission
+                <Button size="lg" className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white">
+                  Continue Learning
                 </Button>
               </Link>
             ) : (
               <>
                 <Link href="/register">
-                  <Button size="lg" className="text-base">
-                    Join the Agency
+                  <Button size="lg" className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white">
+                    Start Learning — Free
                   </Button>
                 </Link>
-                <Link href="/login" className="text-sm font-semibold leading-6 text-white hover:text-green-400 transition-colors">
-                  Access Terminal <span aria-hidden="true">→</span>
+                <Link href="/login" className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
+                  Sign in →
                 </Link>
               </>
             )}
           </div>
+
+          {/* Social proof */}
+          <p className="mt-8 text-xs text-[#5C5C7A]">
+            Used by learners at IIT, BITS, NIT and 50+ colleges
+          </p>
         </div>
 
-        {/* Decorative UI elements - desktop */}
-        <div className="flex max-w-none flex-1 items-center justify-center w-full">
-          <div className="relative flex items-center justify-center w-full max-w-[500px] xl:max-w-[600px]">
-            {/* Green glow behind logo */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-green-500/30 blur-[100px] rounded-full z-0 pointer-events-none"></div>
-            <img
-              src="/mascot-logo.png"
-              alt="Code Undercover Mascot Logo"
-              className="relative z-10 w-full h-auto drop-shadow-[0_0_30px_rgba(74,222,128,0.3)] hover:scale-105 transition-transform duration-700"
-            />
-          </div>
+        {/* Right: mascot */}
+        <div className="flex-1 flex items-center justify-center">
+          <img
+            src="/mascot-logo.png"
+            alt="Code Undercover"
+            className="w-full max-w-[460px] h-auto opacity-90 transition-transform duration-700 hover:scale-105"
+          />
         </div>
       </div>
 
-      {/* ─── Mobile / Tablet Layout (stacked: title → logo → description → buttons) ─── */}
-      <div className="flex flex-col items-center text-center px-6 sm:px-8 lg:hidden">
-        {/* Badge */}
-        <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs sm:text-sm font-semibold leading-6 text-green-400 ring-1 ring-inset ring-green-500/20">
-          Agent initialization sequence complete
+      {/* Mobile / Tablet layout (stacked) */}
+      <div className="flex flex-col items-center text-center px-6 sm:px-8 py-16 lg:hidden w-full max-w-2xl mx-auto">
+        {/* Eyebrow */}
+        <span className="inline-flex items-center gap-2 bg-[#1C1C28] border border-[#22222E] text-[#8B8BA7] text-xs px-3 py-1 rounded-full mb-6">
+          Free · Open Beta
         </span>
 
-        {/* Title */}
-        <h1 className="mt-5 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-          Welcome to <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">Code-Undercover</span>
+        {/* H1 */}
+        <h1 className="text-3xl sm:text-4xl font-semibold text-[#F1F1F5] tracking-tight leading-[1.2]">
+          Learn C programming<br />
+          by building real programs.
         </h1>
 
-        {/* Logo / Mascot - centered */}
-        <div className="relative mt-8 flex items-center justify-center w-full max-w-[250px] sm:max-w-[300px] md:max-w-[350px]">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-green-500/25 blur-[80px] rounded-full z-0 pointer-events-none"></div>
+        {/* Mascot for mobile */}
+        <div className="relative mt-8 flex items-center justify-center w-full max-w-[250px] sm:max-w-[300px]">
           <img
             src="/mascot-logo.png"
-            alt="Code Undercover Mascot Logo"
-            className="relative z-10 w-full h-auto drop-shadow-[0_0_25px_rgba(74,222,128,0.3)]"
+            alt="Code Undercover"
+            className="w-full h-auto opacity-95"
           />
         </div>
 
-        {/* Description */}
-        <p className="mt-6 text-sm sm:text-base leading-7 text-gray-300 max-w-lg">
-          Code Undercover is a mission-based learning platform where you solve real engineering challenges, build production-ready code, and level up your problem-solving skills in an immersive gamified environment.
+        {/* Sub */}
+        <p className="mt-6 text-sm sm:text-base text-[#8B8BA7] leading-relaxed max-w-md">
+          Mission-based C curriculum with live code execution, instant feedback, and a structured path from beginner to systems programmer.
         </p>
 
-        {/* Buttons */}
-        <div className="mt-8 flex items-center justify-center gap-4 w-full max-w-sm">
+        {/* CTAs */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-xs">
           {session ? (
             <Link href="/dashboard" className="w-full">
-              <Button size="lg" className="w-full text-sm sm:text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
-                Start your Mission
+              <Button size="lg" className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white">
+                Continue Learning
               </Button>
             </Link>
           ) : (
             <>
-              <Link href="/register" className="flex-1">
-                <Button size="lg" className="w-full text-sm sm:text-base">
-                  Join the Agency
+              <Link href="/register" className="w-full">
+                <Button size="lg" className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white">
+                  Start Learning — Free
                 </Button>
               </Link>
-              <Link href="/login" className="flex-1 text-sm font-semibold leading-6 text-white hover:text-green-400 transition-colors text-center py-2.5">
-                Access Terminal <span aria-hidden="true">→</span>
+              <Link href="/login" className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors py-2">
+                Sign in →
               </Link>
             </>
           )}
         </div>
+
+        {/* Social proof */}
+        <p className="mt-6 text-xs text-[#5C5C7A]">
+          Used by learners at IIT, BITS, NIT and 50+ colleges
+        </p>
       </div>
+
+      {/* ─── Feature Grid ─── */}
+      <div className="max-w-7xl mx-auto px-8 pb-20 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-0 lg:-mt-4">
+          {[
+            { icon: BookOpen, title: "Structured Curriculum", desc: "Sequential missions with prerequisites. Each level unlocks the next." },
+            { icon: Play,     title: "Run Real Code",          desc: "Live C compiler in the browser. See actual program output instantly." },
+            { icon: Zap,      title: "Earn as You Learn",      desc: "Aura Points, rank progression, combo streaks, and daily challenges." },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="bg-[#111118] border border-[#22222E] rounded-xl p-6 text-left transition-colors hover:border-[#2E2E3F] hover:bg-[#14141C]">
+              <div className="w-9 h-9 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex items-center justify-center mb-4">
+                <Icon className="w-4 h-4 text-indigo-400" />
+              </div>
+              <h3 className="text-sm font-medium text-[#F1F1F5]">{title}</h3>
+              <p className="text-xs text-[#8B8BA7] mt-1.5 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
   )
 }

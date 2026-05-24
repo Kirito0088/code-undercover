@@ -71,17 +71,19 @@ export function TerminalPanel({
     const getLineColor = (type: string) => {
         switch (type) {
             case "error": return "text-red-400"
-            case "success": return "text-green-400"
-            case "hint": return "text-blue-400"
-            default: return "text-gray-400"
+            case "success": return "text-emerald-400"
+            case "hint": return "text-amber-400"
+            case "finish": return "text-indigo-400"
+            case "input-prompt": return "text-amber-400"
+            default: return "text-[#5C5C7A]"  // system lines
         }
     }
 
     return (
-        <div className="flex flex-col h-full bg-black/95 rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative font-mono">
+        <div className="flex flex-col h-full bg-[#0A0A0F] border-l border-[#22222E] relative font-mono">
             {/* Terminal Header & Hints */}
-            <div className="h-12 bg-gray-900/50 border-b border-gray-800 flex items-center justify-between px-4 flex-shrink-0">
-                <div className="flex items-center gap-2 text-gray-400 font-bold text-xs tracking-widest uppercase">
+            <div className="h-9 bg-[#0A0A0F] border-b border-[#22222E] flex items-center justify-between px-4 flex-shrink-0">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#5C5C7A]">
                     <TerminalIcon className="h-4 w-4" />
                     Terminal Output
                 </div>
@@ -89,10 +91,10 @@ export function TerminalPanel({
                 <button
                     onClick={handleRequestHint}
                     disabled={hintsUsed >= 5}
-                    className="flex items-center gap-2 border border-gray-700 bg-gray-800 hover:bg-gray-700 hover:border-blue-500/50 text-gray-300 px-3 py-1 rounded text-xs transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 border border-[#22222E] bg-[#111118] hover:border-amber-500/30 text-[#8B8BA7] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
                 >
-                    <HelpCircle className="h-3 w-3 text-blue-400" />
-                    REQUEST HINT ({hintsUsed}/5)
+                    <HelpCircle className="h-3 w-3 text-amber-400" />
+                    Request Hint ({hintsUsed}/5)
                 </button>
             </div>
 
@@ -103,15 +105,15 @@ export function TerminalPanel({
                     if (line.isDiagnostic) {
                         return (
                             <div key={index} className="mb-4">
-                                <div className="text-white text-sm font-semibold mb-1 break-words">
+                                <div className="text-[#F1F1F5] text-sm font-semibold mb-1 break-words">
                                     <span className="text-red-400">error: </span>
                                     {line.message.split('error:')[1] || line.message}
                                 </div>
-                                <div className="text-gray-500 text-xs mb-2">
+                                <div className="text-[#5C5C7A] text-xs mb-2">
                                     {line.message.split('error:')[0]}
                                 </div>
                                 {line.rawContext && (
-                                    <pre className="bg-gray-900/50 border-l-2 border-red-500/50 p-2 text-xs text-gray-300 font-mono overflow-x-auto whitespace-pre">
+                                    <pre className="bg-[#111118] border-l-2 border-red-500/40 p-2 text-xs text-[#8B8BA7] font-mono overflow-x-auto whitespace-pre">
                                         {line.rawContext}
                                     </pre>
                                 )}
@@ -122,18 +124,18 @@ export function TerminalPanel({
                     // ── Platypus mentor card ─────────────────────────────
                     if (line.type === "hint") {
                         return (
-                            <div key={index} className="mb-4 bg-green-950/15 border border-green-800/40 rounded-lg overflow-hidden">
+                            <div key={index} className="mb-4 bg-amber-500/5 border border-amber-500/15 rounded-lg overflow-hidden">
                                 {/* Platypus Header */}
-                                <div className="flex items-center gap-2 px-3 py-2 bg-green-900/20 border-b border-green-800/30">
-                                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-green-500/60 flex-shrink-0 bg-[#0a1610]">
+                                <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/10">
+                                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#0A0A0F]">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src="/characters/platipus.png" alt="Platypus" className="w-full h-full object-cover object-top scale-[1.4] translate-y-1" />
                                     </div>
-                                    <span className="text-green-400 text-xs font-bold tracking-wider uppercase">Platypus</span>
-                                    <span className="text-green-700 text-xs font-mono ml-auto">Coding Mentor</span>
+                                    <span className="text-amber-400 text-xs font-medium">Platypus</span>
+                                    <span className="text-[#5C5C7A] text-xs font-mono ml-auto">Coding Mentor</span>
                                 </div>
                                 {/* Message */}
-                                <div className="px-3 py-3 text-green-100/90 text-sm font-mono leading-relaxed whitespace-pre-wrap">
+                                <div className="px-3 py-3 text-[#8B8BA7] text-sm font-mono leading-relaxed whitespace-pre-wrap">
                                     {line.message.replace('Analysis: ', '').replace('Mission requirement: ', '')}
                                 </div>
                             </div>
@@ -146,7 +148,7 @@ export function TerminalPanel({
                             <div key={index} className="my-6 flex justify-center">
                                 <button
                                     onClick={onFinishMission}
-                                    className="flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg text-sm font-bold tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] hover:scale-[1.02] active:scale-95"
+                                    className="flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-lg text-sm font-medium transition-colors border-none"
                                 >
                                     <CheckCircle className="h-5 w-5" />
                                     Finish Mission
@@ -155,16 +157,16 @@ export function TerminalPanel({
                         )
                     }
 
-                    // ── Input Prompt (like a real terminal) ────────────
+                    // ── Input Prompt ────────────────────
                     if (line.type === "input-prompt") {
                         return (
                             <div key={index} className="mb-2 text-sm">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-yellow-400 whitespace-nowrap">{line.message}</span>
+                                    <span className="text-amber-400 whitespace-nowrap">{line.message}</span>
                                     <input 
                                         type="text"
                                         ref={inputRef}
-                                        className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono caret-green-400"
+                                        className="flex-1 bg-transparent border-none outline-none text-[#F1F1F5] font-mono caret-indigo-400"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault()
@@ -177,13 +179,13 @@ export function TerminalPanel({
                         )
                     }
 
-                    // ── Default render (system, success, unparsed errors) ─
+                    // ── Default render ─
                     return (
                         <div key={index} className={"mb-2 text-sm font-mono break-words " + getLineColor(line.type)} style={{ whiteSpace: "pre-wrap", tabSize: 4 }}>{line.message}</div>
                     )
                 })}
                 {/* Blinking cursor + scroll anchor */}
-                <div className="w-2 h-4 bg-green-500 animate-pulse mt-1 inline-block"></div>
+                <div className="w-2 h-4 bg-indigo-400 animate-pulse mt-1 inline-block"></div>
                 <div ref={bottomRef} />
             </div>
         </div>

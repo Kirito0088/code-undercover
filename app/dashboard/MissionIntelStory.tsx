@@ -26,23 +26,23 @@ export function MissionIntelStory() {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0F]/98 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-700">
 
             {/* Main Panel */}
-            <div className="w-full max-w-5xl bg-[#111824] border border-[#2a3746] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[95vh] md:h-auto md:max-h-[95vh]">
+            <div className="w-full max-w-5xl bg-[#111118] border border-[#22222E] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[95vh] md:h-auto md:max-h-[95vh]">
 
                 {/* Top Header */}
-                <div className="h-14 border-b border-[#2a3746] bg-[#161f2e] flex items-center justify-between px-6 shrink-0">
-                    <button onClick={handleContinue} className="text-gray-400 hover:text-white transition-colors">
+                <div className="h-14 border-b border-[#22222E] bg-[#16161F] flex items-center justify-between px-6 shrink-0">
+                    <button onClick={handleContinue} className="text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div className="flex items-center space-x-4 flex-1 justify-center relative">
-                        <div className="absolute left-0 right-0 top-1/2 -mt-[0.5px] h-[1px] bg-gradient-to-r from-transparent via-[#2a3746] to-transparent z-[0]"></div>
-                        <h2 className="text-base font-mono tracking-[0.3em] font-bold text-gray-300 bg-[#161f2e] px-4 z-10">MISSION INTEL</h2>
+                        <div className="absolute left-0 right-0 top-1/2 -mt-[0.5px] h-[1px] bg-[#22222E] z-[0]"></div>
+                        <h2 className="text-sm font-medium text-[#8B8BA7] bg-[#16161F] px-4 z-10">MISSION INTEL</h2>
                     </div>
                     <button
                         onClick={handleContinue}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white font-mono text-xs tracking-wider uppercase transition-all duration-200 hover:bg-white/5 px-3 py-1.5 rounded border border-transparent hover:border-gray-700"
+                        className="flex items-center gap-2 text-[#8B8BA7] hover:text-[#F1F1F5] text-xs font-medium transition-all duration-200 hover:bg-[#1C1C28] px-3 py-1.5 rounded border border-[#22222E] hover:border-[#2E2E3F]"
                     >
                         SKIP INTRO
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -68,23 +68,23 @@ export function MissionIntelStory() {
 
                         <div className="flex flex-col gap-4 flex-1">
                             {/* Agent Speech Bubble */}
-                            <div className="relative bg-[#d1d5db] text-gray-900 px-5 py-4 rounded-xl md:rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
-                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#d1d5db] border-b-[16px] border-b-transparent transform md:block hidden"></div>
-                                <div className="absolute -top-[14px] left-10 w-0 h-0 border-b-[16px] border-b-[#d1d5db] border-r-[16px] border-r-transparent transform md:hidden"></div>
+                            <div className="relative bg-[#1C1C28] border border-[#22222E] text-[#F1F1F5] px-5 py-4 rounded-xl md:rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
+                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#1C1C28] border-b-[16px] border-b-transparent transform md:block hidden"></div>
+                                <div className="absolute -top-[14px] left-10 w-0 h-0 border-b-[16px] border-b-[#1C1C28] border-r-[16px] border-r-transparent transform md:hidden"></div>
                                 To master the code, you must know its history, Agent. Let&apos;s start with the origins of the C programming language.
                             </div>
 
                             {/* Title Section placed next to platypus */}
                             <div className="flex flex-col">
-                                <div className="text-[10px] font-mono tracking-widest text-[#10b981] font-medium uppercase mb-0.5">Archive Entry: #1972-Bell</div>
-                                <h1 className="text-3xl font-bold text-white tracking-tight font-sans">Origins of C</h1>
+                                <div className="text-[10px] font-mono tracking-widest text-indigo-400 font-medium uppercase mb-0.5">Archive Entry: #1972-Bell</div>
+                                <h1 className="text-3xl font-bold text-[#F1F1F5] tracking-tight font-sans">Origins of C</h1>
                             </div>
                         </div>
 
                     </div>
 
-                    {/* Separator full line (Under Dennis Ritchie picture later) */}
-                    <div className="w-full h-[1px] bg-gradient-to-r from-[#2a3746] via-[#374151] to-transparent mb-8"></div>
+                    {/* Separator full line */}
+                    <div className="w-full h-[1px] bg-[#22222E] mb-8"></div>
 
                     {/* Two-column layout grid below separator */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-10 relative pb-4">
@@ -94,12 +94,12 @@ export function MissionIntelStory() {
 
                             {/* Repeated title block exactly as shown in reference */}
                             <div className="flex flex-col mb-1">
-                                <div className="text-[10px] font-mono tracking-widest text-[#64748b] font-medium uppercase mb-0.5">Archive Entry: #1972-Bell</div>
-                                <h2 className="text-2xl font-bold text-white tracking-tight">Origins of C</h2>
+                                <div className="text-[10px] font-mono tracking-widest text-[#5C5C7A] font-medium uppercase mb-0.5">Archive Entry: #1972-Bell</div>
+                                <h2 className="text-2xl font-bold text-[#F1F1F5] tracking-tight">Origins of C</h2>
                             </div>
 
                             {/* Large Retro Computer Image */}
-                            <div className="w-full rounded-xl bg-black overflow-hidden border border-[#2a3746] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-0.5">
+                            <div className="w-full rounded-xl bg-black overflow-hidden border border-[#22222E] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-0.5">
                                 <img
                                     src="/characters/retro_computer.png"
                                     alt="1970s Terminal"
@@ -108,17 +108,17 @@ export function MissionIntelStory() {
                             </div>
 
                             {/* Second Speech bubble row */}
-                            <div className="flex items-start gap-4 mt-6 border border-[#2a3746]/50 bg-[#161f2e] p-5 rounded-xl relative">
+                            <div className="flex items-start gap-4 mt-6 border border-[#22222E] bg-[#16161F] p-5 rounded-xl relative">
                                 {/* Small Avatar Bubble */}
-                                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#374151] bg-[#1e293b] shrink-0 absolute -left-5 -top-5 shadow-xl">
+                                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#22222E] bg-[#111118] shrink-0 absolute -left-5 -top-5 shadow-xl">
                                     <img
                                         src="/characters/platipus.png"
                                         alt="Agent Small"
                                         className="w-full h-full object-cover transform scale-[1.3] translate-y-1"
                                     />
                                 </div>
-                                <div className="relative pl-8 text-gray-400 font-medium text-sm leading-relaxed">
-                                    <strong className="text-gray-300 font-bold">Dennis Ritchie</strong> pioneered a new era of computing. His work laid the foundation of programming as we know it today.
+                                <div className="relative pl-8 text-[#8B8BA7] font-medium text-sm leading-relaxed">
+                                    <strong className="text-[#F1F1F5] font-semibold">Dennis Ritchie</strong> pioneered a new era of computing. His work laid the foundation of programming as we know it today.
                                 </div>
                             </div>
 
@@ -128,7 +128,7 @@ export function MissionIntelStory() {
                         <div className="md:col-span-4 flex flex-col relative z-20 pr-4">
 
                             {/* Floating ID Card picture */}
-                            <div className="w-[140px] h-[180px] shrink-0 absolute -top-16 md:-top-24 right-4 md:left-4 mb-6 rounded-xl overflow-hidden border border-[#334155] shadow-[0_0_20px_rgba(0,0,0,0.8)] bg-[#0f172a] transform hidden md:block">
+                            <div className="w-[140px] h-[180px] shrink-0 absolute -top-16 md:-top-24 right-4 md:left-4 mb-6 rounded-xl overflow-hidden border border-[#22222E] shadow-[0_0_20px_rgba(0,0,0,0.8)] bg-[#111118] transform hidden md:block">
                                 <img
                                     src="/characters/dennis_ritchie.png"
                                     alt="Dennis Ritchie"
@@ -141,27 +141,27 @@ export function MissionIntelStory() {
 
                                 {/* Profile section */}
                                 <div className="flex flex-col">
-                                    <div className="text-[10px] font-mono tracking-widest text-[#64748b] mb-1">CLASSIFIED PROFILE</div>
-                                    <div className="text-lg font-bold text-gray-200">Dennis Ritchie:</div>
-                                    <div className="text-sm text-[#94a3b8]">The Architect</div>
+                                    <div className="text-[10px] font-mono tracking-widest text-[#5C5C7A] mb-1">CLASSIFIED PROFILE</div>
+                                    <div className="text-lg font-bold text-[#F1F1F5]">Dennis Ritchie:</div>
+                                    <div className="text-sm text-[#8B8BA7]">The Architect</div>
                                 </div>
 
-                                <div className="w-full h-[1px] bg-[#2a3746]"></div>
+                                <div className="w-full h-[1px] bg-[#22222E]"></div>
 
                                 {/* Location / Era */}
                                 <div className="flex flex-col">
-                                    <div className="text-[10px] font-mono tracking-widest text-[#64748b] mb-1">LOCATION / ERA</div>
-                                    <div className="text-sm text-gray-300">Bell Labs, New Jersey —</div>
-                                    <div className="text-sm text-[#94a3b8]">Circa 1972</div>
+                                    <div className="text-[10px] font-mono tracking-widest text-[#5C5C7A] mb-1">LOCATION / ERA</div>
+                                    <div className="text-sm text-[#F1F1F5]">Bell Labs, New Jersey —</div>
+                                    <div className="text-sm text-[#8B8BA7]">Circa 1972</div>
                                 </div>
 
-                                <div className="w-full h-[1px] bg-[#2a3746]"></div>
+                                <div className="w-full h-[1px] bg-[#22222E]"></div>
 
                                 {/* Briefing text */}
                                 <div className="flex flex-col">
-                                    <div className="text-[10px] font-mono tracking-widest text-[#64748b] mb-1">OPERATIONAL BRIEFING</div>
-                                    <div className="text-[#10b981] font-medium text-sm mb-1">Project C: The Foundation</div>
-                                    <p className="text-xs text-[#94a3b8] italic leading-relaxed">
+                                    <div className="text-[10px] font-mono tracking-widest text-[#5C5C7A] mb-1">OPERATIONAL BRIEFING</div>
+                                    <div className="text-indigo-400 font-medium text-sm mb-1">Project C: The Foundation</div>
+                                    <p className="text-xs text-[#8B8BA7] italic leading-relaxed">
                                         &quot;The Architect developed C to construct the Unix operating system. It became the portable machine code that built the modern digital world.&quot;
                                     </p>
                                 </div>
@@ -172,11 +172,11 @@ export function MissionIntelStory() {
                     </div>
                 </div>
 
-                {/* Footer actions (Floating Bottom Right inside container) */}
-                <div className="w-full border-t border-[#1e293b] p-6 pr-8 bg-[#111824] flex justify-end shrink-0">
+                {/* Footer actions */}
+                <div className="w-full border-t border-[#22222E] p-6 pr-8 bg-[#111118] flex justify-end shrink-0">
                     <Button
                         onClick={handleContinue}
-                        className="bg-[#10b981] hover:bg-[#059669] text-white font-bold tracking-wider px-8 uppercase shadow-[0_0_20px_rgba(16,185,129,0.2)] rounded-sm h-12"
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-8 rounded-md h-12 transition-colors border-none"
                     >
                         Continue Mission
                     </Button>

@@ -26,17 +26,17 @@ function ResetPasswordForm() {
                 <div className="mx-auto h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
                     <KeyRound className="h-6 w-6 text-red-500" />
                 </div>
-                <h3 className="text-lg font-mono font-bold text-red-400 tracking-wider mb-2">
-                    INVALID_LINK
+                <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
+                    Invalid Link
                 </h3>
-                <p className="text-sm text-gray-400 font-mono leading-relaxed mb-6">
-                    The recovery link is invalid or has expired. Please request a new transmission.
+                <p className="text-sm text-[#8B8BA7] leading-relaxed mb-6">
+                    The recovery link is invalid or has expired. Please request a new one.
                 </p>
                 <Link
                     href="/forgot-password"
-                    className="inline-block text-sm font-semibold text-green-500 hover:text-green-400 transition-colors font-mono"
+                    className="inline-block text-sm font-medium text-[#818CF8] hover:text-indigo-300 transition-colors"
                 >
-                    ← Request new link
+                    Request new link
                 </Link>
             </div>
         )
@@ -48,13 +48,13 @@ function ResetPasswordForm() {
         setLoading(true)
 
         if (password !== confirmPassword) {
-            setError("Passphrases do not match")
+            setError("Passwords do not match")
             setLoading(false)
             return
         }
 
         if (password.length < 8) {
-            setError("Passphrase must be at least 8 characters")
+            setError("Password must be at least 8 characters")
             setLoading(false)
             return
         }
@@ -85,20 +85,20 @@ function ResetPasswordForm() {
     if (success) {
         return (
             <div className="text-center py-4">
-                <div className="mx-auto h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20 mb-4">
-                    <ShieldCheck className="h-6 w-6 text-green-500" />
+                <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
+                    <ShieldCheck className="h-6 w-6 text-emerald-400" />
                 </div>
-                <h3 className="text-lg font-mono font-bold text-green-400 tracking-wider mb-2">
-                    PASSPHRASE_UPDATED
+                <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
+                    Password Updated
                 </h3>
-                <p className="text-sm text-gray-400 font-mono leading-relaxed mb-6">
-                    Your terminal access passphrase has been successfully re-encrypted.
+                <p className="text-sm text-[#8B8BA7] leading-relaxed mb-6">
+                    Your password has been successfully updated.
                 </p>
                 <Link
                     href="/login"
-                    className="inline-block text-sm font-semibold text-green-500 hover:text-green-400 transition-colors font-mono"
+                    className="inline-block text-sm font-medium text-[#818CF8] hover:text-indigo-300 transition-colors"
                 >
-                    → Proceed to terminal login
+                    Log in to your account
                 </Link>
             </div>
         )
@@ -108,12 +108,12 @@ function ResetPasswordForm() {
         <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                    <p className="text-xs text-red-400 font-mono text-center">⚠ {error}</p>
+                    <p className="text-xs text-red-400 text-center">{error}</p>
                 </div>
             )}
             <div>
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                    NEW_PASSPHRASE
+                <label htmlFor="password" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                    New Password
                 </label>
                 <div className="mt-2">
                     <Input
@@ -123,15 +123,14 @@ function ResetPasswordForm() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
                         placeholder="••••••••"
                     />
                 </div>
             </div>
 
             <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                    CONFIRM_PASSPHRASE
+                <label htmlFor="confirmPassword" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                    Confirm Password
                 </label>
                 <div className="mt-2">
                     <Input
@@ -141,7 +140,6 @@ function ResetPasswordForm() {
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
                         placeholder="••••••••"
                     />
                 </div>
@@ -150,10 +148,10 @@ function ResetPasswordForm() {
             <div>
                 <Button
                     type="submit"
-                    className="w-full font-mono font-bold tracking-wider bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    className="w-full text-sm font-medium"
                     disabled={loading}
                 >
-                    {loading ? "ENCRYPTING..." : "UPDATE_PASSPHRASE"}
+                    {loading ? "Updating..." : "Update Password"}
                 </Button>
             </div>
         </form>
@@ -162,24 +160,19 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="flex justify-center">
-                    <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                        <KeyRound className="h-6 w-6 text-green-500" />
-                    </div>
-                </div>
-                <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">
-                    Reset Passphrase
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
+            <div className="mx-auto w-full max-w-sm">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                    Reset your password
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-400">
-                    Enter your new secure passphrase
+                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                    Enter your new password
                 </p>
             </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="backdrop-blur-xl bg-gray-900/40 py-8 px-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 sm:rounded-xl sm:px-10 border-t border-gray-800">
-                    <Suspense fallback={<div className="text-center text-green-500 font-mono">LOADING_INTERFACE...</div>}>
+            <div className="mt-8 mx-auto w-full max-w-sm">
+                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
+                    <Suspense fallback={<div className="text-center text-indigo-400 text-sm">Loading interface...</div>}>
                         <ResetPasswordForm />
                     </Suspense>
                 </div>

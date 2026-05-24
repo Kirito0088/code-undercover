@@ -9,15 +9,15 @@ import type { DashboardMission } from "@/types"
 const difficultyConfig = {
     EASY: {
         icon: Terminal,
-        color: "text-blue-400",
-        bg: "bg-blue-500/10",
-        border: "border-blue-500/20",
+        color: "text-emerald-400",
+        bg: "bg-emerald-500/10",
+        border: "border-emerald-500/20",
     },
     MEDIUM: {
         icon: Shield,
-        color: "text-yellow-400",
-        bg: "bg-yellow-500/10",
-        border: "border-yellow-500/20",
+        color: "text-amber-400",
+        bg: "bg-amber-500/10",
+        border: "border-amber-500/20",
     },
     HARD: {
         icon: Cpu,
@@ -64,63 +64,59 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
     return (
         <div
             className={`relative rounded-xl p-6 border transition-all duration-300 shadow-lg overflow-hidden group ${isLocked
-                ? "bg-gray-900/30 border-gray-800/50 opacity-60"
+                ? "bg-[#0D0D14] border-[#22222E] opacity-50"
                 : isCompleted
-                    ? "bg-gray-900/40 border-green-900/30"
-                    : "bg-gray-900/50 border-gray-800 hover:border-green-500/40 hover:bg-gray-800/50"
-                }`}
+                    ? "bg-[#111118] border-emerald-500/20"
+                    : "bg-[#111118] border-[#22222E] hover:border-[#2E2E3F] hover:bg-[#14141C]"
+                } ${isActive && !isCompleted ? "border-l-2 border-l-indigo-500" : ""}`}
         >
-            {/* Top glow for active */}
-            {isActive && (
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent"></div>
-            )}
-            {/* Top glow for completed */}
-            {isCompleted && (
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-emerald-600/50 to-transparent"></div>
-            )}
-
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                    <DiffIcon className={`h-5 w-5 ${isLocked ? "text-gray-600" : diff.color}`} />
-                    <span className="text-xs font-mono text-gray-500">#{String(mission.order).padStart(2, "0")}</span>
+                    <DiffIcon className={`h-5 w-5 ${isLocked ? "text-[#3A3A52]" : diff.color}`} />
+                    <span className="text-xs font-mono text-[#5C5C7A]">#{String(mission.order).padStart(2, "0")}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className={`text-xs font-mono font-bold px-2 py-1 rounded-sm border ${isLocked ? "bg-gray-800/50 text-gray-600 border-gray-700" : `${diff.bg} ${diff.color} ${diff.border}`
+                    {isActive && !isCompleted && (
+                        <span className="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-md font-medium">
+                            In Progress
+                        </span>
+                    )}
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${isLocked ? "bg-[#1C1C28] text-[#5C5C7A] border-[#22222E]" : `${diff.bg} ${diff.color} ${diff.border}`
                         }`}>
-                        [{mission.difficulty}]
+                        {mission.difficulty}
                     </span>
-                    {isCompleted && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                    {isLocked && <Lock className="h-4 w-4 text-gray-600" />}
+                    {isCompleted && <CheckCircle2 className="h-5 w-5 text-emerald-400" />}
+                    {isLocked && <Lock className="h-4 w-4 text-[#3A3A52]" />}
                 </div>
             </div>
 
             {/* Title */}
-            <h3 className={`text-lg font-bold mb-2 ${isLocked ? "text-gray-600" : "text-white"}`}>
+            <h3 className={`text-lg font-semibold mb-2 ${isLocked ? "text-[#3A3A52]" : "text-[#F1F1F5]"}`}>
                 {mission.title}
             </h3>
 
             {/* Description */}
-            <p className={`text-sm mb-6 line-clamp-3 ${isLocked ? "text-gray-700" : "text-gray-400"}`}>
+            <p className={`text-sm mb-6 line-clamp-3 ${isLocked ? "text-[#3A3A52]" : "text-[#8B8BA7]"}`}>
                 {isLocked ? "Complete the previous mission to unlock this briefing." : mission.description}
             </p>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-800/50">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#22222E]">
                 <div className="flex items-center gap-3">
-                    <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-gray-700" : "text-gray-500"}`}>
+                    <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-[#3A3A52]" : "text-[#5C5C7A]"}`}>
                         <Code className="h-3 w-3" /> {mission.language}
                     </span>
-                    <span className={`text-xs font-bold font-mono ${isLocked ? "text-gray-700" : "text-blue-400"}`}>
-                        +{mission.auraReward} AURA
+                    <span className={`text-xs font-mono ${isLocked ? "text-[#3A3A52]" : "text-indigo-400"}`}>
+                        +{mission.auraReward} AP
                     </span>
                 </div>
 
                 {isActive && (
                     <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        className="font-mono text-xs font-bold bg-green-500 text-black border-green-500 hover:bg-green-400"
+                        className="text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white border-none"
                         onClick={handleAccept}
                         disabled={loading}
                     >
@@ -132,15 +128,15 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="font-mono text-xs font-bold text-green-600"
+                        className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
                         onClick={handleAccept}
                         disabled={loading}
                     >
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> REVIEW
+                        <CheckCircle2 className="h-3 w-3 mr-1 text-emerald-400" /> REVIEW
                     </Button>
                 )}
                 {isLocked && (
-                    <span className="text-xs font-mono text-gray-700 flex items-center gap-1">
+                    <span className="text-xs font-mono text-[#3A3A52] flex items-center gap-1">
                         <Lock className="h-3 w-3" /> LOCKED
                     </span>
                 )}

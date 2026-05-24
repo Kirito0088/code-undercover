@@ -26,31 +26,31 @@ export default async function DebugLabPage() {
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
     return (
-        <div className="flex-1 bg-black/40 py-10">
+        <div className="flex-1 bg-[#0A0A0F] py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-red-500 tracking-tight flex items-center gap-3">
+                        <h1 className="text-2xl font-semibold text-red-500 tracking-tight flex items-center gap-3">
                             <BugOff className="h-8 w-8" />
                             Debug Lab
                         </h1>
-                        <p className="mt-1 text-sm text-gray-400 font-mono">
+                        <p className="mt-1 text-xs text-[#8B8BA7]">
                             Fix broken modules. Earn Aura. Restore the system.
                         </p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-8 bg-gray-900/60 rounded-xl p-5 border border-red-900/50">
+                <div className="mb-8 bg-[#111118] rounded-xl p-5 border border-red-500/20">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-mono text-gray-400">DEBUG PROGRESS</span>
-                        <span className="text-sm font-mono text-red-400">{completedCount}/{totalCount} RESTORED</span>
+                        <span className="text-xs text-[#8B8BA7]">Debug Progress</span>
+                        <span className="text-xs font-mono text-red-400">{completedCount}/{totalCount} Restored</span>
                     </div>
-                    <div className="w-full bg-gray-800 rounded-full h-2.5">
+                    <div className="w-full bg-[#1C1C28] rounded-full h-1.5">
                         <div
-                            className="bg-gradient-to-r from-red-600 to-orange-400 h-2.5 rounded-full transition-all duration-500"
+                            className="bg-red-500 h-1.5 rounded-full transition-all duration-500"
                             style={{ width: `${progressPercent}%` }}
                         ></div>
                     </div>
@@ -65,8 +65,8 @@ export default async function DebugLabPage() {
 
                 {missions.length === 0 && (
                     <div className="text-center py-20">
-                        <BugOff className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-500 font-mono">No corrupted modules detected. The system is secure.</p>
+                        <BugOff className="h-12 w-12 text-[#3A3A52] mx-auto mb-4" />
+                        <p className="text-[#8B8BA7] text-sm">No corrupted modules detected. The system is secure.</p>
                     </div>
                 )}
 

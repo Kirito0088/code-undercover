@@ -94,10 +94,10 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
             {!accessGranted && phase !== "opening" && (
                 <button
                     onClick={handleSkip}
-                    className="absolute top-4 right-4 md:top-6 md:right-8 z-[110] flex items-center gap-2 text-gray-400 hover:text-white font-mono text-[10px] md:text-xs tracking-wider uppercase transition-all duration-200 bg-black/40 hover:bg-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded border border-gray-700/50 hover:border-gray-500 backdrop-blur-sm shadow-lg"
+                    className="absolute top-4 right-4 md:top-6 md:right-8 z-[110] flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-all duration-200 bg-[#111118]/80 hover:bg-[#1C1C28] px-3.5 py-1.5 rounded-md border border-[#22222E] hover:border-[#2E2E3F] backdrop-blur-sm shadow-md"
                 >
-                    SKIP
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    Skip Intro
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                         <path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.323-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.5a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-9a1 1 0 0 1 1-1Z" />
                     </svg>
                 </button>
@@ -105,7 +105,7 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
             {/* Cinematic 16:9 Container */}
             <div className={cn(
                 "relative w-full h-full md:h-auto max-w-[1920px] md:aspect-video max-h-screen overflow-hidden transition-all duration-1000 transform",
-                accessGranted ? "bg-transparent border-none shadow-none" : "bg-[#070b13] border-4 border-gray-900 shadow-[0_0_120px_rgba(0,0,0,1)]",
+                accessGranted ? "bg-transparent border-none shadow-none" : "bg-[#0A0A0F] border-4 border-[#22222E] shadow-2xl",
                 phase === "entering" ? "scale-95 opacity-0 blur-sm" : "scale-100 opacity-100 blur-none",
                 phase === "opening" ? "scale-110 opacity-0 blur-md transition-all duration-[1200ms]" : ""
             )}>
@@ -114,8 +114,8 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                 {!accessGranted && (
                     <>
                         {/* HUD Background grid + scanlines */}
-                        <div className="absolute inset-0 bg-[#050a12] border-gray-800"></div>
-                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-60"></div>
+                        <div className="absolute inset-0 bg-[#0A0A0F] border-[#22222E]"></div>
+                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#111118_1px,transparent_1px),linear-gradient(to_bottom,#111118_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-60"></div>
                         <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_10%,transparent_100%)] pointer-events-none bg-black"></div>
 
                         {/* Top/Bottom HUD Bars */}
@@ -124,8 +124,8 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
 
                         {/* Header Labels */}
                         <div className="absolute top-4 md:top-8 inset-x-4 md:inset-x-12 flex justify-between items-start z-50 pointer-events-none">
-                            <div className="px-3 py-1 md:px-5 md:py-2 bg-cyan-950/30 border border-cyan-500/40 text-cyan-400 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] rounded backdrop-blur-sm">Sector 1A</div>
-                            <div className="hidden sm:block px-6 py-1 md:px-10 md:py-2 bg-black/50 border border-gray-700 text-gray-400 font-mono text-xs md:text-sm uppercase tracking-[0.2em] md:tracking-[0.3em] rounded backdrop-blur-md">System Security</div>
+                            <div className="px-3 py-1 md:px-5 md:py-2 bg-indigo-950/20 border border-indigo-500/30 text-indigo-400 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] rounded backdrop-blur-sm">Sector 1A</div>
+                            <div className="hidden sm:block px-6 py-1 md:px-10 md:py-2 bg-black/50 border border-[#22222E] text-[#8B8BA7] font-mono text-xs md:text-sm uppercase tracking-[0.2em] md:tracking-[0.3em] rounded backdrop-blur-md">System Security</div>
                             <div className={cn(
                                 "px-3 py-1 md:px-5 md:py-2 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] rounded backdrop-blur-sm transition-all duration-500",
                                 isDeniedPhase
@@ -151,14 +151,14 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
                             <div className={cn(
                                 "w-full h-full max-w-2xl aspect-square blur-[120px] rounded-full transition-colors duration-700",
-                                isDeniedPhase ? "bg-red-900/10" : "bg-cyan-900/5"
+                                isDeniedPhase ? "bg-red-900/10" : "bg-indigo-950/5"
                             )}></div>
                         </div>
 
-                        <div className="relative w-full max-w-[280px] sm:max-w-[340px] md:max-w-xl aspect-[4/5] mt-16 md:mt-24 bg-black/50 rounded-xl p-3 md:p-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-gray-900">
+                        <div className="relative w-full max-w-[280px] sm:max-w-[340px] md:max-w-xl aspect-[4/5] mt-16 md:mt-24 bg-black/50 rounded-xl p-3 md:p-4 shadow-2xl border border-[#22222E]">
                             {/* Inner Door Frame */}
                             <div className={cn(
-                                "absolute top-[18%] bottom-[18%] left-[10%] right-[10%] flex border-x-[4px] border-y-[1px] rounded-lg overflow-hidden bg-gray-950 transition-colors duration-500 ease-in-out",
+                                "absolute top-[18%] bottom-[18%] left-[10%] right-[10%] flex border-x-[4px] border-y-[1px] rounded-lg overflow-hidden bg-[#0A0A0F] transition-colors duration-500 ease-in-out",
                                 phase === "entering" || phase === "scanning" ? "border-x-red-500 border-y-red-900/40 shadow-[0_0_30px_rgba(220,38,38,0.3)]" : "",
                                 phase === "verifying-yellow" ? "border-x-yellow-500 border-y-yellow-900/40 shadow-[0_0_40px_rgba(234,179,8,0.5)]" : "",
                                 isDeniedPhase ? "border-x-red-600 border-y-red-900/60 shadow-[0_0_50px_rgba(220,38,38,0.7)]" : "",
@@ -167,27 +167,27 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
 
                                 {/* Left Door Panel */}
                                 <div className={cn(
-                                    "flex-1 border-r-[3px] border-dashed border-gray-800 bg-[#090b10] flex flex-col items-center justify-center gap-6 md:gap-10 relative transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]",
+                                    "flex-1 border-r-[3px] border-dashed border-[#22222E] bg-[#111118] flex flex-col items-center justify-center gap-6 md:gap-10 relative transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]",
                                     (phase === "entering" || phase === "scanning") ? "animate-[door-pulse-red_2s_infinite]" : "",
                                     isDeniedPhase ? "animate-[door-pulse-denied_0.5s_ease-out_3]" : "",
                                     phase === "opening" ? "translate-x-[-105%]" : "translate-x-0"
                                 )}>
-                                    <div className="w-3/4 h-[6px] bg-gray-800 rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.8)]" />
-                                    <div className="w-3/4 h-[6px] bg-gray-800 rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.8)]" />
-                                    <div className="w-3/4 h-[6px] bg-gray-800 rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.8)]" />
+                                    <div className="w-3/4 h-[6px] bg-[#1C1C28] rounded-full" />
+                                    <div className="w-3/4 h-[6px] bg-[#1C1C28] rounded-full" />
+                                    <div className="w-3/4 h-[6px] bg-[#1C1C28] rounded-full" />
                                     <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
                                 </div>
 
                                 {/* Right Door Panel */}
                                 <div className={cn(
-                                    "flex-1 flex flex-col bg-[#090b10] items-center justify-center gap-6 md:gap-10 relative transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]",
+                                    "flex-1 flex flex-col bg-[#111118] items-center justify-center gap-6 md:gap-10 relative transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]",
                                     (phase === "entering" || phase === "scanning") ? "animate-[door-pulse-red_2s_infinite]" : "",
                                     isDeniedPhase ? "animate-[door-pulse-denied_0.5s_ease-out_3]" : "",
                                     phase === "opening" ? "translate-x-[105%]" : "translate-x-0"
                                 )}>
-                                    <div className="w-3/4 h-[6px] bg-gray-800 rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.8)]" />
-                                    <div className="w-3/4 h-[6px] bg-gray-800 rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.8)]" />
-                                    <div className="w-3/4 h-[6px] bg-gray-800 rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.8)]" />
+                                    <div className="w-3/4 h-[6px] bg-[#1C1C28] rounded-full" />
+                                    <div className="w-3/4 h-[6px] bg-[#1C1C28] rounded-full" />
+                                    <div className="w-3/4 h-[6px] bg-[#1C1C28] rounded-full" />
                                     <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
                                 </div>
 

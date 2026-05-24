@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Terminal, KeyRound } from "lucide-react"
+import { CheckCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function ForgotPasswordPage() {
@@ -28,7 +28,6 @@ export default function ForgotPasswordPage() {
                 setSubmitted(true)
             } else {
                 const data = await res.json()
-                // You could optionally show an error message state here
                 console.error(data.message)
             }
         } catch (error) {
@@ -39,53 +38,48 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
 
-            <div className="mx-auto w-full max-w-md">
-                <div className="flex justify-center">
-                    <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
-                        <KeyRound className="h-6 w-6 text-yellow-500" />
-                    </div>
-                </div>
-                <h2 className="mt-6 text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    Passphrase Recovery
+            <div className="mx-auto w-full max-w-sm">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                    Reset your password
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-400">
-                    Enter your Agent ID to receive recovery instructions
+                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                    Enter your email to receive reset instructions
                 </p>
             </div>
 
-            <div className="mt-8 mx-auto w-full max-w-md">
-                <div className="backdrop-blur-xl bg-gray-900/40 py-6 sm:py-8 px-4 sm:px-10 shadow-[0_0_30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 rounded-xl border-t border-gray-800">
+            <div className="mt-8 mx-auto w-full max-w-sm">
+                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
 
                     {submitted ? (
                         <div className="text-center py-4">
-                            <div className="mx-auto h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20 mb-4">
-                                <Terminal className="h-6 w-6 text-green-500" />
+                            <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
+                                <CheckCircle className="h-6 w-6 text-emerald-400" />
                             </div>
-                            <h3 className="text-lg font-mono font-bold text-green-400 tracking-wider mb-2">
-                                SIGNAL_TRANSMITTED
+                            <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
+                                Email Sent
                             </h3>
-                            <p className="text-sm text-gray-400 font-mono leading-relaxed">
-                                If an agent with that ID exists in our system, recovery instructions have been dispatched to the registered comm channel.
+                            <p className="text-sm text-[#8B8BA7] leading-relaxed">
+                                If an account with that email exists in our system, recovery instructions have been dispatched.
                             </p>
-                            <div className="mt-6 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
-                                <p className="text-xs text-yellow-400/80 font-mono">
-                                    ⚠ NOTE: Email service not configured. Contact your system administrator for manual passphrase reset.
+                            <div className="mt-6 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                                <p className="text-xs text-amber-400">
+                                    NOTE: Email service not configured. Contact your system administrator for manual password reset.
                                 </p>
                             </div>
                             <Link
                                 href="/login"
-                                className="inline-block mt-6 text-sm font-semibold text-green-500 hover:text-green-400 transition-colors font-mono"
+                                className="inline-block mt-6 text-sm font-medium text-[#818CF8] hover:text-indigo-300 transition-colors"
                             >
-                                ← Return to terminal
+                                Back to Log In
                             </Link>
                         </div>
                     ) : (
                         <form className="space-y-6" onSubmit={handleSubmit}>
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                                    AGENT_ID / EMAIL
+                                <label htmlFor="email" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                    Email Address
                                 </label>
                                 <div className="mt-2 text-white">
                                     <Input
@@ -96,8 +90,7 @@ export default function ForgotPasswordPage() {
                                         required
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="bg-black/50 border-gray-800 font-mono focus-visible:ring-yellow-500/50"
-                                        placeholder="agent@codeundercover.com"
+                                        placeholder="name@email.com"
                                     />
                                 </div>
                             </div>
@@ -105,20 +98,20 @@ export default function ForgotPasswordPage() {
                             <div>
                                 <Button
                                     type="submit"
-                                    className="w-full font-mono font-bold tracking-wider bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700"
+                                    className="w-full text-sm font-medium"
                                     disabled={loading}
                                 >
-                                    {loading ? "TRANSMITTING..." : "SEND_RECOVERY_SIGNAL"}
+                                    {loading ? "Sending..." : "Send Reset Link"}
                                 </Button>
                             </div>
                         </form>
                     )}
 
                     {!submitted && (
-                        <div className="mt-6 text-center text-sm text-gray-400">
-                            Remember your passphrase?{" "}
-                            <Link href="/login" className="font-semibold text-green-500 hover:text-green-400 transition-colors">
-                                Access terminal here.
+                        <div className="mt-6 text-center text-xs text-[#8B8BA7]">
+                            Remember your password?{" "}
+                            <Link href="/login" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                                Log in
                             </Link>
                         </div>
                     )}

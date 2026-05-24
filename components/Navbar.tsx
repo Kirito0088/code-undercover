@@ -41,13 +41,13 @@ export default async function Navbar() {
     }
 
     return (
-        <nav className="border-b border-gray-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16 items-center">
+        <nav className="border-b border-[#22222E] bg-[#0A0A0F]/90 backdrop-blur-sm sticky top-0 z-50 h-14">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+                <div className="flex justify-between h-full items-center">
                     <div className="flex items-center">
                         <Link href="/" className="flex items-center space-x-2">
-                            <Code className="h-8 w-8 text-green-500" />
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-600 hidden sm:block">
+                            <Code className="h-8 w-8 text-indigo-400" />
+                            <span className="text-xl font-semibold text-[#F1F1F5] hidden sm:block">
                                 Code Undercover
                             </span>
                         </Link>
@@ -60,27 +60,27 @@ export default async function Navbar() {
                             <>
                                 <Link
                                     href="/dashboard"
-                                    className="text-sm font-mono text-gray-300 hover:text-green-400 transition-colors"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
                                 >
-                                    DASHBOARD
+                                    Dashboard
                                 </Link>
                                 <Link
                                     href="/debug-lab"
-                                    className="text-sm font-mono text-gray-300 hover:text-red-400 transition-colors"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
                                 >
-                                    DEBUG LAB
+                                    Debug Lab
                                 </Link>
                                 <Link
                                     href="/leaderboard"
-                                    className="text-sm font-mono text-gray-300 hover:text-green-400 transition-colors"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
                                 >
-                                    LEADERBOARD
+                                    Leaderboard
                                 </Link>
                                 <Link
                                     href="/history"
-                                    className="text-sm font-mono text-gray-300 hover:text-cyan-400 transition-colors"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
                                 >
-                                    HISTORY
+                                    History
                                 </Link>
                                 <ProfileMenu
                                     user={{
@@ -97,15 +97,15 @@ export default async function Navbar() {
                             <>
                                 <Link
                                     href="/dashboard"
-                                    className="text-sm font-mono text-gray-300 hover:text-green-400 transition-colors"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
                                 >
-                                    DASHBOARD
+                                    Dashboard
                                 </Link>
                                 <Link
                                     href="/debug-lab"
-                                    className="text-sm font-mono text-gray-300 hover:text-red-400 transition-colors"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#1C1C28]"
                                 >
-                                    DEBUG LAB
+                                    Debug Lab
                                 </Link>
                                 <span className="text-sm font-mono text-yellow-400">
                                     ⚠ DB Offline
@@ -115,13 +115,13 @@ export default async function Navbar() {
                             <>
                                 <Link
                                     href="/login"
-                                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                    className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-2 rounded-md text-sm font-medium transition-colors"
                                 >
                                     Log in
                                 </Link>
                                 <Link
                                     href="/register"
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-[0_0_15px_rgba(22,163,74,0.5)]"
+                                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                                 >
                                     Register
                                 </Link>

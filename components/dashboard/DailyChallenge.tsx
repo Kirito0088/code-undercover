@@ -81,39 +81,42 @@ export function DailyChallenge() {
 
     if (status === "loading") {
         return (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex justify-center items-center my-8">
-                <Loader2 className="animate-spin text-green-500" />
+            <div className="bg-[#111118] border border-[#22222E] rounded-xl p-6 flex justify-center items-center my-8">
+                <Loader2 className="animate-spin text-indigo-400" />
             </div>
         )
     }
 
     if (status === "completed" && !result) {
         return (
-            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 my-8 text-center flex items-center justify-center flex-col">
-                <Zap className="h-8 w-8 text-yellow-500 mb-2 opacity-50" />
-                <h3 className="text-gray-400 font-mono">Daily Challenge Completed</h3>
-                <p className="text-gray-500 text-sm mt-1">Return tomorrow for another chance to earn Aura.</p>
+            <div className="bg-[#111118]/50 border border-[#22222E] rounded-xl p-6 my-8 text-center flex items-center justify-center flex-col">
+                <Zap className="h-8 w-8 text-amber-400 mb-2 opacity-50" />
+                <h3 className="text-[#8B8BA7] font-medium">Daily Challenge Completed</h3>
+                <p className="text-[#5C5C7A] text-sm mt-1">Return tomorrow for another chance to earn Aura.</p>
             </div>
         )
     }
 
     return (
-        <div className="bg-[#0d1117] border border-gray-800 rounded-xl p-6 my-8 relative overflow-hidden shadow-2xl">
+        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-6 my-8 relative overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-800/50 pb-4">
-                <Zap className="h-5 w-5 text-yellow-400" />
-                <h2 className="text-lg font-bold text-gray-200 tracking-wide uppercase font-mono">
-                    Daily Knowledge Intercept
+            <div className="flex items-center gap-2 mb-6 border-b border-[#22222E] pb-4">
+                <Zap className="h-5 w-5 text-amber-400" />
+                <h2 className="text-sm font-medium text-[#F1F1F5] tracking-tight">
+                    Daily Challenge
                 </h2>
-                <span className="ml-auto text-xs font-bold bg-yellow-400/10 text-yellow-400 px-2 py-1 rounded">
-                    +20 AURA
+                <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-2 py-0.5 rounded-md ml-2">
+                    Today
+                </span>
+                <span className="ml-auto text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-md font-mono">
+                    +20 AP
                 </span>
             </div>
 
             {/* Question */}
             {questionData && !result && (
                 <div>
-                    <p className="text-gray-300 font-medium mb-6 leading-relaxed">
+                    <p className="text-sm text-[#F1F1F5] mt-3 mb-6 leading-relaxed">
                         {questionData.question}
                     </p>
                     <div className="grid gap-3">
@@ -122,14 +125,14 @@ export function DailyChallenge() {
                                 key={i}
                                 onClick={() => setSelectedOption(opt)}
                                 disabled={isSubmitting}
-                                className={`text-left p-4 rounded-lg border transition-all text-sm font-mono
+                                className={`text-left p-4 rounded-lg border transition-all text-sm
                                     ${selectedOption === opt
-                                        ? "border-green-500 bg-green-500/10 text-green-400"
-                                        : "border-gray-800 hover:border-gray-600 bg-black/40 text-gray-400 hover:text-gray-200"
+                                        ? "border-indigo-500/60 bg-indigo-500/5 text-[#F1F1F5]"
+                                        : "border-[#22222E] hover:border-indigo-500/40 bg-[#0A0A0F] text-[#8B8BA7] hover:text-[#F1F1F5]"
                                     }
                                 `}
                             >
-                                <span className="text-gray-600 mr-2">{String.fromCharCode(65 + i)}.</span>
+                                <span className="text-[#5C5C7A] mr-2">{String.fromCharCode(65 + i)}.</span>
                                 {opt}
                             </button>
                         ))}
@@ -139,7 +142,7 @@ export function DailyChallenge() {
                         <button
                             onClick={handleSubmit}
                             disabled={!selectedOption || isSubmitting}
-                            className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded font-bold text-sm tracking-widest uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-md font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border-none"
                         >
                             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit"}
                         </button>
@@ -150,20 +153,20 @@ export function DailyChallenge() {
             {/* Result */}
             {result && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className={`p-4 rounded-lg mb-4 flex gap-3 ${result.isCorrect ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                    <div className={`p-4 rounded-lg mb-4 flex gap-3 ${result.isCorrect ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
                         <div className="mt-0.5">
                             {result.isCorrect ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                         </div>
                         <div>
-                            <h3 className="font-bold font-mono text-lg mb-1">
+                            <h3 className="font-semibold text-lg mb-1 text-[#F1F1F5]">
                                 {result.isCorrect ? "Access Granted" : "Access Denied"}
                             </h3>
-                            <p className="opacity-90 leading-relaxed text-sm">
+                            <p className="text-[#8B8BA7] leading-relaxed text-sm">
                                 {result.explanation}
                             </p>
                             {result.isCorrect && (
-                                <div className="mt-3 inline-block bg-yellow-400/20 text-yellow-400 font-mono font-bold text-xs px-2 py-1 rounded">
-                                    + {result.earnedAura} Aura Earned
+                                <div className="mt-3 inline-block bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono text-xs px-2 py-0.5 rounded-md">
+                                    + {result.earnedAura} AP Earned
                                 </div>
                             )}
                         </div>

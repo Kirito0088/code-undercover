@@ -5,7 +5,7 @@ import { useRef, useEffect, useCallback } from 'react';
 const fontSize = 16;
 
 const LetterGlitch = ({
-  glitchColors = ['#2b4539', '#61dca3', '#61b3dc'],
+  glitchColors = ['#312e81', '#6366f1', '#818cf8'],
   glitchSpeed = 50,
   centerVignette = false,
   outerVignette = true,
@@ -68,7 +68,7 @@ const LetterGlitch = ({
     const { width, height } = canvas.getBoundingClientRect();
 
     // Semi-transparent overlay creates the fading trail effect
-    ctx.fillStyle = smooth ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.1)';
+    ctx.fillStyle = smooth ? 'rgba(10, 10, 15, 0.05)' : 'rgba(10, 10, 15, 0.1)';
     ctx.fillRect(0, 0, width, height);
 
     ctx.font = `${fontSize}px monospace`;
@@ -80,7 +80,7 @@ const LetterGlitch = ({
       const x = i * fontSize;
       const y = dropsRef.current[i] * fontSize;
 
-      // Leading character is bright white/green
+      // Leading character is bright white/indigo
       if (y > 0 && y < height) {
         ctx.fillStyle = '#ffffff';
         ctx.fillText(char, x, y);
@@ -88,7 +88,7 @@ const LetterGlitch = ({
         // Characters just behind the leading one get the primary glitch color
         if (y - fontSize > 0) {
           const trailChar = getRandomChar();
-          ctx.fillStyle = glitchColors[0] || '#61dca3';
+          ctx.fillStyle = glitchColors[0] || '#6366f1';
           ctx.globalAlpha = 0.8;
           ctx.fillText(trailChar, x, y - fontSize);
           ctx.globalAlpha = 1;
@@ -131,7 +131,7 @@ const LetterGlitch = ({
     const ctx = contextRef.current;
     if (ctx) {
       const { width, height } = canvas.getBoundingClientRect();
-      ctx.fillStyle = '#030712'; // gray-950 equivalent
+      ctx.fillStyle = '#0A0A0F';
       ctx.fillRect(0, 0, width, height);
     }
 
@@ -165,7 +165,7 @@ const LetterGlitch = ({
   }, [glitchSpeed, smooth, draw, resizeCanvas]);
 
   return (
-    <div className="relative w-full h-full bg-gray-950 overflow-hidden">
+    <div className="relative w-full h-full bg-[#0A0A0F] overflow-hidden">
       <canvas ref={canvasRef} className="block w-full h-full" />
       {outerVignette && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(circle,_rgba(0,0,0,0)_60%,_rgba(0,0,0,1)_100%)]"></div>

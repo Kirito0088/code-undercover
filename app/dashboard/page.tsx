@@ -3,10 +3,24 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
-import { Terminal, AlertTriangle } from "lucide-react"
+import { Terminal, AlertTriangle, Shield, Zap, LayoutDashboard, Rocket, History, Target, CheckCircle, Flame, Medal, Bolt, Play } from "lucide-react"
 import { MissionCard } from "./MissionCard"
 import { DailyChallenge } from "@/components/dashboard/DailyChallenge"
 import { MissionIntelStory } from "./MissionIntelStory"
+import Link from "next/link"
+import { calculateAgentRank } from "@/lib/aura"
+
+function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThreshold: number } {
+    if (auraPoints < 50) return { nextRank: "Owl", nextThreshold: 50 }
+    if (auraPoints < 150) return { nextRank: "Raccoon", nextThreshold: 150 }
+    if (auraPoints < 300) return { nextRank: "Octopus", nextThreshold: 300 }
+    if (auraPoints < 500) return { nextRank: "Eagle", nextThreshold: 500 }
+    if (auraPoints < 800) return { nextRank: "Chameleon", nextThreshold: 800 }
+    if (auraPoints < 1200) return { nextRank: "Wolf", nextThreshold: 1200 }
+    if (auraPoints < 1700) return { nextRank: "Fox", nextThreshold: 1700 }
+    if (auraPoints < 2500) return { nextRank: "Platypus", nextThreshold: 2500 }
+    return { nextRank: "Max Rank", nextThreshold: 2500 }
+}
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions)
@@ -24,7 +38,7 @@ export default async function DashboardPage() {
         safeDbQuery(
             () => db.user.findUnique({
                 where: { id: session.user.id },
-                select: { auraPoints: true, auraLevel: true, name: true, email: true },
+                select: { auraPoints: true, auraLevel: true, name: true, email: true, comboStreak: true, foxBadges: true },
             }),
             null,
             "DashboardPage.user"
@@ -37,74 +51,216 @@ export default async function DashboardPage() {
     const totalCount = missions.length
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
-    return (
-        <div className="flex-1 bg-black/40 py-10 relative">
-            <MissionIntelStory />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    const currentRank = calculateAgentRank(user?.auraPoints ?? 0)
+    const { nextRank, nextThreshold } = getNextRankThreshold(user?.auraPoints ?? 0)
+    const nextThresholdText = nextRank === "Max Rank" 
+        ? "Max Rank Achieved" 
+        : `${user?.auraPoints ?? 0} / ${nextThreshold} AP to ${nextRank}`
+    const apToNextRank = nextRank === "Max Rank" ? 0 : nextThreshold - (user?.auraPoints ?? 0)
 
-                {/* DB Offline Warning */}
-                {dbOffline && (
-                    <div className="mb-6 bg-yellow-900/30 border border-yellow-700 rounded-xl p-5 flex items-center gap-3">
-                        <AlertTriangle className="size-6 text-yellow-400 flex-shrink-0" />
-                        <div>
-                            <p className="text-yellow-300 font-mono text-sm font-bold">DATABASE CONNECTION FAILED</p>
-                            <p className="text-yellow-400/70 font-mono text-xs mt-1">
-                                Unable to reach the database. Check your DATABASE_URL in .env and ensure MongoDB Atlas is accessible from your network.
-                            </p>
+    return (
+        <div className="flex-grow bg-[#0A0A0F] min-h-[calc(100vh-3.5rem)] relative">
+            <MissionIntelStory />
+            
+            <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
+                
+                {/* Left Sidebar */}
+                <aside className="w-full md:w-[250px] shrink-0 flex flex-col gap-6">
+                    {/* User Profile Block */}
+                    <div className="bg-[#111118] border border-[#22222E] rounded-xl p-5 flex flex-col items-center">
+                        <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-3 shadow-[0_0_15px_rgba(79,70,229,0.5)] text-white">
+                            {(user?.name || session.user.name || "U")[0].toUpperCase()}
+                        </div>
+                        <h2 className="text-lg font-bold text-[#F1F1F5] truncate max-w-full">
+                            {user?.name || session.user.name || "Anonymous"}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <Medal className="w-4 h-4 text-[#ffb95f]" />
+                            <span className="text-sm font-medium text-[#c7c4d7]">Rank: {currentRank}</span>
+                        </div>
+                        <div className="w-full mt-5">
+                            <div className="flex justify-between text-xs text-[#5C5C7A] mb-1.5 font-medium">
+                                <span>Aura Progress</span>
+                                <span>{user?.auraPoints ?? 0} / {nextThreshold} AP</span>
+                            </div>
+                            <div className="h-2 w-full bg-[#1C1C28] rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-indigo-500 rounded-full relative transition-all duration-500"
+                                    style={{ width: `${Math.min(100, ((user?.auraPoints ?? 0) / nextThreshold) * 100)}%` }}
+                                >
+                                    <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/20 blur-[2px]"></div>
+                                </div>
+                            </div>
+                            <div className="text-[10px] text-center text-[#5C5C7A] mt-1.5">
+                                {nextRank === "Max Rank" ? "Max Rank Achieved" : `${apToNextRank} AP to next rank`}
+                            </div>
                         </div>
                     </div>
-                )}
 
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-semibold text-white tracking-tight">Mission Control</h1>
-                        <p className="mt-1 text-sm text-gray-400 font-mono">
-                            Agent: {user?.name || user?.email || session.user.name || "Unknown"} | Aura Lvl {user?.auraLevel ?? 1} | {user?.auraPoints ?? 0} AURA
-                        </p>
+                    {/* Navigation List */}
+                    <nav className="flex flex-col gap-1 bg-[#111118] border border-[#22222E] rounded-xl p-3">
+                        <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 bg-[#1C1C28] text-[#F1F1F5] rounded-lg font-medium text-sm transition-colors">
+                            <LayoutDashboard className="w-4 h-4 text-indigo-400" />
+                            Dashboard
+                        </Link>
+                        <a href="#missions-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#1C1C28]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                            <Rocket className="w-4 h-4 text-[#8B8BA7]" />
+                            Missions
+                        </a>
+                        <Link href="/history" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#1C1C28]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                            <History className="w-4 h-4 text-[#8B8BA7]" />
+                            History
+                        </Link>
+                        <a href="#challenge-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#1C1C28]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                            <Target className="w-4 h-4 text-[#8B8BA7]" />
+                            Daily Challenge
+                        </a>
+                    </nav>
+
+                    {/* Stats Summary */}
+                    <div className="bg-[#111118] border border-[#22222E] rounded-xl p-5 flex flex-col gap-4">
+                        <h3 className="text-xs font-bold text-[#5C5C7A] uppercase tracking-wider">Agent Stats</h3>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-[#4ae176]" />
+                                <span className="text-sm text-[#c7c4d7]">Missions</span>
+                            </div>
+                            <span className="text-sm font-mono font-bold text-[#e4e1e9]">{completedCount} / {totalCount}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Flame className="w-4 h-4 text-[#ffb95f]" />
+                                <span className="text-sm text-[#c7c4d7]">Combo Streak</span>
+                            </div>
+                            <span className="text-sm font-mono font-bold text-[#e4e1e9]">x{user?.comboStreak ?? 0}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Medal className="w-4 h-4 text-indigo-400" />
+                                <span className="text-sm text-[#c7c4d7]">Fox Badges</span>
+                            </div>
+                            <span className="text-sm font-mono font-bold text-[#e4e1e9]">{user?.foxBadges ?? 0}</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="relative flex size-3">
-                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dbOffline ? 'bg-yellow-400' : 'bg-green-400'} opacity-75`}></span>
-                            <span className={`relative inline-flex rounded-full size-3 ${dbOffline ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-                        </span>
-                        <span className={`text-sm font-mono tracking-wider ${dbOffline ? 'text-yellow-500' : 'text-green-500'}`}>
-                            {dbOffline ? 'DB OFFLINE' : 'SYSTEM ONLINE'}
-                        </span>
+                </aside>
+
+                {/* Main Content Area */}
+                <main className="flex-grow min-w-0 flex flex-col gap-6">
+                    {/* DB Offline Warning */}
+                    {dbOffline && (
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5 flex items-center gap-3">
+                            <AlertTriangle className="size-6 text-amber-400 flex-shrink-0" />
+                            <div>
+                                <p className="text-amber-400 font-mono text-sm font-bold">DATABASE CONNECTION FAILED</p>
+                                <p className="text-amber-400/70 font-mono text-xs mt-1">
+                                    Unable to reach the database. Check your DATABASE_URL in .env and ensure MongoDB Atlas is accessible from your network.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-semibold text-[#F1F1F5] tracking-tight">Mission Control</h1>
+                            <p className="mt-1 text-xs text-[#8B8BA7]">
+                                Welcome back. Select your active module to proceed.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="relative flex size-2.5">
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dbOffline ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
+                                <span className={`relative inline-flex rounded-full size-2.5 ${dbOffline ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+                            </span>
+                            <span className={`text-xs font-mono tracking-wider ${dbOffline ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                {dbOffline ? 'DB OFFLINE' : 'SYSTEM ONLINE'}
+                            </span>
+                        </div>
                     </div>
-                </div>
 
-                {/* Progress Bar */}
-                <div className="mb-8 bg-gray-900/60 rounded-xl p-5 border border-gray-800">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-mono text-gray-400">MISSION PROGRESS</span>
-                        <span className="text-sm font-mono text-green-400">{completedCount}/{totalCount} COMPLETED</span>
+                    {/* Top Metric Stats Row */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                            <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
+                                <Bolt className="w-4 h-4 text-indigo-400" />
+                                Total Aura
+                            </span>
+                            <span className="text-2xl font-bold font-mono text-[#e4e1e9]">{user?.auraPoints ?? 0} <span className="text-xs text-[#5C5C7A] font-sans">AP</span></span>
+                        </div>
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                            <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-[#4ae176]" />
+                                Missions Done
+                            </span>
+                            <span className="text-2xl font-bold font-mono text-[#e4e1e9]">{completedCount}/{totalCount}</span>
+                        </div>
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                            <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
+                                <Flame className="w-4 h-4 text-[#ffb95f]" />
+                                Combo Streak
+                            </span>
+                            <span className="text-2xl font-bold font-mono text-[#e4e1e9]">x{user?.comboStreak ?? 0}</span>
+                        </div>
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
+                            <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
+                                <Shield className="w-4 h-4 text-[#c0c1ff]" />
+                                Current Rank
+                            </span>
+                            <span className="text-2xl font-bold text-[#e4e1e9]">{currentRank}</span>
+                        </div>
                     </div>
-                    <div className="w-full bg-gray-800 rounded-full h-2.5">
-                        <div
-                            className="bg-gradient-to-r from-green-600 to-emerald-400 h-2.5 rounded-full transition-all duration-500"
-                            style={{ width: `${progressPercent}%` }}
-                        ></div>
+
+                    {/* Overall Progress Bar */}
+                    <div className="bg-[#111118] border border-[#22222E] rounded-xl p-5">
+                        <div className="flex justify-between items-end mb-3">
+                            <h3 className="text-lg font-bold text-[#e4e1e9]">Campaign Progress</h3>
+                            <span className="text-sm text-[#908fa0] font-mono">{completedCount} of {totalCount} missions completed · {progressPercent}%</span>
+                        </div>
+                        <div className="h-3 w-full bg-[#1C1C28] rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-indigo-500 rounded-full relative transition-all duration-1000 ease-out"
+                                style={{ width: `${progressPercent}%` }}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <DailyChallenge />
+                    {/* Split layout for Active Intel and Daily Challenge */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        {/* Mission List */}
+                        <div id="missions-section" className="xl:col-span-2 flex flex-col gap-4 scroll-mt-20">
+                            <h3 className="text-lg font-bold text-[#e4e1e9] flex items-center gap-2">
+                                <Rocket className="w-5 h-5 text-indigo-400" />
+                                Active Intel
+                            </h3>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {missions.map((mission) => (
+                                    <MissionCard key={mission.id} mission={mission} />
+                                ))}
+                            </div>
 
-                {/* Mission Grid */}
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {missions.map((mission) => (
-                        <MissionCard key={mission.id} mission={mission} />
-                    ))}
-                </div>
+                            {missions.length === 0 && !dbOffline && (
+                                <div className="text-center py-20 bg-[#111118] border border-[#22222E] rounded-xl">
+                                    <Terminal className="size-12 text-[#5C5C7A] mx-auto mb-4" />
+                                    <p className="text-[#8B8BA7] font-mono">No missions available. Check back soon, Agent.</p>
+                                </div>
+                            )}
+                        </div>
 
-                {missions.length === 0 && !dbOffline && (
-                    <div className="text-center py-20">
-                        <Terminal className="size-12 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-500 font-mono">No missions available. Check back soon, Agent.</p>
+                        {/* Daily Challenge Widget */}
+                        <div id="challenge-section" className="xl:col-span-1 scroll-mt-20">
+                            <DailyChallenge />
+                        </div>
                     </div>
-                )}
-
+                </main>
             </div>
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(50%); }
+                }
+            `}} />
         </div>
     )
 }

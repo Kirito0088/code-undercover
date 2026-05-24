@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Terminal, Code } from "lucide-react"
 import Link from "next/link"
 
 const LANGUAGES = [
@@ -41,48 +40,40 @@ export default function RegisterPage() {
                 router.push("/login")
             } else {
                 const data = await res.json()
-                setError(data.message || "Registration failed. Firewall blocked request.")
+                setError(data.message || "Registration failed. Please check your inputs.")
             }
         } catch {
-            setError("System malfunction during onboarding.")
+            setError("Something went wrong. Please try again.")
         } finally {
             setLoading(false)
         }
     }
 
     return (
-            <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-[#0A0A0F]">
 
-            <div className="mx-auto w-full max-w-md">
-                <div className="flex justify-center">
-                    <div className="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-[0_0_15px_rgba(22,163,74,0.3)] transform rotate-12">
-                        <Code className="h-6 w-6 text-green-500 -rotate-12" />
-                    </div>
-                </div>
-                <h2 className="mt-6 text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    Join the Agency
+            <div className="mx-auto w-full max-w-sm">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                    Create your account
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-400">
-                    Request terminal access to start coding missions
+                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                    Start your coding journey
                 </p>
             </div>
 
-            <div className="mt-8 mx-auto w-full max-w-md">
-                <div className="backdrop-blur-xl bg-gray-900/40 py-6 sm:py-8 px-4 sm:px-10 shadow-[0_0_30px_rgba(0,0,0,0.5)] ring-1 ring-white/10 rounded-xl border-t border-gray-800">
+            <div className="mt-8 mx-auto w-full max-w-sm">
+                <div className="bg-[#111118] border border-[#22222E] rounded-2xl p-8 shadow-xl relative">
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         {error && (
-                            <div className="rounded-md bg-red-500/10 p-4 ring-1 ring-red-500/30 font-mono text-sm">
-                                <div className="flex">
-                                    <Terminal className="h-5 w-5 text-red-500 mr-2" />
-                                    <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider">{error}</h3>
-                                </div>
+                            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
+                                {error}
                             </div>
                         )}
 
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                                CALLSIGN / NAME
+                            <label htmlFor="name" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                Name
                             </label>
                             <div className="mt-2 text-white">
                                 <Input
@@ -92,15 +83,14 @@ export default function RegisterPage() {
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
-                                    placeholder="Neo"
+                                    placeholder="your name"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                                AGENT_ID / EMAIL
+                            <label htmlFor="email" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                Email Address
                             </label>
                             <div className="mt-2 text-white">
                                 <Input
@@ -111,15 +101,14 @@ export default function RegisterPage() {
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
-                                    placeholder="agent@codeundercover.com"
+                                    placeholder="name@email.com"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-300 font-mono">
-                                PASSPHRASE
+                            <label htmlFor="password" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                Password
                             </label>
                             <div className="mt-2">
                                 <Input
@@ -129,7 +118,6 @@ export default function RegisterPage() {
                                     required
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="bg-black/50 border-gray-800 font-mono focus-visible:ring-green-500/50"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -137,8 +125,8 @@ export default function RegisterPage() {
 
                         {/* Language Selector */}
                         <div>
-                            <label className="block text-sm font-medium leading-6 text-gray-300 font-mono mb-3">
-                                SELECT_SPECIALIZATION
+                            <label className="block text-xs font-medium text-[#8B8BA7] mb-3">
+                                Select Language
                             </label>
                             <div className="grid grid-cols-2 gap-3">
                                 {LANGUAGES.map((lang) => (
@@ -148,8 +136,8 @@ export default function RegisterPage() {
                                             relative flex items-center gap-3 cursor-pointer rounded-lg px-4 py-3 
                                             border transition-all duration-200 group
                                             ${formData.preferredLanguage === lang.value
-                                                ? "border-green-500/60 bg-green-500/10 shadow-[0_0_12px_rgba(22,163,74,0.15)] ring-1 ring-green-500/30"
-                                                : "border-gray-700/50 bg-black/30 hover:border-gray-600 hover:bg-black/50"
+                                                ? "border-indigo-500/60 bg-indigo-500/5 text-[#F1F1F5]"
+                                                : "border-[#22222E] bg-[#0A0A0F] hover:border-indigo-500/40 text-[#8B8BA7]"
                                             }
                                         `}
                                     >
@@ -166,8 +154,8 @@ export default function RegisterPage() {
                                             flex-shrink-0 h-4 w-4 rounded-full border-2 transition-all duration-200
                                             flex items-center justify-center
                                             ${formData.preferredLanguage === lang.value
-                                                ? "border-green-500 bg-green-500"
-                                                : "border-gray-600 bg-transparent group-hover:border-gray-500"
+                                                ? "border-indigo-500 bg-indigo-500"
+                                                : "border-[#22222E] bg-transparent group-hover:border-indigo-500/40"
                                             }
                                         `}>
                                             {formData.preferredLanguage === lang.value && (
@@ -175,13 +163,7 @@ export default function RegisterPage() {
                                             )}
                                         </span>
                                         <span className="text-lg">{lang.icon}</span>
-                                        <span className={`
-                                            text-sm font-mono font-medium tracking-wide transition-colors
-                                            ${formData.preferredLanguage === lang.value
-                                                ? "text-green-400"
-                                                : "text-gray-400 group-hover:text-gray-300"
-                                            }
-                                        `}>
+                                        <span className="text-sm font-medium tracking-wide transition-colors">
                                             {lang.label}
                                         </span>
                                     </label>
@@ -190,20 +172,20 @@ export default function RegisterPage() {
                         </div>
 
                         <div>
-                            <Button type="submit" className="w-full font-mono font-bold tracking-wider" disabled={loading}>
-                                {loading ? "ENCRYPTING_PAYLOAD..." : "REQUEST_ACCESS"}
+                            <Button type="submit" className="w-full text-sm font-medium" disabled={loading}>
+                                {loading ? "Creating account..." : "Create Account"}
                             </Button>
                         </div>
                     </form>
 
-                    <div className="mt-6 text-center text-sm text-gray-400">
-                        Already cleared?{" "}
-                        <Link href="/login" className="font-semibold text-green-500 hover:text-green-400 transition-colors">
-                            Access terminal here.
+                    <div className="mt-6 text-center text-xs text-[#8B8BA7]">
+                        Already have an account?{" "}
+                        <Link href="/login" className="font-medium text-[#818CF8] hover:text-indigo-300 transition-colors">
+                            Log in
                         </Link>
                     </div>
                 </div>
             </div>
-            </div>
+        </div>
     )
 }

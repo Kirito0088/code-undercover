@@ -57,37 +57,37 @@ export default async function LeaderboardPage({
     const totalPages = Math.ceil(totalUsers / limit)
 
     return (
-        <div className="flex-1 bg-black/40 py-10 min-h-[calc(100vh-4rem)]">
+        <div className="flex-1 bg-[#0A0A0F] py-8 min-h-[calc(100vh-4rem)]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
                     <div className="flex items-center gap-3">
-                        <Trophy className="h-8 w-8 text-yellow-400" />
+                        <Trophy className="h-8 w-8 text-indigo-400" />
                         <div>
-                            <h1 className="text-3xl font-bold text-white tracking-tight">Global Leaderboard</h1>
-                            <p className="mt-1 text-sm text-gray-400 font-mono">
-                                Top Operatives Ranked by Aura Points
+                            <h1 className="text-2xl font-semibold text-[#F1F1F5] tracking-tight">Global Leaderboard</h1>
+                            <p className="mt-1 text-xs text-[#8B8BA7]">
+                                Leaderboard rankings by Aura Points
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {/* Leaderboard Table/List */}
-                <div className="bg-gray-950/80 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                <div className="bg-[#111118] border border-[#22222E] rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left font-mono">
-                            <thead className="bg-gray-900 border-b border-gray-800 text-xs text-gray-400">
+                        <table className="w-full text-left">
+                            <thead className="bg-[#16161F] border-b border-[#22222E] text-xs text-[#8B8BA7]">
                                 <tr>
-                                    <th className="px-6 py-4 font-normal">RANK</th>
-                                    <th className="px-6 py-4 font-normal">AGENT</th>
-                                    <th className="px-6 py-4 font-normal">RANK TIER</th>
-                                    <th className="px-6 py-4 font-normal text-right">AURA LVL</th>
-                                    <th className="px-6 py-4 font-normal text-right">MISSIONS</th>
-                                    <th className="px-6 py-4 font-normal text-right">INNOVATION</th>
-                                    <th className="px-6 py-4 font-bold text-green-400 text-right">AURA POINTS</th>
+                                    <th className="px-6 py-4 font-medium">RANK</th>
+                                    <th className="px-6 py-4 font-medium">AGENT</th>
+                                    <th className="px-6 py-4 font-medium">RANK TIER</th>
+                                    <th className="px-6 py-4 font-medium text-right">AURA LVL</th>
+                                    <th className="px-6 py-4 font-medium text-right">MISSIONS</th>
+                                    <th className="px-6 py-4 font-medium text-right">INNOVATION</th>
+                                    <th className="px-6 py-4 font-medium text-right text-indigo-400">AURA POINTS</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-800/50">
+                            <tbody className="divide-y divide-[#22222E]/50">
                                 {users.map((u, i) => {
                                     const rank = skip + i + 1
                                     const isCurrentUser = u.id === session.user.id
@@ -95,15 +95,18 @@ export default async function LeaderboardPage({
                                     return (
                                         <tr
                                             key={u.id}
-                                            className={`transition-colors hover:bg-gray-800/30 ${isCurrentUser ? "bg-green-900/10" : ""
-                                                }`}
+                                            className={`transition-colors ${
+                                                isCurrentUser
+                                                    ? "bg-indigo-500/5 hover:bg-indigo-500/10"
+                                                    : "hover:bg-[#1C1C28]/40"
+                                            }`}
                                         >
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 font-mono text-sm">
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`text-lg font-bold ${rank === 1 ? "text-yellow-400" :
+                                                    <span className={`font-bold ${rank === 1 ? "text-yellow-400" :
                                                         rank === 2 ? "text-gray-300" :
                                                             rank === 3 ? "text-amber-600" :
-                                                                "text-gray-500"
+                                                                "text-[#5C5C7A]"
                                                         }`}>
                                                         #{rank}
                                                     </span>
@@ -111,51 +114,49 @@ export default async function LeaderboardPage({
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`h-8 w-8 rounded bg-gray-900 border flex items-center justify-center shrink-0 ${isCurrentUser ? "border-green-500/50" : "border-gray-800"
+                                                    <div className={`h-8 w-8 rounded bg-[#0A0A0F] border flex items-center justify-center shrink-0 ${isCurrentUser ? "border-indigo-500/40" : "border-[#22222E]"
                                                         }`}>
-                                                        <Shield className={`h-4 w-4 ${isCurrentUser ? "text-green-500" : "text-gray-600"}`} />
+                                                        <Shield className={`h-4 w-4 ${isCurrentUser ? "text-indigo-400" : "text-[#5C5C7A]"}`} />
                                                     </div>
                                                     <div>
-                                                        <div className={`font-bold ${isCurrentUser ? "text-green-400" : "text-gray-200"}`}>
-                                                            {u.name || "Anonymous Operative"}
+                                                        <div className="text-sm font-medium text-[#F1F1F5]">
+                                                            {u.name || "Anonymous Learner"}
                                                         </div>
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-[#5C5C7A]">
                                                             {u.email?.split('@')[0]}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 align-middle">
+                                            <td className="px-6 py-4 align-middle text-xs">
                                                 <div className="flex items-center gap-2">
-                                                    <Award className={`h-4 w-4 ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText} ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).shadow}`} />
-                                                    <span className={`font-bold uppercase tracking-wider ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText} ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).shadow}`}>
+                                                    <Award className={`h-4 w-4 ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText}`} />
+                                                    <span className={`font-medium ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText}`}>
                                                         {calculateAgentRank(u.auraPoints)}
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right align-middle">
-                                                <div className="flex flex-col items-end gap-1">
-                                                    <span className="inline-flex items-center gap-1.5 bg-gray-900 px-2.5 py-1 rounded text-gray-300">
-                                                        <Cpu className="h-3 w-3 text-gray-500" />
-                                                        Lvl {u.auraLevel}
-                                                    </span>
-                                                </div>
+                                            <td className="px-6 py-4 text-right align-middle font-mono text-xs">
+                                                <span className="inline-flex items-center gap-1.5 bg-[#0A0A0F] border border-[#22222E] px-2.5 py-1 rounded text-[#8B8BA7]">
+                                                    <Cpu className="h-3 w-3 text-[#5C5C7A]" />
+                                                    Lvl {u.auraLevel}
+                                                </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right align-middle text-gray-400">
+                                            <td className="px-6 py-4 text-right align-middle text-[#8B8BA7] font-mono text-sm">
                                                 {u.missionsCompleted}
                                             </td>
                                             <td className="px-6 py-4 text-right align-middle">
                                                 {u.foxBadges > 0 ? (
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <span className="text-yellow-500 font-bold whitespace-nowrap">x{u.foxBadges}</span>
+                                                    <span className="inline-flex items-center gap-1.5 justify-end">
+                                                        <span className="text-amber-500 font-semibold whitespace-nowrap text-sm font-mono">x{u.foxBadges}</span>
                                                         <Image src="/characters/fox.png" alt="Fox" width={20} height={20} className="object-contain" />
                                                     </span>
                                                 ) : (
-                                                    <span className="text-gray-700">-</span>
+                                                    <span className="text-[#3A3A52] font-mono">-</span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-right align-middle">
-                                                <span className="text-lg font-bold text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.2)]">
+                                            <td className="px-6 py-4 text-right align-middle font-mono">
+                                                <span className="text-sm font-semibold text-indigo-400">
                                                     {u.auraPoints.toLocaleString()}
                                                 </span>
                                             </td>
@@ -165,7 +166,7 @@ export default async function LeaderboardPage({
 
                                 {users.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-12 text-center text-[#5C5C7A] font-mono text-xs">
                                             No agents have completed missions yet.
                                         </td>
                                     </tr>
@@ -176,15 +177,15 @@ export default async function LeaderboardPage({
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between border-t border-gray-800 px-6 py-4 bg-gray-900/50">
-                            <div className="text-sm font-mono text-gray-400">
-                                PAGE {page} OF {totalPages}
+                        <div className="flex items-center justify-between border-t border-[#22222E] px-6 py-4 bg-[#16161F]">
+                            <div className="text-xs font-mono text-[#8B8BA7]">
+                                Page {page} of {totalPages}
                             </div>
                             <div className="flex items-center gap-2">
                                 {page > 1 && (
                                     <Link
                                         href={`/leaderboard?page=${page - 1}`}
-                                        className="p-2 bg-gray-800 rounded hover:bg-gray-700 text-gray-300 transition-colors"
+                                        className="p-2 bg-[#111118] border border-[#22222E] rounded hover:bg-[#1C1C28] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Link>
@@ -192,7 +193,7 @@ export default async function LeaderboardPage({
                                 {page < totalPages && (
                                     <Link
                                         href={`/leaderboard?page=${page + 1}`}
-                                        className="p-2 bg-gray-800 rounded hover:bg-gray-700 text-gray-300 transition-colors"
+                                        className="p-2 bg-[#111118] border border-[#22222E] rounded hover:bg-[#1C1C28] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </Link>

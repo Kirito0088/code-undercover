@@ -10,8 +10,8 @@ import { Play } from "lucide-react"
 const Editor = dynamic(() => import("@monaco-editor/react"), {
     ssr: false,
     loading: () => (
-        <div className="flex-1 flex items-center justify-center bg-[#1e1e1e] text-gray-600 font-mono text-xs tracking-wider">
-            LOADING EDITOR…
+        <div className="flex-1 flex items-center justify-center bg-[#0A0A0F] text-[#3A3A52] font-mono text-xs">
+            Loading editor...
         </div>
     ),
 })
@@ -249,16 +249,16 @@ export function EditorPanel({
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#0d1117] rounded-xl overflow-hidden border border-gray-800 shadow-2xl relative">
+        <div className="flex flex-col h-full bg-[#0A0A0F] rounded-xl overflow-hidden border border-[#22222E] shadow-2xl relative">
             {/* Neutral Window Header */}
-            <div className="bg-[#161b22] border-b border-gray-800 flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
+            <div className="bg-[#111118] border-b border-[#22222E] flex items-end justify-between px-4 select-none flex-shrink-0 pt-2 h-12">
                 <div className="flex items-end h-full">
                     <div className="hidden sm:flex gap-1.5 mr-6 mb-3">
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                         <div className="size-3 rounded-full bg-gray-600/50"></div>
                     </div>
-                    <div className="bg-[#0d1117] text-gray-300 text-xs font-mono py-2 px-3 sm:px-6 border border-gray-800 border-b-0 translate-y-[1px]">
+                    <div className="bg-[#0A0A0F] text-[#F1F1F5] text-xs font-mono py-2 px-3 sm:px-6 border border-[#22222E] border-b-0 translate-y-[1px] rounded-t-md">
                         solution.c
                     </div>
                 </div>
@@ -268,14 +268,14 @@ export function EditorPanel({
                         type="button"
                         onClick={handleRunCode}
                         disabled={isRunning}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-3 sm:px-4 py-1.5 rounded text-xs font-bold tracking-wider uppercase transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(22,163,74,0.3)] whitespace-nowrap flex-shrink-0"
+                        className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-3 sm:px-4 py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-50 border-none whitespace-nowrap flex-shrink-0"
                     >
                         {isRunning ? (
-                            <span className="animate-pulse">RUNNING…</span>
+                            <span className="animate-pulse">Running...</span>
                         ) : (
                             <>
                                 <Play className="size-3" fill="currentColor" />
-                                RUN CODE
+                                Run Code
                             </>
                         )}
                     </button>

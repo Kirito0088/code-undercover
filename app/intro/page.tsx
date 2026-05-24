@@ -58,20 +58,20 @@ export default function IntroPage() {
 
 
     if (!shouldPlay) {
-        return <div className="fixed inset-0 bg-gray-950 z-50 pointer-events-none" />
+        return <div className="fixed inset-0 bg-[#0A0A0F] z-50 pointer-events-none" />
     }
 
     return (
-        <div className="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-[#0A0A0F] flex items-center justify-center">
             {/* SKIP Button */}
             <button
                 type="button"
                 onClick={handleVideoEnd}
                 aria-label="Skip intro video"
-                className="absolute top-6 right-8 z-[70] flex items-center gap-2 text-gray-400 hover:text-white font-mono text-xs tracking-wider uppercase transition-all duration-200 bg-black/40 hover:bg-white/10 px-4 py-2 rounded border border-gray-700/50 hover:border-gray-500 backdrop-blur-sm shadow-lg"
+                className="absolute top-6 right-8 z-[70] flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-all duration-200 bg-[#111118]/80 hover:bg-[#1C1C28] px-3.5 py-1.5 rounded-md border border-[#22222E] hover:border-[#2E2E3F] backdrop-blur-sm shadow-md"
             >
-                SKIP
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4" aria-hidden="true">
+                Skip Intro
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5" aria-hidden="true">
                     <path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.323-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.5a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-9a1 1 0 0 1 1-1Z" />
                 </svg>
             </button>
@@ -81,11 +81,11 @@ export default function IntroPage() {
                 <button
                     type="button"
                     aria-label="Click or press Enter to start the intro video"
-                    className="absolute inset-0 z-[60] w-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer appearance-none border-0 p-0"
+                    className="absolute inset-0 z-[60] w-full flex flex-col items-center justify-center bg-[#0A0A0F]/80 backdrop-blur-sm cursor-pointer appearance-none border-0 p-0"
                     onClick={handleManualStart}
                 >
-                    <div className="text-cyan-400 font-mono text-xl tracking-widest animate-pulse border border-cyan-500/30 bg-cyan-950/40 px-8 py-4 rounded-lg">
-                        CLICK TO INITIATE MISSION
+                    <div className="text-indigo-400 text-sm font-medium tracking-wide animate-pulse border border-indigo-500/20 bg-indigo-500/5 px-6 py-3.5 rounded-lg transition-colors">
+                        Click to start mission intro
                     </div>
                 </button>
             )}
@@ -97,12 +97,12 @@ export default function IntroPage() {
                 }`}
             >
                 <div className="flex flex-col items-center">
-                    <span className="relative flex size-4 mb-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full size-4 bg-green-500"></span>
+                    <span className="relative flex size-3 mb-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full size-3 bg-indigo-500"></span>
                     </span>
-                    <h2 className="text-green-500 font-mono text-xl tracking-[0.3em] font-semibold animate-pulse">
-                        TERMINAL INITIALIZING…
+                    <h2 className="text-[#F1F1F5] font-semibold text-sm tracking-widest uppercase animate-pulse">
+                        Initializing Terminal…
                     </h2>
                 </div>
             </div>
@@ -118,7 +118,7 @@ export default function IntroPage() {
                 onEnded={handleVideoEnd}
                 onError={handleVideoEnd}
                 aria-label="Code Undercover intro cinematic"
-                className={`relative z-50 w-full h-full object-contain transition-opacity duration-[2000ms] bg-gray-950 ${
+                className={`relative z-50 w-full h-full object-contain transition-opacity duration-[2000ms] bg-[#0A0A0F] ${
                     isFadingOut ? "opacity-0" : "opacity-100"
                 }`}
                 style={{ pointerEvents: "none" }}

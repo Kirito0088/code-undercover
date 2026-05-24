@@ -34,17 +34,17 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
         ]
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#0a0a0a]/95 z-40 overflow-y-auto">
-            <div className="max-w-5xl w-full bg-[#0a0a0a] border border-green-500/20 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
-                {/* Top gradient accent bar */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
+        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#0A0A0F]/98 z-40 overflow-y-auto">
+            <div className="max-w-5xl w-full bg-[#111118] border border-[#22222E] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
+                {/* Top border bar */}
+                <div className="absolute top-0 inset-x-0 h-px bg-[#22222E]" />
 
                 {/* ─── Top: Centered Mission Title ─── */}
                 <div className="flex flex-col items-center pt-10 pb-6 px-8">
-                    <div className="h-12 w-12 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center justify-center mb-4">
-                        <GraduationCap className="h-6 w-6 text-green-400" />
+                    <div className="h-12 w-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+                        <GraduationCap className="h-6 w-6 text-indigo-400" />
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white font-mono tracking-wide text-center">
+                    <h1 className="text-2xl md:text-3xl font-semibold text-[#F1F1F5] tracking-tight text-center">
                         {mission.title}
                     </h1>
                 </div>
@@ -60,24 +60,24 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                 return (
                                     <div
                                         key={index}
-                                        className={`bg-gray-900/60 border border-gray-800/60 rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
+                                        className={`bg-[#16161F] border border-[#22222E] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
                                             }`}
                                         style={{ animationDelay: `${index * 200}ms` }}
                                     >
-                                        <h3 className="text-base font-mono text-green-400 mb-3 font-semibold tracking-wide">
+                                        <h3 className="text-sm font-medium text-[#F1F1F5] mb-3">
                                             {slide.title}
                                         </h3>
                                         {Array.isArray(slide.content) ? (
-                                            <ul className="space-y-2 text-gray-300 text-sm leading-relaxed">
+                                            <ul className="space-y-2 text-[#8B8BA7] text-sm leading-relaxed">
                                                 {slide.content.map((point: string, i: number) => (
-                                                    <li key={i} className="flex items-start gap-2">
-                                                        <span className="text-green-500 mt-0.5 shrink-0">▸</span>
+                                                    <li key={i} className="flex items-start gap-2.5">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
                                                         <span>{point}</span>
                                                     </li>
                                                 ))}
                                             </ul>
                                         ) : (
-                                            <p className="text-gray-300 text-sm leading-relaxed">
+                                            <p className="text-[#8B8BA7] text-sm leading-relaxed">
                                                 {slide.content}
                                             </p>
                                         )}
@@ -89,18 +89,18 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                 </div>
 
                 {/* ─── Bottom Row: Platypus left, Button right ─── */}
-                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-gray-800/50 flex-shrink-0">
+                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-[#22222E] flex-shrink-0">
                     {/* Platypus + Label */}
                     <div className="flex flex-col items-center shrink-0">
-                        <span className="text-[10px] md:text-xs font-bold text-green-400 font-mono tracking-[0.2em] uppercase mb-1">
-                            AGENT BRIEFING
+                        <span className="text-xs font-semibold text-[#5C5C7A] uppercase mb-1">
+                            Briefing
                         </span>
                         <div className="relative h-20 w-20 md:h-40 md:w-40">
                             <Image
                                 src="/characters/platipus.png"
                                 alt="Lead Mentor"
                                 fill
-                                className="object-contain drop-shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                                className="object-contain"
                                 style={{ animation: "float 3s ease-in-out infinite" }}
                                 priority
                             />
@@ -110,10 +110,10 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                     {/* Proceed Button */}
                     <button
                         onClick={onComplete}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2.5 md:px-8 md:py-3 rounded-lg text-xs md:text-sm font-bold tracking-widest font-mono uppercase transition-all group shadow-[0_0_20px_rgba(22,163,74,0.4)] hover:shadow-[0_0_30px_rgba(22,163,74,0.6)] ml-4"
+                        className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 md:px-8 md:py-3 rounded-lg text-xs md:text-sm font-medium transition-colors group ml-4 border-none"
                     >
-                        PROCEED
-                        <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-2 transition-transform" />
+                        Proceed
+                        <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </div>

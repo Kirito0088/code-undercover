@@ -37,7 +37,7 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
     <div className="md:hidden" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg text-gray-400 hover:text-green-400 hover:bg-gray-800/50 transition-colors"
+        className="p-2 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#1C1C28] transition-colors"
         aria-label="Toggle menu"
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -45,40 +45,40 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
 
       {/* Mobile Menu Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 bg-gray-950/95 backdrop-blur-xl border-b border-gray-800 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-0 right-0 bg-[#0A0A0F]/98 backdrop-blur-xl border-b border-[#22222E] shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="px-4 py-4 space-y-1">
             {isAuthenticated ? (
               <>
                 <Link
                   href="/dashboard"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-sm font-mono text-gray-300 hover:text-green-400 hover:bg-gray-800/50 transition-colors"
+                  className="block px-4 py-3 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#1C1C28] transition-colors"
                 >
-                  DASHBOARD
+                  Dashboard
                 </Link>
                 <Link
                   href="/debug-lab"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-sm font-mono text-gray-300 hover:text-red-400 hover:bg-gray-800/50 transition-colors"
+                  className="block px-4 py-3 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#1C1C28] transition-colors"
                 >
-                  DEBUG LAB
+                  Debug Lab
                 </Link>
                 <Link
                   href="/leaderboard"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-sm font-mono text-gray-300 hover:text-green-400 hover:bg-gray-800/50 transition-colors"
+                  className="block px-4 py-3 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#1C1C28] transition-colors"
                 >
-                  LEADERBOARD
+                  Leaderboard
                 </Link>
                 <Link
                   href="/history"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-sm font-mono text-gray-300 hover:text-cyan-400 hover:bg-gray-800/50 transition-colors"
+                  className="block px-4 py-3 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#1C1C28] transition-colors"
                 >
-                  HISTORY
+                  History
                 </Link>
                 {/* Profile section */}
-                <div className="pt-3 mt-3 border-t border-gray-800">
+                <div className="pt-3 mt-3 border-t border-[#22222E]">
                   {children}
                 </div>
               </>
@@ -87,14 +87,14 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
                 <Link
                   href="/login"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800/50 transition-colors"
+                  className="block px-4 py-3 rounded-lg text-sm font-medium text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#1C1C28] transition-colors"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors text-center shadow-[0_0_15px_rgba(22,163,74,0.5)]"
+                  className="block px-4 py-3 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 transition-colors text-center"
                 >
                   Register
                 </Link>

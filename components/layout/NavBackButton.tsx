@@ -13,10 +13,10 @@ export function NavBackButton() {
     return (
         <Link
             href="/dashboard"
-            className="flex items-center gap-1 text-xs font-mono text-gray-400 hover:text-white transition-colors border border-gray-800 bg-gray-900/50 px-3 py-1.5 rounded-full hover:border-gray-600 ml-4 group"
+            className="flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors border border-[#22222E] bg-[#111118] px-3 py-1.5 rounded-md hover:border-[#2E2E3F] ml-4 group"
         >
-            <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            BACK TO MISSION CONTROL
+            <ChevronLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            Back to Dashboard
         </Link>
     )
 }

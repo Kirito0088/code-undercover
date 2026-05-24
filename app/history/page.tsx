@@ -94,20 +94,20 @@ export default async function HistoryPage() {
     const innovations = completedMissions.filter((m) => m.innovationUnlocked).length
 
     return (
-        <div className="flex-1 bg-black/40 min-h-screen py-10">
+        <div className="flex-1 bg-[#0A0A0F] min-h-screen py-8">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="mb-10">
+                <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="size-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center">
-                            <Clock className="size-5 text-cyan-400" />
+                        <div className="size-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                            <Clock className="size-5 text-indigo-400" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-semibold text-white tracking-tight">
+                            <h1 className="text-2xl font-semibold text-[#F1F1F5] tracking-tight">
                                 Mission History
                             </h1>
-                            <p className="text-sm text-gray-500 font-mono mt-0.5">
-                                Agent {user?.name || session.user.name || "Unknown"}, Classified Records
+                            <p className="text-xs text-[#8B8BA7] mt-0.5">
+                                User: {user?.name || session.user.name || "Unknown"}
                             </p>
                         </div>
                     </div>
@@ -115,34 +115,34 @@ export default async function HistoryPage() {
 
                 {/* Stats Bar */}
                 {completedMissions.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
-                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-green-500/30 transition-colors">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
-                                <Shield className="size-4 text-green-400" />
-                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Missions</span>
+                                <Shield className="size-4 text-indigo-400" />
+                                <span className="text-xs text-[#5C5C7A] font-medium">Missions Completed</span>
                             </div>
-                            <span className="text-2xl font-black text-white">{completedMissions.length}</span>
+                            <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{completedMissions.length}</span>
                         </div>
-                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-yellow-500/30 transition-colors">
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
-                                <Zap className="size-4 text-yellow-400" />
-                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Aura Earned</span>
+                                <Zap className="size-4 text-indigo-400" />
+                                <span className="text-xs text-[#5C5C7A] font-medium">Aura Earned</span>
                             </div>
-                            <span className="text-2xl font-black text-white">{totalAura}</span>
+                            <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{totalAura} AP</span>
                         </div>
-                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-cyan-500/30 transition-colors">
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
-                                <Terminal className="size-4 text-cyan-400" />
-                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Attempts</span>
+                                <Terminal className="size-4 text-indigo-400" />
+                                <span className="text-xs text-[#5C5C7A] font-medium">Total Attempts</span>
                             </div>
-                            <span className="text-2xl font-black text-white">{totalAttempts}</span>
+                            <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{totalAttempts}</span>
                         </div>
-                        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 group hover:border-purple-500/30 transition-colors">
+                        <div className="bg-[#111118] border border-[#22222E] rounded-xl p-4 transition-colors">
                             <div className="flex items-center gap-2 mb-1">
-                                <Award className="size-4 text-purple-400" />
-                                <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">Innovations</span>
+                                <Award className="size-4 text-indigo-400" />
+                                <span className="text-xs text-[#5C5C7A] font-medium">Innovations</span>
                             </div>
-                            <span className="text-2xl font-black text-white">{innovations}</span>
+                            <span className="text-2xl font-semibold text-[#F1F1F5] font-mono">{innovations}</span>
                         </div>
                     </div>
                 )}
@@ -151,15 +151,15 @@ export default async function HistoryPage() {
                 {completedMissions.length > 0 ? (
                     <div className="relative">
                         {/* Vertical line */}
-                        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-gradient-to-b from-green-500/40 via-cyan-500/20 to-transparent" />
+                        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-gradient-to-b from-indigo-500/30 via-[#22222E] to-transparent" />
 
                         <div className="space-y-6">
                             {completedMissions.map((mission, index) => (
                                 <div key={mission.id} className="relative flex gap-5">
                                     {/* Timeline node */}
                                     <div className="flex-shrink-0 relative z-10">
-                                        <div className="size-[47px] rounded-full bg-gray-950 border-2 border-green-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.15)]">
-                                            <span className="text-green-400 font-mono text-xs font-bold">
+                                        <div className="size-[47px] rounded-full bg-[#0A0A0F] border-2 border-indigo-500/30 flex items-center justify-center">
+                                            <span className="text-[#818CF8] font-mono text-xs font-semibold">
                                                 {String(mission.missionOrder).padStart(2, "0")}
                                             </span>
                                         </div>
@@ -176,28 +176,28 @@ export default async function HistoryPage() {
                         {/* End cap */}
                         <div className="relative flex gap-5 mt-6">
                             <div className="flex-shrink-0 relative z-10">
-                                <div className="size-[47px] rounded-full bg-gray-950 border-2 border-gray-700 flex items-center justify-center">
-                                    <ChevronRight className="size-4 text-gray-600" />
+                                <div className="size-[47px] rounded-full bg-[#0A0A0F] border border-[#22222E] flex items-center justify-center">
+                                    <ChevronRight className="size-4 text-[#5C5C7A]" />
                                 </div>
                             </div>
                             <div className="flex items-center">
-                                <span className="text-gray-600 font-mono text-sm">More missions await, Agent…</span>
+                                <span className="text-[#5C5C7A] font-mono text-sm">More missions await…</span>
                             </div>
                         </div>
                     </div>
                 ) : (
                     /* Empty State */
                     <div className="text-center py-24">
-                        <div className="size-20 mx-auto mb-6 rounded-2xl bg-gray-900/60 border border-gray-800 flex items-center justify-center">
-                            <Code2 className="size-10 text-gray-700" />
+                        <div className="size-20 mx-auto mb-6 rounded-2xl bg-[#111118] border border-[#22222E] flex items-center justify-center">
+                            <Code2 className="size-10 text-[#5C5C7A]" />
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-400 mb-2">No Missions Completed Yet</h2>
-                        <p className="text-gray-600 font-mono text-sm max-w-md mx-auto">
-                            Complete your first mission to see your code history here. Every solution you write will be preserved in your classified records.
+                        <h2 className="text-lg font-semibold text-[#F1F1F5] mb-2">No Missions Completed Yet</h2>
+                        <p className="text-[#8B8BA7] text-xs max-w-sm mx-auto leading-relaxed">
+                            Complete your first mission to see your code history here. Every solution you write will be preserved in your records.
                         </p>
                         <Link
                             href="/dashboard"
-                            className="inline-flex items-center gap-2 mt-6 bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-wider uppercase transition-colors shadow-[0_0_15px_rgba(22,163,74,0.3)]"
+                            className="inline-flex items-center gap-2 mt-6 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         >
                             Go to Dashboard
                             <ChevronRight className="size-4" />

@@ -35,13 +35,13 @@ interface HistoryCardProps {
 function getDifficultyStyle(difficulty: string) {
     switch (difficulty.toUpperCase()) {
         case "EASY":
-            return { color: "text-green-400", border: "border-green-500/30", bg: "bg-green-500/10" }
+            return { color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/10" }
         case "MEDIUM":
-            return { color: "text-yellow-400", border: "border-yellow-500/30", bg: "bg-yellow-500/10" }
+            return { color: "text-amber-400", border: "border-amber-500/20", bg: "bg-amber-500/10" }
         case "HARD":
-            return { color: "text-red-400", border: "border-red-500/30", bg: "bg-red-500/10" }
+            return { color: "text-red-400", border: "border-red-500/20", bg: "bg-red-500/10" }
         default:
-            return { color: "text-gray-400", border: "border-gray-500/30", bg: "bg-gray-500/10" }
+            return { color: "text-[#5C5C7A]", border: "border-[#22222E]", bg: "bg-[#111118]" }
     }
 }
 
@@ -75,90 +75,90 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
 
     return (
         <div
-            className="group bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:border-gray-700"
+            className="group bg-[#111118] border border-[#22222E] rounded-xl overflow-hidden transition-all duration-300 hover:border-[#2E2E3F]"
             style={{ animationDelay: `${index * 80}ms` }}
         >
             {/* Card Header — always visible */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-800/30 transition-colors"
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-[#1C1C28]/50 transition-colors"
             >
                 <div className="flex items-center gap-4 min-w-0">
                     <div>
                         <div className="flex items-center gap-3 mb-1 flex-wrap">
-                            <h3 className="text-lg font-bold text-white tracking-wide">
+                            <h3 className="text-sm font-semibold text-[#F1F1F5]">
                                 {mission.missionTitle}
                             </h3>
                             <span
-                                className={`text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${diff.color} ${diff.border} ${diff.bg}`}
+                                className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded border ${diff.color} ${diff.border} ${diff.bg}`}
                             >
                                 {mission.difficulty}
                             </span>
                             {mission.innovationUnlocked && (
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400">
+                                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-amber-500/20 bg-amber-500/10 text-amber-400">
                                     🦊 Innovation
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
-                            <span className="flex items-center gap-1">
-                                <Zap className="w-3 h-3 text-yellow-500" />
-                                +{mission.auraReward} Aura
+                        <div className="flex items-center gap-4 text-xs font-mono text-[#8B8BA7]">
+                            <span className="flex items-center gap-1 text-indigo-400">
+                                <Zap className="w-3 h-3" />
+                                +{mission.auraReward} AP
                             </span>
                             <span>{mission.attemptCount} attempt{mission.attemptCount !== 1 ? "s" : ""}</span>
                             {mission.hintsUsed > 0 && (
-                                <span className="flex items-center gap-1 text-amber-500/70">
+                                <span className="flex items-center gap-1 text-amber-400/80">
                                     <Lightbulb className="w-3 h-3" />
                                     {mission.hintsUsed} hint{mission.hintsUsed !== 1 ? "s" : ""}
                                 </span>
                             )}
-                            <span className="text-gray-600">{formatDate(mission.completedAt)}</span>
+                            <span className="text-[#5C5C7A]">{formatDate(mission.completedAt)}</span>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex-shrink-0 ml-4">
                     {isExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+                        <ChevronUp className="w-5 h-5 text-[#8B8BA7] group-hover:text-indigo-400 transition-colors" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+                        <ChevronDown className="w-5 h-5 text-[#8B8BA7] group-hover:text-indigo-400 transition-colors" />
                     )}
                 </div>
             </button>
 
             {/* Expanded Code Section */}
             <div
-                className={`overflow-hidden transition-all duration-400 ease-in-out ${
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
                     isExpanded ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
                 }`}
             >
-                <div className="border-t border-gray-800">
+                <div className="border-t border-[#22222E]">
                     {mission.submittedCode ? (
                         <div className="relative">
                             {/* Code Header */}
-                            <div className="flex items-center justify-between px-5 py-3 bg-[#161b22] border-b border-gray-800">
+                            <div className="flex items-center justify-between px-5 py-3 bg-[#16161F] border-b border-[#22222E]">
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-1.5">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-gray-600/50" />
-                                        <div className="w-2.5 h-2.5 rounded-full bg-gray-600/50" />
-                                        <div className="w-2.5 h-2.5 rounded-full bg-gray-600/50" />
+                                        <div className="w-2 h-2 rounded-full bg-[#22222E]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#22222E]" />
+                                        <div className="w-2 h-2 rounded-full bg-[#22222E]" />
                                     </div>
-                                    <span className="text-xs font-mono text-gray-400">
+                                    <span className="text-xs font-mono text-[#8B8BA7]">
                                         solution.c
                                     </span>
-                                    <span className="text-[10px] font-mono text-gray-600 uppercase">
+                                    <span className="text-[10px] font-mono text-[#5C5C7A] uppercase">
                                         {mission.language}
                                     </span>
                                 </div>
                                 <button
                                     onClick={handleCopy}
-                                    className="flex items-center gap-1.5 text-xs font-mono text-gray-500 hover:text-cyan-400 transition-colors px-2 py-1 rounded hover:bg-gray-800"
+                                    className="flex items-center gap-1.5 text-xs font-mono text-[#8B8BA7] hover:text-indigo-400 transition-colors px-2 py-1 rounded hover:bg-[#1C1C28]"
                                     title="Copy code"
                                 >
                                     {copied ? (
                                         <>
-                                            <Check className="w-3.5 h-3.5 text-green-400" />
-                                            <span className="text-green-400">Copied!</span>
+                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                            <span className="text-emerald-400">Copied!</span>
                                         </>
                                     ) : (
                                         <>
@@ -170,9 +170,9 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                             </div>
 
                             {/* Code Block */}
-                            <div className="bg-[#0d1117] overflow-x-auto custom-scrollbar">
+                            <div className="bg-[#0A0A0F] overflow-x-auto custom-scrollbar">
                                 <pre className="p-5 text-sm leading-relaxed">
-                                    <code className="text-gray-300 font-mono whitespace-pre">
+                                    <code className="text-[#8B8BA7] font-mono whitespace-pre">
                                         {mission.submittedCode}
                                     </code>
                                 </pre>
@@ -180,11 +180,11 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                         </div>
                     ) : (
                         <div className="p-8 text-center">
-                            <Code2 className="w-8 h-8 text-gray-700 mx-auto mb-3" />
-                            <p className="text-gray-600 font-mono text-sm">
+                            <Code2 className="w-8 h-8 text-[#3A3A52] mx-auto mb-3" />
+                            <p className="text-[#8B8BA7] font-mono text-sm">
                                 Code was not saved for this mission.
                             </p>
-                            <p className="text-gray-700 font-mono text-xs mt-1">
+                            <p className="text-[#5C5C7A] font-mono text-xs mt-1">
                                 (Completed before history tracking was enabled)
                             </p>
                         </div>
