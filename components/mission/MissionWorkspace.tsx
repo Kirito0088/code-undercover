@@ -241,7 +241,7 @@ export function MissionWorkspace({
 
                         {/* LEFT: Briefing */}
                         <section className={cn(
-                            "w-full md:w-[280px] shrink-0 md:h-full flex flex-col relative min-h-0",
+                            "w-full md:w-[25%] md:min-w-[300px] shrink-0 md:h-full flex flex-col relative min-h-0",
                             activeTab === "briefing" ? "flex" : "hidden md:flex"
                         )}>
                             <LeftPanel mission={mission} missionCleared={missionCleared} attemptCount={attemptCount} />
@@ -249,7 +249,7 @@ export function MissionWorkspace({
 
                         {/* CENTER: Editor */}
                         <section className={cn(
-                            "w-full md:w-auto flex-grow md:h-full flex flex-col relative min-w-0 min-h-0",
+                            "w-full md:w-[50%] md:min-w-[400px] flex-grow md:h-full flex flex-col relative min-w-0 min-h-0",
                             activeTab === "editor" ? "flex" : "hidden md:flex"
                         )}>
                             <EditorPanel
@@ -267,7 +267,7 @@ export function MissionWorkspace({
 
                         {/* RIGHT: Terminal & Hints */}
                         <section className={cn(
-                            "w-full md:w-[320px] shrink-0 md:h-full flex flex-col relative min-h-0",
+                            "w-full md:w-[25%] md:min-w-[340px] shrink-0 md:h-full flex flex-col relative min-h-0",
                             activeTab === "terminal" ? "flex" : "hidden md:flex"
                         )}>
                             <TerminalPanel
