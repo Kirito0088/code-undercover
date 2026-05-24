@@ -22,8 +22,8 @@ export default async function Home() {
 
           {/* H1 */}
           <h1 className="text-5xl font-semibold text-[#F1F1F5] tracking-tight leading-[1.1]">
-            Learn C programming<br />
-            by building real programs.
+            Welcome to <br />
+            <span className="font-bold bg-gradient-to-r from-[#0EB94D] to-[#065C25] bg-clip-text text-transparent">Code Undercover</span>
           </h1>
 
           {/* Sub */}
@@ -78,8 +78,8 @@ export default async function Home() {
 
         {/* H1 */}
         <h1 className="text-3xl sm:text-4xl font-semibold text-[#F1F1F5] tracking-tight leading-[1.2]">
-          Learn C programming<br />
-          by building real programs.
+          Welcome to<br />
+          <span className="font-bold bg-gradient-to-r from-[#0EB94D] to-[#065C25] bg-clip-text text-transparent">Code Undercover</span>
         </h1>
 
         {/* Mascot for mobile */}
