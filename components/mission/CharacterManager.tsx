@@ -22,7 +22,7 @@ export function CharacterManager({
     clearInfo,
     systemMessage
 }: CharacterManagerProps) {
-    const router = useRouter()
+    const { push } = useRouter()
     const [showFoxAnimation, setShowFoxAnimation] = useState(false)
 
     // Trigger fox animation once when unlocked
@@ -43,8 +43,8 @@ export function CharacterManager({
                     <div className="animate-in zoom-in-95 fade-in duration-200 bg-[#1C1C24] border border-[#323242] rounded-2xl p-10 max-w-md w-full mx-4 text-center shadow-2xl">
                         
                         {/* Icon */}
-                        <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-                            <CheckCircle className="w-8 h-8 text-emerald-400" />
+                        <div className="size-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                            <CheckCircle className="size-8 text-emerald-400" />
                         </div>
 
                         {/* Title */}
@@ -59,7 +59,7 @@ export function CharacterManager({
                         {/* Combo */}
                         {clearInfo.comboStreak > 1 && (
                             <div className="flex items-center justify-center gap-2 mt-3">
-                                <Zap className="w-4 h-4 text-amber-400" />
+                                <Zap className="size-4 text-amber-400" />
                                 <span className="text-sm text-amber-400 font-mono">Combo ×{clearInfo.comboStreak}</span>
                                 {clearInfo.comboBonus > 0 && (
                                     <span className="text-xs text-[#5C5C7A] font-mono">(+{clearInfo.comboBonus})</span>
@@ -70,13 +70,15 @@ export function CharacterManager({
                         {/* Buttons */}
                         <div className="flex flex-col gap-2 mt-8">
                             <button
-                                onClick={() => router.push("/dashboard")}
+                                type="button"
+                                onClick={() => push("/dashboard")}
                                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors border-none"
                             >
                                 Next Mission →
                             </button>
                             <button
-                                onClick={() => router.push("/dashboard")}
+                                type="button"
+                                onClick={() => push("/dashboard")}
                                 className="w-full bg-[#2A2A35] hover:bg-[#323242] text-[#8B8BA7] border border-[#323242] px-6 py-2.5 rounded-lg text-sm font-medium transition-colors"
                             >
                                 Back to Dashboard
@@ -90,11 +92,12 @@ export function CharacterManager({
             {showFoxAnimation && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#14141A]/90 backdrop-blur-sm z-50">
                     <div className="animate-in zoom-in-95 fade-in duration-200 flex flex-col items-center">
-                        <div className="relative h-64 w-64 mb-6">
+                        <div className="relative size-64 mb-6">
                             <Image
                                 src="/characters/fox.png"
                                 alt="Fox Innovation"
                                 fill
+                                sizes="256px"
                                 className="object-contain relative z-10"
                             />
                         </div>

@@ -3,26 +3,22 @@
 import { useState } from "react"
 import dynamic from "next/dynamic"
 import { MissionRecord } from "@/types"
-import type { MissionClearInfo } from "../MissionWorkspace"
+import type { MissionClearInfo, TerminalLine } from "../MissionWorkspace"
 import { Play } from "lucide-react"
+
+// Auto-incrementing id for stable React list keys in TerminalPanel
+let lineId = 0
+const mkLine = <T extends object>(fields: T): T & { id: string } => ({ ...fields, id: String(++lineId) })
 
 // ── Heavy library: code-split so it never enters the initial JS bundle ─────
 const Editor = dynamic(() => import("@monaco-editor/react"), {
     ssr: false,
     loading: () => (
         <div className="flex-1 flex items-center justify-center bg-[#14141A] text-[#3A3A52] font-mono text-xs">
-            Loading editor...
+            Loading editor&hellip;
         </div>
     ),
 })
-
-interface TerminalLine {
-    type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
-    message: string
-    rawContext?: string
-    isDiagnostic?: boolean
-    onSubmit?: (val: string) => void
-}
 
 interface EditorPanelProps {
     mission: MissionRecord
@@ -30,8 +26,6 @@ interface EditorPanelProps {
     attemptCount: number
     setAttemptCount: React.Dispatch<React.SetStateAction<number>>
     setInnovationUnlocked: (unlocked: boolean) => void
-    setMissionCleared: (cleared: boolean) => void
-    setClearInfo: (info: MissionClearInfo) => void
     setPendingClearInfo: (info: MissionClearInfo | null) => void
     onRunStarted?: () => void
 }
@@ -66,20 +60,20 @@ export function EditorPanel({
         const trimmedCode = code.trim()
         if (trimmedCode.length < 10) {
             setTerminalOutput([
-                { type: "error", message: "Your code is too short. Write a complete C program." },
+                mkLine({ type: "error" as const, message: "Your code is too short. Write a complete C program." }),
             ])
             return
         }
         if (!/\bmain\s*\(/.test(trimmedCode)) {
             setTerminalOutput([
-                { type: "error", message: "Missing main() function. Every C program needs an int main() { ... } entry point." },
+                mkLine({ type: "error" as const, message: "Missing main() function. Every C program needs an int main() { ... } entry point." }),
             ])
             return
         }
 
         setIsRunning(true)
         setTerminalOutput([
-            { type: "system", message: "> Compiling and executing…" },
+            mkLine({ type: "system" as const, message: "> Compiling and executing…" }),
         ])
         onRunStarted?.()
 
@@ -106,7 +100,7 @@ export function EditorPanel({
                             new Promise<string[]>((resolve) => {
                                 setTerminalOutput((prev) => [
                                     ...prev,
-                                    {
+                                    mkLine({
                                         type: "input-prompt" as const,
                                         message:
                                             inputCount > 1
@@ -118,7 +112,7 @@ export function EditorPanel({
                                             )
                                             resolve([...acc, v])
                                         },
-                                    },
+                                    }),
                                 ])
                             })
                     ),
@@ -128,7 +122,7 @@ export function EditorPanel({
             finalInput = collectedInputs.join("\n")
             setTerminalOutput((prev) => [
                 ...prev,
-                { type: "system", message: "> Running program…" },
+                mkLine({ type: "system" as const, message: "> Running program…" }),
             ])
         }
 
@@ -146,47 +140,47 @@ export function EditorPanel({
             if (result.success) {
                 // ── SUCCESS: Show output → Platypus → Finish button ──────
                 const lines: TerminalLine[] = [
-                    { type: "system", message: "> Compilation successful." },
+                    mkLine({ type: "system" as const, message: "> Compilation successful." }),
                 ]
 
                 // Build interactive-style terminal output
                 const rawOutput = (result.stdout || "").trim()
                 if (rawOutput) {
-                    lines.push({ type: "system", message: "─── Program Output ───────────────────" })
-                    lines.push({ type: "success", message: rawOutput })
-                    lines.push({ type: "system", message: "──────────────────────────────────────" })
+                    lines.push(mkLine({ type: "system" as const, message: "─── Program Output ───────────────────" }))
+                    lines.push(mkLine({ type: "success" as const, message: rawOutput }))
+                    lines.push(mkLine({ type: "system" as const, message: "──────────────────────────────────────" }))
                 }
 
                 // Execution time
                 if (result.executionTimeMs !== undefined) {
-                    lines.push({ type: "system", message: `> Execution Time: ${result.executionTimeMs} ms` })
+                    lines.push(mkLine({ type: "system" as const, message: `> Execution Time: ${result.executionTimeMs} ms` }))
                 }
 
                 // Combo bonus
                 if (result.comboStreak > 1 && result.comboBonus > 0) {
-                    lines.push({
-                        type: "success",
+                    lines.push(mkLine({
+                        type: "success" as const,
                         message: `> ⚡ LOGIC COMBO x${result.comboStreak} (+${result.comboBonus} Aura Bonus)`,
-                    })
+                    }))
                 }
 
                 // Platypus success explanation in the terminal
-                lines.push({
-                    type: "hint",
+                lines.push(mkLine({
+                    type: "hint" as const,
                     message: `Excellent work, Agent.\n\nYour program compiled and executed successfully, producing the expected output.\n\nYour transmission module is now operational.\n\n+${result.earnedAura || result.auraEarned || 50} Aura Earned`
-                })
+                }))
 
                 // Innovation detection
                 if (result.innovationUnlocked) {
                     setInnovationUnlocked(true)
-                    lines.push({
-                        type: "success",
+                    lines.push(mkLine({
+                        type: "success" as const,
                         message: "> INNOVATION DETECTED: " + result.innovationReason,
-                    })
+                    }))
                 }
 
                 // The Finish button line — rendered as a special type in the terminal
-                lines.push({ type: "finish", message: "FINISH_MISSION" })
+                lines.push(mkLine({ type: "finish" as const, message: "FINISH_MISSION" }))
 
                 setTerminalOutput(lines)
 
@@ -203,12 +197,12 @@ export function EditorPanel({
             } else {
                 // ── ERROR: Show diagnostics → Platypus → retry ───────────
                 const errorLines: TerminalLine[] = [
-                    { type: "system", message: "> Compilation or validation failed." },
+                    mkLine({ type: "system" as const, message: "> Compilation or validation failed." }),
                 ]
 
                 if (result.validationErrors && result.validationErrors.length > 0) {
                     for (const err of result.validationErrors) {
-                        errorLines.push({ type: "error", message: "✗ " + err })
+                        errorLines.push(mkLine({ type: "error" as const, message: "✗ " + err }))
                     }
                 }
 
@@ -218,30 +212,30 @@ export function EditorPanel({
                         (d: { type: string }) => d.type === "error"
                     ) ?? result.diagnostics[0]
 
-                    errorLines.push({
-                        type: "error",
+                    errorLines.push(mkLine({
+                        type: "error" as const,
                         message: `solution.c:${firstDiag.line}:${firstDiag.column}: ${firstDiag.type}: ${firstDiag.message}`,
                         rawContext: firstDiag.rawContext,
                         isDiagnostic: true
-                    })
+                    }))
                 } else if (result.stderr) {
-                    errorLines.push({ type: "error", message: result.stderr })
+                    errorLines.push(mkLine({ type: "error" as const, message: result.stderr }))
                 }
 
                 if (result.explanation) {
-                    errorLines.push({ type: "hint", message: result.explanation })
+                    errorLines.push(mkLine({ type: "hint" as const, message: result.explanation }))
                 }
 
                 if (result.ruleDescription) {
-                    errorLines.push({ type: "hint", message: "Mission requirement: " + result.ruleDescription })
+                    errorLines.push(mkLine({ type: "hint" as const, message: "Mission requirement: " + result.ruleDescription }))
                 }
 
-                errorLines.push({ type: "system", message: "Fix the issues above and try again." })
+                errorLines.push(mkLine({ type: "system" as const, message: "Fix the issues above and try again." }))
                 setTerminalOutput(errorLines)
             }
         } catch {
             setTerminalOutput([
-                { type: "error", message: "System failure connecting to compilation server." },
+                mkLine({ type: "error" as const, message: "System failure connecting to compilation server." }),
             ])
         } finally {
             setIsRunning(false)
@@ -271,7 +265,7 @@ export function EditorPanel({
                         className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-3 sm:px-4 py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-50 border-none whitespace-nowrap flex-shrink-0"
                     >
                         {isRunning ? (
-                            <span className="animate-pulse">Running...</span>
+                            <span className="animate-pulse">Running&hellip;</span>
                         ) : (
                             <>
                                 <Play className="size-3" fill="currentColor" />

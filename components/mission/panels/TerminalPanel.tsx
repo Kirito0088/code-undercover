@@ -1,16 +1,11 @@
 "use client"
 
 import { useRef, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { MissionRecord } from "@/types"
+import type { TerminalLine } from "../MissionWorkspace"
 import { Terminal as TerminalIcon, HelpCircle, CheckCircle } from "lucide-react"
 
-interface TerminalLine {
-    type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
-    message: string
-    rawContext?: string
-    isDiagnostic?: boolean
-    onSubmit?: (val: string) => void
-}
 
 interface TerminalPanelProps {
     mission: MissionRecord
@@ -60,7 +55,7 @@ export function TerminalPanel({
                 setHintsUsed(data.hintsUsed)
                 setTerminalOutput((prev) => [
                     ...prev,
-                    { type: "hint" as const, message: data.hint },
+                    { id: `hint-${Date.now()}`, type: "hint" as const, message: data.hint },
                 ])
             }
         } catch (e) {
@@ -84,27 +79,29 @@ export function TerminalPanel({
             {/* Terminal Header & Hints */}
             <div className="h-9 bg-[#14141A] border-b border-[#323242] flex items-center justify-between px-4 flex-shrink-0">
                 <div className="flex items-center gap-2 text-xs font-mono text-[#5C5C7A]">
-                    <TerminalIcon className="h-4 w-4" />
+                    <TerminalIcon className="size-4" />
                     Terminal Output
                 </div>
 
                 <button
+                    type="button"
                     onClick={handleRequestHint}
                     disabled={hintsUsed >= 5}
+                    aria-label={`Request a hint (${hintsUsed} of 5 used)`}
                     className="flex items-center gap-2 border border-[#323242] bg-[#1C1C24] hover:border-amber-500/30 text-[#8B8BA7] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
                 >
-                    <HelpCircle className="h-3 w-3 text-amber-400" />
+                    <HelpCircle className="size-3 text-amber-400" />
                     Request Hint ({hintsUsed}/5)
                 </button>
             </div>
 
             {/* Terminal Output Area */}
             <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
-                {terminalOutput.map((line, index) => {
+                {terminalOutput.map((line) => {
                     // ── Diagnostic error block ──────────────────────────
                     if (line.isDiagnostic) {
                         return (
-                            <div key={index} className="mb-4">
+                            <div key={line.id} className="mb-4">
                                 <div className="text-[#F1F1F5] text-sm font-semibold mb-1 break-words">
                                     <span className="text-red-400">error: </span>
                                     {line.message.split('error:')[1] || line.message}
@@ -124,18 +121,23 @@ export function TerminalPanel({
                     // ── Platypus mentor card ─────────────────────────────
                     if (line.type === "hint") {
                         return (
-                            <div key={index} className="mb-4 bg-amber-500/5 border border-amber-500/15 rounded-lg overflow-hidden">
+                            <div key={line.id} className="mb-4 bg-amber-500/5 border border-amber-500/15 rounded-lg overflow-hidden">
                                 {/* Platypus Header */}
                                 <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/10">
-                                    <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#14141A]">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src="/characters/platipus.png" alt="Platypus" className="w-full h-full object-cover object-top scale-[1.4] translate-y-1" />
+                                    <div className="relative size-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#14141A]">
+                                        <Image
+                                            src="/characters/platipus.png"
+                                            alt="Platypus"
+                                            fill
+                                            sizes="24px"
+                                            className="object-cover object-top scale-[1.4] translate-y-1"
+                                        />
                                     </div>
                                     <span className="text-amber-400 text-xs font-medium">Platypus</span>
                                     <span className="text-[#5C5C7A] text-xs font-mono ml-auto">Coding Mentor</span>
                                 </div>
                                 {/* Message */}
-                                <div className="px-3 py-3 text-[#8B8BA7] text-sm font-mono leading-relaxed whitespace-pre-wrap">
+                                <div className="p-3 text-[#8B8BA7] text-sm font-mono leading-relaxed whitespace-pre-wrap">
                                     {line.message.replace('Analysis: ', '').replace('Mission requirement: ', '')}
                                 </div>
                             </div>
@@ -145,12 +147,13 @@ export function TerminalPanel({
                     // ── Finish Mission button ───────────────────────────
                     if (line.type === "finish") {
                         return (
-                            <div key={index} className="my-6 flex justify-center">
+                            <div key={line.id} className="my-6 flex justify-center">
                                 <button
+                                    type="button"
                                     onClick={onFinishMission}
                                     className="flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-lg text-sm font-medium transition-colors border-none"
                                 >
-                                    <CheckCircle className="h-5 w-5" />
+                                    <CheckCircle className="size-5" />
                                     Finish Mission
                                 </button>
                             </div>
@@ -160,12 +163,13 @@ export function TerminalPanel({
                     // ── Input Prompt ────────────────────
                     if (line.type === "input-prompt") {
                         return (
-                            <div key={index} className="mb-2 text-sm">
+                            <div key={line.id} className="mb-2 text-sm">
                                 <div className="flex items-center gap-2">
                                     <span className="text-amber-400 whitespace-nowrap">{line.message}</span>
                                     <input 
                                         type="text"
                                         ref={inputRef}
+                                        aria-label={line.message}
                                         className="flex-1 bg-transparent border-none outline-none text-[#F1F1F5] font-mono caret-indigo-400"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
@@ -181,7 +185,7 @@ export function TerminalPanel({
 
                     // ── Default render ─
                     return (
-                        <div key={index} className={"mb-2 text-sm font-mono break-words " + getLineColor(line.type)} style={{ whiteSpace: "pre-wrap", tabSize: 4 }}>{line.message}</div>
+                        <div key={line.id} className={"mb-2 text-sm font-mono break-words " + getLineColor(line.type)} style={{ whiteSpace: "pre-wrap", tabSize: 4 }}>{line.message}</div>
                     )
                 })}
                 {/* Blinking cursor + scroll anchor */}

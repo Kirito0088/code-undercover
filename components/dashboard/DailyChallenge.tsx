@@ -1,50 +1,65 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useSyncExternalStore } from "react"
 import { CheckCircle, XCircle, Zap, Loader2 } from "lucide-react"
 
-interface Question {
+export interface DailyChallengeQuestion {
     id: string
     question: string
     options: string[]
 }
 
-export function DailyChallenge() {
-    const [status, setStatus] = useState<"loading" | "ready" | "completed">("loading")
-    const [questionData, setQuestionData] = useState<Question | null>(null)
+interface DailyChallengeProps {
+    initialQuestion: DailyChallengeQuestion | null
+}
+
+const DAILY_COMPLETION_KEY = "cu_daily_completed"
+const DAILY_COMPLETION_EVENT = "cu_daily_completed_changed"
+
+function getTodayKeyUTC() {
+    return new Date().toISOString().split("T")[0]
+}
+
+function getDailyCompletionSnapshot() {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem(DAILY_COMPLETION_KEY) === getTodayKeyUTC()
+}
+
+function subscribeToDailyCompletion(onStoreChange: () => void) {
+    if (typeof window === "undefined") return () => {}
+
+    const handleStorage = (event: StorageEvent) => {
+        if (event.key === DAILY_COMPLETION_KEY) onStoreChange()
+    }
+    const handleLocalChange = () => onStoreChange()
+
+    window.addEventListener("storage", handleStorage)
+    window.addEventListener(DAILY_COMPLETION_EVENT, handleLocalChange)
+
+    return () => {
+        window.removeEventListener("storage", handleStorage)
+        window.removeEventListener(DAILY_COMPLETION_EVENT, handleLocalChange)
+    }
+}
+
+function uniqueOptions(options: string[]) {
+    return Array.from(new Set(options))
+}
+
+export function DailyChallenge({ initialQuestion }: DailyChallengeProps) {
+    const completedToday = useSyncExternalStore(
+        subscribeToDailyCompletion,
+        getDailyCompletionSnapshot,
+        () => false
+    )
     const [selectedOption, setSelectedOption] = useState<string | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [result, setResult] = useState<{ isCorrect: boolean; explanation: string; earnedAura: number } | null>(null)
 
-    useEffect(() => {
-        // Check local storage for today's completion
-        const today = new Date().toISOString().split("T")[0]
-        const lastCompleted = localStorage.getItem("cu_daily_completed")
-
-        if (lastCompleted === today) {
-            setStatus("completed")
-            return
-        }
-
-        // Fetch question
-        const fetchQuestion = async () => {
-            try {
-                const res = await fetch("/api/daily-challenge")
-                const data = await res.json()
-                if (data.success && data.question) {
-                    setQuestionData(data.question)
-                    setStatus("ready")
-                } else {
-                    setStatus("completed") // Fallback
-                }
-            } catch (e) {
-                console.error("Failed to fetch daily challenge", e)
-                setStatus("completed")
-            }
-        }
-
-        fetchQuestion()
-    }, [])
+    const questionData = initialQuestion
+        ? { ...initialQuestion, options: uniqueOptions(initialQuestion.options) }
+        : null
+    const status = completedToday || !questionData ? "completed" : "ready"
 
     const handleSubmit = async () => {
         if (!selectedOption || !questionData) return
@@ -68,9 +83,8 @@ export function DailyChallenge() {
                     earnedAura: data.earnedAura
                 })
 
-                // Mark as completed for today
-                const today = new Date().toISOString().split("T")[0]
-                localStorage.setItem("cu_daily_completed", today)
+                localStorage.setItem(DAILY_COMPLETION_KEY, getTodayKeyUTC())
+                window.dispatchEvent(new Event(DAILY_COMPLETION_EVENT))
             }
         } catch (e) {
             console.error("Failed to submit answer", e)
@@ -79,18 +93,10 @@ export function DailyChallenge() {
         }
     }
 
-    if (status === "loading") {
-        return (
-            <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 flex justify-center items-center my-8">
-                <Loader2 className="animate-spin text-indigo-400" />
-            </div>
-        )
-    }
-
     if (status === "completed" && !result) {
         return (
             <div className="bg-[#1C1C24]/50 border border-[#323242] rounded-xl p-6 my-8 text-center flex items-center justify-center flex-col">
-                <Zap className="h-8 w-8 text-amber-400 mb-2 opacity-50" />
+                <Zap className="size-8 text-amber-400 mb-2 opacity-50" />
                 <h3 className="text-[#8B8BA7] font-medium">Daily Challenge Completed</h3>
                 <p className="text-[#5C5C7A] text-sm mt-1">Return tomorrow for another chance to earn Aura.</p>
             </div>
@@ -101,7 +107,7 @@ export function DailyChallenge() {
         <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 my-8 relative overflow-hidden shadow-2xl">
             {/* Header */}
             <div className="flex items-center gap-2 mb-6 border-b border-[#323242] pb-4">
-                <Zap className="h-5 w-5 text-amber-400" />
+                <Zap className="size-5 text-amber-400" />
                 <h2 className="text-sm font-medium text-[#F1F1F5] tracking-tight">
                     Daily Challenge
                 </h2>
@@ -122,7 +128,8 @@ export function DailyChallenge() {
                     <div className="grid gap-3">
                         {questionData.options.map((opt, i) => (
                             <button
-                                key={i}
+                                type="button"
+                                key={opt}
                                 onClick={() => setSelectedOption(opt)}
                                 disabled={isSubmitting}
                                 className={`text-left p-4 rounded-lg border transition-all text-sm
@@ -140,11 +147,12 @@ export function DailyChallenge() {
 
                     <div className="mt-6 flex justify-end">
                         <button
+                            type="button"
                             onClick={handleSubmit}
                             disabled={!selectedOption || isSubmitting}
                             className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-md font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border-none"
                         >
-                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit"}
+                            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : "Submit"}
                         </button>
                     </div>
                 </div>
@@ -155,7 +163,7 @@ export function DailyChallenge() {
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className={`p-4 rounded-lg mb-4 flex gap-3 ${result.isCorrect ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
                         <div className="mt-0.5">
-                            {result.isCorrect ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+                            {result.isCorrect ? <CheckCircle className="size-5" /> : <XCircle className="size-5" />}
                         </div>
                         <div>
                             <h3 className="font-semibold text-lg mb-1 text-[#F1F1F5]">

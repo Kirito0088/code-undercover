@@ -45,8 +45,8 @@ export default async function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                 <div className="flex justify-between h-full items-center">
                     <div className="flex items-center">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <Code className="h-8 w-8 text-indigo-400" />
+                        <Link href="/" className="flex items-center gap-x-2">
+                            <Code className="size-8 text-indigo-400" />
                             <span className="text-xl font-semibold text-[#F1F1F5] hidden sm:block">
                                 Code Undercover
                             </span>
@@ -55,7 +55,7 @@ export default async function Navbar() {
                     </div>
 
                     {/* Desktop Navigation - hidden on mobile */}
-                    <div className="hidden md:flex items-center space-x-4">
+                    <div className="hidden md:flex items-center gap-x-4">
                         {session && userStats ? (
                             <>
                                 <Link

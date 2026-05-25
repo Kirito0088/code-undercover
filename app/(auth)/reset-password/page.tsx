@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { KeyRound, ShieldCheck } from "lucide-react"
@@ -9,10 +9,10 @@ import Link from "next/link"
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams()
-    const router = useRouter()
+    const getSearchParam = searchParams.get.bind(searchParams)
     
-    const token = searchParams?.get("token")
-    const email = searchParams?.get("email")
+    const token = getSearchParam("token")
+    const email = getSearchParam("email")
 
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -23,8 +23,8 @@ function ResetPasswordForm() {
     if (!token || !email) {
         return (
             <div className="text-center py-4">
-                <div className="mx-auto h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
-                    <KeyRound className="h-6 w-6 text-red-500" />
+                <div className="mx-auto size-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
+                    <KeyRound className="size-6 text-red-500" />
                 </div>
                 <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
                     Invalid Link
@@ -85,8 +85,8 @@ function ResetPasswordForm() {
     if (success) {
         return (
             <div className="text-center py-4">
-                <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
-                    <ShieldCheck className="h-6 w-6 text-emerald-400" />
+                <div className="mx-auto size-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
+                    <ShieldCheck className="size-6 text-emerald-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
                     Password Updated
@@ -172,7 +172,7 @@ export default function ResetPasswordPage() {
 
             <div className="mt-8 mx-auto w-full max-w-sm">
                 <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
-                    <Suspense fallback={<div className="text-center text-indigo-400 text-sm">Loading interface...</div>}>
+                    <Suspense fallback={<div className="text-center text-indigo-400 text-sm">Loading interface&hellip;</div>}>
                         <ResetPasswordForm />
                     </Suspense>
                 </div>

@@ -62,7 +62,7 @@ export default async function LeaderboardPage({
                 {/* Header */}
                 <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
                     <div className="flex items-center gap-3">
-                        <Trophy className="h-8 w-8 text-indigo-400" />
+                        <Trophy className="size-8 text-indigo-400" />
                         <div>
                             <h1 className="text-2xl font-semibold text-[#F1F1F5] tracking-tight">Global Leaderboard</h1>
                             <p className="mt-1 text-xs text-[#8B8BA7]">
@@ -114,9 +114,9 @@ export default async function LeaderboardPage({
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`h-8 w-8 rounded bg-[#14141A] border flex items-center justify-center shrink-0 ${isCurrentUser ? "border-indigo-500/40" : "border-[#323242]"
+                                                    <div className={`size-8 rounded bg-[#14141A] border flex items-center justify-center shrink-0 ${isCurrentUser ? "border-indigo-500/40" : "border-[#323242]"
                                                         }`}>
-                                                        <Shield className={`h-4 w-4 ${isCurrentUser ? "text-indigo-400" : "text-[#5C5C7A]"}`} />
+                                                        <Shield className={`size-4 ${isCurrentUser ? "text-indigo-400" : "text-[#5C5C7A]"}`} />
                                                     </div>
                                                     <div>
                                                         <div className="text-sm font-medium text-[#F1F1F5]">
@@ -130,7 +130,7 @@ export default async function LeaderboardPage({
                                             </td>
                                             <td className="px-6 py-4 align-middle text-xs">
                                                 <div className="flex items-center gap-2">
-                                                    <Award className={`h-4 w-4 ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText}`} />
+                                                    <Award className={`size-4 ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText}`} />
                                                     <span className={`font-medium ${getRankBadgeStyles(calculateAgentRank(u.auraPoints)).colorText}`}>
                                                         {calculateAgentRank(u.auraPoints)}
                                                     </span>
@@ -138,7 +138,7 @@ export default async function LeaderboardPage({
                                             </td>
                                             <td className="px-6 py-4 text-right align-middle font-mono text-xs">
                                                 <span className="inline-flex items-center gap-1.5 bg-[#14141A] border border-[#323242] px-2.5 py-1 rounded text-[#8B8BA7]">
-                                                    <Cpu className="h-3 w-3 text-[#5C5C7A]" />
+                                                    <Cpu className="size-3 text-[#5C5C7A]" />
                                                     Lvl {u.auraLevel}
                                                 </span>
                                             </td>
@@ -187,7 +187,7 @@ export default async function LeaderboardPage({
                                         href={`/leaderboard?page=${page - 1}`}
                                         className="p-2 bg-[#1C1C24] border border-[#323242] rounded hover:bg-[#2A2A35] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
                                     >
-                                        <ChevronLeft className="h-4 w-4" />
+                                        <ChevronLeft className="size-4" />
                                     </Link>
                                 )}
                                 {page < totalPages && (
@@ -195,7 +195,7 @@ export default async function LeaderboardPage({
                                         href={`/leaderboard?page=${page + 1}`}
                                         className="p-2 bg-[#1C1C24] border border-[#323242] rounded hover:bg-[#2A2A35] text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors"
                                     >
-                                        <ChevronRight className="h-4 w-4" />
+                                        <ChevronRight className="size-4" />
                                     </Link>
                                 )}
                             </div>

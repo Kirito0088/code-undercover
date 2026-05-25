@@ -5,7 +5,7 @@ import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
 import { Terminal, AlertTriangle, Shield, Zap, LayoutDashboard, Rocket, History, Target, CheckCircle, Flame, Medal, Bolt, Play } from "lucide-react"
 import { MissionCard } from "./MissionCard"
-import { DailyChallenge } from "@/components/dashboard/DailyChallenge"
+import { DailyChallenge, type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { MissionIntelStory } from "./MissionIntelStory"
 import Link from "next/link"
 import { calculateAgentRank } from "@/lib/aura"
@@ -22,6 +22,37 @@ function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThres
     return { nextRank: "Max Rank", nextThreshold: 2500 }
 }
 
+async function getDailyChallengeQuestion(): Promise<DailyChallengeQuestion | null> {
+    const count = await db.dailyQuestion.count()
+    if (count === 0) return null
+
+    const index = Math.floor(Date.now() / 86400000) % count
+    const dailyQuestion = await db.dailyQuestion.findFirst({
+        skip: index,
+        orderBy: { id: "asc" },
+        select: { id: true, question: true, options: true },
+    })
+
+    if (!dailyQuestion) return null
+
+    let options: unknown = []
+    try {
+        options = JSON.parse(dailyQuestion.options)
+    } catch (error) {
+        console.error("Failed to parse daily challenge options", error)
+    }
+
+    if (!Array.isArray(options) || !options.every((option) => typeof option === "string")) {
+        return null
+    }
+
+    return {
+        id: dailyQuestion.id,
+        question: dailyQuestion.question,
+        options,
+    }
+}
+
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions)
 
@@ -29,7 +60,7 @@ export default async function DashboardPage() {
         redirect("/login")
     }
 
-    const [missions, user] = await Promise.all([
+    const [missions, user, dailyChallengeQuestion] = await Promise.all([
         safeDbQuery(
             () => getDashboardMissions(session.user.id),
             [],
@@ -42,6 +73,11 @@ export default async function DashboardPage() {
             }),
             null,
             "DashboardPage.user"
+        ),
+        safeDbQuery(
+            () => getDailyChallengeQuestion(),
+            null,
+            "DashboardPage.dailyChallenge"
         ),
     ])
 
@@ -68,14 +104,14 @@ export default async function DashboardPage() {
                 <aside className="w-full md:w-[250px] shrink-0 flex flex-col gap-6">
                     {/* User Profile Block */}
                     <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-5 flex flex-col items-center">
-                        <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-3 shadow-[0_0_15px_rgba(14, 185, 77, 0.5)] text-white">
+                        <div className="size-20 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-3 shadow-[0_0_15px_rgba(14, 185, 77, 0.5)] text-white">
                             {(user?.name || session.user.name || "U")[0].toUpperCase()}
                         </div>
                         <h2 className="text-lg font-bold text-[#F1F1F5] truncate max-w-full">
                             {user?.name || session.user.name || "Anonymous"}
                         </h2>
                         <div className="flex items-center gap-2 mt-1">
-                            <Medal className="w-4 h-4 text-[#ffb95f]" />
+                            <Medal className="size-4 text-[#ffb95f]" />
                             <span className="text-sm font-medium text-[#c7c4d7]">Rank: {currentRank}</span>
                         </div>
                         <div className="w-full mt-5">
@@ -100,19 +136,19 @@ export default async function DashboardPage() {
                     {/* Navigation List */}
                     <nav className="flex flex-col gap-1 bg-[#1C1C24] border border-[#323242] rounded-xl p-3">
                         <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 bg-[#2A2A35] text-[#F1F1F5] rounded-lg font-medium text-sm transition-colors">
-                            <LayoutDashboard className="w-4 h-4 text-indigo-400" />
+                            <LayoutDashboard className="size-4 text-indigo-400" />
                             Dashboard
                         </Link>
                         <a href="#missions-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
-                            <Rocket className="w-4 h-4 text-[#8B8BA7]" />
+                            <Rocket className="size-4 text-[#8B8BA7]" />
                             Missions
                         </a>
                         <Link href="/history" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
-                            <History className="w-4 h-4 text-[#8B8BA7]" />
+                            <History className="size-4 text-[#8B8BA7]" />
                             History
                         </Link>
                         <a href="#challenge-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
-                            <Target className="w-4 h-4 text-[#8B8BA7]" />
+                            <Target className="size-4 text-[#8B8BA7]" />
                             Daily Challenge
                         </a>
                     </nav>
@@ -122,21 +158,21 @@ export default async function DashboardPage() {
                         <h3 className="text-xs font-bold text-[#5C5C7A] uppercase tracking-wider">Agent Stats</h3>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-[#4ae176]" />
+                                <CheckCircle className="size-4 text-[#4ae176]" />
                                 <span className="text-sm text-[#c7c4d7]">Missions</span>
                             </div>
                             <span className="text-sm font-mono font-bold text-[#e4e1e9]">{completedCount} / {totalCount}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Flame className="w-4 h-4 text-[#ffb95f]" />
+                                <Flame className="size-4 text-[#ffb95f]" />
                                 <span className="text-sm text-[#c7c4d7]">Combo Streak</span>
                             </div>
                             <span className="text-sm font-mono font-bold text-[#e4e1e9]">x{user?.comboStreak ?? 0}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Medal className="w-4 h-4 text-indigo-400" />
+                                <Medal className="size-4 text-indigo-400" />
                                 <span className="text-sm text-[#c7c4d7]">Fox Badges</span>
                             </div>
                             <span className="text-sm font-mono font-bold text-[#e4e1e9]">{user?.foxBadges ?? 0}</span>
@@ -182,28 +218,28 @@ export default async function DashboardPage() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
-                                <Bolt className="w-4 h-4 text-indigo-400" />
+                                <Bolt className="size-4 text-indigo-400" />
                                 Total Aura
                             </span>
                             <span className="text-2xl font-bold font-mono text-[#e4e1e9]">{user?.auraPoints ?? 0} <span className="text-xs text-[#5C5C7A] font-sans">AP</span></span>
                         </div>
                         <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-[#4ae176]" />
+                                <CheckCircle className="size-4 text-[#4ae176]" />
                                 Missions Done
                             </span>
                             <span className="text-2xl font-bold font-mono text-[#e4e1e9]">{completedCount}/{totalCount}</span>
                         </div>
                         <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
-                                <Flame className="w-4 h-4 text-[#ffb95f]" />
+                                <Flame className="size-4 text-[#ffb95f]" />
                                 Combo Streak
                             </span>
                             <span className="text-2xl font-bold font-mono text-[#e4e1e9]">x{user?.comboStreak ?? 0}</span>
                         </div>
                         <div className="bg-[#1C1C24] border border-[#323242] rounded-xl px-5 py-4 flex flex-col justify-between hover:border-indigo-500/30 transition-colors">
                             <span className="text-[#908fa0] text-sm font-medium mb-2 flex items-center gap-2">
-                                <Shield className="w-4 h-4 text-[#c0c1ff]" />
+                                <Shield className="size-4 text-[#c0c1ff]" />
                                 Current Rank
                             </span>
                             <span className="text-2xl font-bold text-[#e4e1e9]">{currentRank}</span>
@@ -231,7 +267,7 @@ export default async function DashboardPage() {
                         {/* Mission List */}
                         <div id="missions-section" className="xl:col-span-2 flex flex-col gap-4 scroll-mt-20">
                             <h3 className="text-lg font-bold text-[#e4e1e9] flex items-center gap-2">
-                                <Rocket className="w-5 h-5 text-indigo-400" />
+                                <Rocket className="size-5 text-indigo-400" />
                                 Active Intel
                             </h3>
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -250,17 +286,11 @@ export default async function DashboardPage() {
 
                         {/* Daily Challenge Widget */}
                         <div id="challenge-section" className="xl:col-span-1 scroll-mt-20">
-                            <DailyChallenge />
+                            <DailyChallenge initialQuestion={dailyChallengeQuestion} />
                         </div>
                     </div>
                 </main>
             </div>
-            <style dangerouslySetInnerHTML={{ __html: `
-                @keyframes shimmer {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(50%); }
-                }
-            `}} />
         </div>
     )
 }

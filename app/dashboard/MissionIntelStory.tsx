@@ -1,27 +1,48 @@
 "use client"
+import Image from "next/image"
 
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react"
 import { Button } from "@/components/ui/Button"
 import { ArrowLeft } from "lucide-react"
 
-export function MissionIntelStory() {
-    const [isVisible, setIsVisible] = useState(false)
-    const [isMounted, setIsMounted] = useState(false)
+const INTRO_STORY_KEY = "hasSeenIntroStory"
+const INTRO_STORY_EVENT = "hasSeenIntroStoryChanged"
 
-    useEffect(() => {
-        setIsMounted(true)
-        const hasSeenIntro = localStorage.getItem("hasSeenIntroStory")
-        if (!hasSeenIntro) {
-            setIsVisible(true)
-        }
-    }, [])
+function getHasSeenIntroSnapshot() {
+    if (typeof window === "undefined") return true
+    return localStorage.getItem(INTRO_STORY_KEY) === "true"
+}
+
+function subscribeToIntroStory(onStoreChange: () => void) {
+    if (typeof window === "undefined") return () => {}
+
+    const handleStorage = (event: StorageEvent) => {
+        if (event.key === INTRO_STORY_KEY) onStoreChange()
+    }
+    const handleLocalChange = () => onStoreChange()
+
+    window.addEventListener("storage", handleStorage)
+    window.addEventListener(INTRO_STORY_EVENT, handleLocalChange)
+
+    return () => {
+        window.removeEventListener("storage", handleStorage)
+        window.removeEventListener(INTRO_STORY_EVENT, handleLocalChange)
+    }
+}
+
+export function MissionIntelStory() {
+    const hasSeenIntro = useSyncExternalStore(
+        subscribeToIntroStory,
+        getHasSeenIntroSnapshot,
+        () => true
+    )
 
     const handleContinue = () => {
-        localStorage.setItem("hasSeenIntroStory", "true")
-        setIsVisible(false)
+        localStorage.setItem(INTRO_STORY_KEY, "true")
+        window.dispatchEvent(new Event(INTRO_STORY_EVENT))
     }
 
-    if (!isMounted || !isVisible) {
+    if (hasSeenIntro) {
         return null
     }
 
@@ -33,19 +54,20 @@ export function MissionIntelStory() {
 
                 {/* Top Header */}
                 <div className="h-14 border-b border-[#323242] bg-[#22222B] flex items-center justify-between px-6 shrink-0">
-                    <button onClick={handleContinue} className="text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
-                        <ArrowLeft className="h-5 w-5" />
+                    <button type="button" onClick={handleContinue} aria-label="Go back" className="text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
+                        <ArrowLeft className="size-5" />
                     </button>
-                    <div className="flex items-center space-x-4 flex-1 justify-center relative">
+                    <div className="flex items-center gap-x-4 flex-1 justify-center relative">
                         <div className="absolute left-0 right-0 top-1/2 -mt-[0.5px] h-[1px] bg-[#323242] z-[0]"></div>
                         <h2 className="text-sm font-medium text-[#8B8BA7] bg-[#22222B] px-4 z-10">MISSION INTEL</h2>
                     </div>
                     <button
+                        type="button"
                         onClick={handleContinue}
                         className="flex items-center gap-2 text-[#8B8BA7] hover:text-[#F1F1F5] text-xs font-medium transition-all duration-200 hover:bg-[#2A2A35] px-3 py-1.5 rounded border border-[#323242] hover:border-[#3F3F52]"
                     >
                         SKIP INTRO
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4">
                             <path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.323-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.5a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-9a1 1 0 0 1 1-1Z" />
                         </svg>
                     </button>
@@ -58,19 +80,21 @@ export function MissionIntelStory() {
                     <div className="flex flex-col md:flex-row gap-6 mb-6 items-start relative z-10">
 
                         {/* Platypus Agent */}
-                        <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 relative">
-                            <img
+                        <div className="size-32 md:w-40 md:h-40 shrink-0 relative">
+                            <Image
                                 src="/characters/platipus.png"
                                 alt="Agent"
-                                className="w-full h-full object-contain filter drop-shadow-xl"
+                                fill
+                                sizes="(max-width: 768px) 128px, 160px"
+                                className="object-contain filter drop-shadow-xl"
                             />
                         </div>
 
                         <div className="flex flex-col gap-4 flex-1">
                             {/* Agent Speech Bubble */}
                             <div className="relative bg-[#2A2A35] border border-[#323242] text-[#F1F1F5] px-5 py-4 rounded-xl md:rounded-tl-none font-medium text-[15px] md:text-base leading-relaxed shadow-lg max-w-2xl">
-                                <div className="absolute -left-[14px] top-0 w-0 h-0 border-r-[16px] border-r-[#2A2A35] border-b-[16px] border-b-transparent transform md:block hidden"></div>
-                                <div className="absolute -top-[14px] left-10 w-0 h-0 border-b-[16px] border-b-[#2A2A35] border-r-[16px] border-r-transparent transform md:hidden"></div>
+                                <div className="absolute -left-[14px] top-0 size-0 border-r-[16px] border-r-[#2A2A35] border-b-[16px] border-b-transparent transform md:block hidden"></div>
+                                <div className="absolute -top-[14px] left-10 size-0 border-b-[16px] border-b-[#2A2A35] border-r-[16px] border-r-transparent transform md:hidden"></div>
                                 To master the code, you must know its history, Agent. Let&apos;s start with the origins of the C programming language.
                             </div>
 
@@ -99,22 +123,27 @@ export function MissionIntelStory() {
                             </div>
 
                             {/* Large Retro Computer Image */}
-                            <div className="w-full rounded-xl bg-black overflow-hidden border border-[#323242] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-0.5">
-                                <img
+                            <div className="w-full rounded-xl bg-[#14141A] overflow-hidden border border-[#323242] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-0.5">
+                                <Image
                                     src="/characters/retro_computer.png"
                                     alt="1970s Terminal"
-                                    className="w-full h-40 md:h-[200px] object-cover rounded-lg aspect-auto opacity-90 sepia-[0.3] hue-rotate-[160deg] contrast-[1.2] brightness-90"
+                                    width={800}
+                                    height={200}
+                                    sizes="(max-width: 768px) 100vw, 66vw"
+                                    className="w-full h-40 md:h-[200px] object-cover rounded-lg opacity-90 sepia-[0.3] hue-rotate-[160deg] contrast-[1.2] brightness-90"
                                 />
                             </div>
 
                             {/* Second Speech bubble row */}
                             <div className="flex items-start gap-4 mt-6 border border-[#323242] bg-[#22222B] p-5 rounded-xl relative">
                                 {/* Small Avatar Bubble */}
-                                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#323242] bg-[#1C1C24] shrink-0 absolute -left-5 -top-5 shadow-xl">
-                                    <img
+                                <div className="size-14 rounded-full overflow-hidden border-2 border-[#323242] bg-[#1C1C24] shrink-0 absolute -left-5 -top-5 shadow-xl">
+                                    <Image
                                         src="/characters/platipus.png"
                                         alt="Agent Small"
-                                        className="w-full h-full object-cover transform scale-[1.3] translate-y-1"
+                                        fill
+                                        sizes="56px"
+                                        className="object-cover transform scale-[1.3] translate-y-1"
                                     />
                                 </div>
                                 <div className="relative pl-8 text-[#8B8BA7] font-medium text-sm leading-relaxed">
@@ -129,10 +158,12 @@ export function MissionIntelStory() {
 
                             {/* Floating ID Card picture */}
                             <div className="w-[140px] h-[180px] shrink-0 absolute -top-16 md:-top-24 right-4 md:left-4 mb-6 rounded-xl overflow-hidden border border-[#323242] shadow-[0_0_20px_rgba(0,0,0,0.8)] bg-[#1C1C24] transform hidden md:block">
-                                <img
+                                <Image
                                     src="/characters/dennis_ritchie.png"
                                     alt="Dennis Ritchie"
-                                    className="w-full h-full object-cover grayscale opacity-90 filter contrast-125"
+                                    fill
+                                    sizes="140px"
+                                    className="object-cover grayscale opacity-90 filter contrast-125"
                                 />
                             </div>
 
@@ -151,7 +182,7 @@ export function MissionIntelStory() {
                                 {/* Location / Era */}
                                 <div className="flex flex-col">
                                     <div className="text-[10px] font-mono tracking-widest text-[#5C5C7A] mb-1">LOCATION / ERA</div>
-                                    <div className="text-sm text-[#F1F1F5]">Bell Labs, New Jersey —</div>
+                                    <div className="text-sm text-[#F1F1F5]">Bell Labs, New Jersey</div>
                                     <div className="text-sm text-[#8B8BA7]">Circa 1972</div>
                                 </div>
 

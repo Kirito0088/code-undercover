@@ -1,12 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { MissionRecord } from "@/types"
 import { UserCheck, Zap, AlertTriangle } from "lucide-react"
 
 interface MCQPhaseProps {
     mission: MissionRecord
     onComplete: () => void
+}
+
+function dedupeOptions(options: string[]) {
+    return Array.from(new Set(options))
+}
+
+function normalizeQuestionOptions(question: { id?: number; question: string; options: string[]; correctIndex: number }) {
+    const correctAnswer = question.options?.[question.correctIndex]
+    const options = dedupeOptions(question.options ?? [])
+    const correctIndex = correctAnswer ? options.indexOf(correctAnswer) : question.correctIndex
+
+    return {
+        ...question,
+        options,
+        correctIndex: correctIndex >= 0 ? correctIndex : question.correctIndex,
+    }
 }
 
 export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
@@ -74,10 +90,29 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
             ]
         }
     }
+    questions = questions.map(normalizeQuestionOptions)
 
     const [currentQIndex, setCurrentQIndex] = useState(0)
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [showError, setShowError] = useState(false)
+    const errorTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+
+    useEffect(() => {
+        const errorTimeouts = errorTimeoutsRef.current
+        return () => {
+            for (const timeout of errorTimeouts) {
+                clearTimeout(timeout)
+            }
+            errorTimeouts.clear()
+        }
+    }, [])
+
+    const clearErrorTimeouts = () => {
+        for (const timeout of errorTimeoutsRef.current) {
+            clearTimeout(timeout)
+        }
+        errorTimeoutsRef.current.clear()
+    }
 
     // Clamp index to valid range
     const safeIndex = Math.min(currentQIndex, questions.length - 1)
@@ -88,10 +123,16 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
 
         if (selectedOption !== q.correctIndex) {
             setShowError(true)
-            setTimeout(() => setShowError(false), 2000)
+            clearErrorTimeouts()
+            const errorTimeout = setTimeout(() => {
+                setShowError(false)
+                errorTimeoutsRef.current.delete(errorTimeout)
+            }, 2000)
+            errorTimeoutsRef.current.add(errorTimeout)
             return
         }
 
+        clearErrorTimeouts()
         if (safeIndex < questions.length - 1) {
             setCurrentQIndex(safeIndex + 1)
             setSelectedOption(null)
@@ -110,7 +151,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
     }
 
     const getLabelClass = (index: number) => {
-        const base = "text-xs font-mono w-6 h-6 flex items-center justify-center rounded border"
+        const base = "text-xs font-mono size-6 flex items-center justify-center rounded border"
         if (selectedOption === index) {
             return `${base} bg-indigo-500 text-white border-indigo-400`
         }
@@ -121,13 +162,14 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
         return (
             <div className="absolute inset-0 flex items-center justify-center p-8 bg-[#14141A] z-30">
                 <div className="text-center">
-                    <AlertTriangle className="h-10 w-10 text-amber-400 mx-auto mb-4" />
-                    <p className="text-[#8B8BA7] text-sm">No question available. Proceeding to mission...</p>
+                    <AlertTriangle className="size-10 text-amber-400 mx-auto mb-4" />
+                    <p className="text-[#8B8BA7] text-sm">No question available. Proceeding to mission&hellip;</p>
                     <button
+                        type="button"
                         onClick={onComplete}
                         className="mt-6 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-lg font-medium transition-colors border-none"
                     >
-                        Continue
+                        Start Coding
                     </button>
                 </div>
             </div>
@@ -139,8 +181,8 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
             <div className="max-w-2xl w-full my-auto">
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-10">
-                    <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-4">
-                        <UserCheck className="h-8 w-8 text-indigo-400" />
+                    <div className="inline-flex items-center justify-center size-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-4">
+                        <UserCheck className="size-8 text-indigo-400" />
                     </div>
                     <h2 className="text-2xl text-[#F1F1F5] font-semibold mb-2">
                         Knowledge Check
@@ -159,7 +201,8 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                     <div className="space-y-4">
                         {(q.options ?? []).map((opt: string, index: number) => (
                             <button
-                                key={index}
+                                type="button"
+                                key={`${index}-${opt}`}
                                 onClick={() => {
                                     setSelectedOption(index)
                                     setShowError(false)
@@ -183,13 +226,14 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                     {/* Error Toast */}
                     {showError && (
                         <div className="mt-6 flex items-center justify-center gap-2 text-red-400 text-sm">
-                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTriangle className="size-4" />
                             Incorrect answer. Re-evaluate the logic.
                         </div>
                     )}
 
                     <div className="mt-6 sm:mt-8 flex justify-end">
                         <button
+                            type="button"
                             onClick={handleSubmit}
                             disabled={selectedOption === null}
                             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg font-medium transition-colors border-none text-xs sm:text-sm"
@@ -197,7 +241,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                             {safeIndex < questions.length - 1
                                 ? "Next Question"
                                 : "Start Coding"}
-                            <Zap className="h-4 w-4" />
+                            <Zap className="size-4" />
                         </button>
                     </div>
                 </div>

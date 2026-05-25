@@ -19,7 +19,8 @@ interface MissionWorkspaceProps {
     userProfile: { auraPoints: number; auraLevel: number; foxBadges: number }
 }
 
-type TerminalLine = {
+export type TerminalLine = {
+    id: string
     type: "system" | "error" | "success" | "hint" | "finish" | "input-prompt"
     message: string
     rawContext?: string
@@ -57,7 +58,7 @@ export function MissionWorkspace({
     const [activeTab, setActiveTab] = useState<"briefing" | "editor" | "terminal">("editor")
 
     const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
-        { type: "system", message: "> Terminal initialized. Ready for code input." },
+        { id: "init-0", type: "system", message: "> Terminal initialized. Ready for code input." },
     ])
 
     // Called when user clicks "Finish Mission" in the terminal
@@ -113,7 +114,7 @@ export function MissionWorkspace({
             <header className="h-14 w-full bg-[#131318] border-b border-[#323242] flex items-center justify-between px-6 z-20 flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <Link href="/dashboard" className="flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="size-4" />
                         <span>Dashboard</span>
                     </Link>
                     <div className="h-4 w-px bg-[#323242]" />
@@ -153,7 +154,7 @@ export function MissionWorkspace({
                 {/* Right Area: AP Indicator */}
                 <div className="flex items-center gap-4">
                     <div className="text-xs text-indigo-400 font-mono flex items-center gap-1.5 bg-indigo-500/5 border border-[#323242] px-2.5 py-1 rounded-md">
-                        <Zap className="w-3.5 h-3.5" />
+                        <Zap className="size-3.5" />
                         <span>+{mission.auraReward} AP</span>
                     </div>
                 </div>
@@ -258,8 +259,6 @@ export function MissionWorkspace({
                                 attemptCount={attemptCount}
                                 setAttemptCount={setAttemptCount}
                                 setInnovationUnlocked={setInnovationUnlocked}
-                                setMissionCleared={setMissionCleared}
-                                setClearInfo={setClearInfo}
                                 setPendingClearInfo={setPendingClearInfo}
                                 onRunStarted={() => setActiveTab("terminal")}
                             />

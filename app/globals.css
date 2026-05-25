@@ -126,7 +126,12 @@ html.light textarea::placeholder {
   }
 }
 
-/* ─── Custom Scrollbar (Indigo theme) ─── */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(50%); }
+}
+
+/* ─── Custom Scrollbar (Emerald theme) ─── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

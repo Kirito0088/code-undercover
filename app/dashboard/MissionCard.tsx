@@ -28,7 +28,7 @@ const difficultyConfig = {
 } as const
 
 export function MissionCard({ mission }: { mission: DashboardMission }) {
-    const router = useRouter()
+    const { push } = useRouter()
     const [loading, setLoading] = useState(false)
     const diff = difficultyConfig[mission.difficulty as keyof typeof difficultyConfig] || difficultyConfig.EASY
     const DiffIcon = diff.icon
@@ -51,7 +51,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
             const data = await res.json()
 
             if (res.ok && data.redirect) {
-                router.push(data.redirect)
+                push(data.redirect)
                 // Keep loading state true so button remains disabled while routing
                 return
             }
@@ -73,7 +73,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                    <DiffIcon className={`h-5 w-5 ${isLocked ? "text-[#3A3A52]" : diff.color}`} />
+                    <DiffIcon className={`size-5 ${isLocked ? "text-[#3A3A52]" : diff.color}`} />
                     <span className="text-xs font-mono text-[#5C5C7A]">#{String(mission.order).padStart(2, "0")}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -86,8 +86,8 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                         }`}>
                         {mission.difficulty}
                     </span>
-                    {isCompleted && <CheckCircle2 className="h-5 w-5 text-emerald-400" />}
-                    {isLocked && <Lock className="h-4 w-4 text-[#3A3A52]" />}
+                    {isCompleted && <CheckCircle2 className="size-5 text-emerald-400" />}
+                    {isLocked && <Lock className="size-4 text-[#3A3A52]" />}
                 </div>
             </div>
 
@@ -105,7 +105,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
             <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#323242]">
                 <div className="flex items-center gap-3">
                     <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-[#3A3A52]" : "text-[#5C5C7A]"}`}>
-                        <Code className="h-3 w-3" /> {mission.language}
+                        <Code className="size-3" /> {mission.language}
                     </span>
                     <span className={`text-xs font-mono ${isLocked ? "text-[#3A3A52]" : "text-indigo-400"}`}>
                         +{mission.auraReward} AP
@@ -120,7 +120,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                         onClick={handleAccept}
                         disabled={loading}
                     >
-                        <Play className="h-3 w-3 mr-1" />
+                        <Play className="size-3 mr-1" />
                         {loading ? "LOADING..." : "ACCEPT"}
                     </Button>
                 )}
@@ -132,12 +132,12 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                         onClick={handleAccept}
                         disabled={loading}
                     >
-                        <CheckCircle2 className="h-3 w-3 mr-1 text-emerald-400" /> REVIEW
+                        <CheckCircle2 className="size-3 mr-1 text-emerald-400" /> REVIEW
                     </Button>
                 )}
                 {isLocked && (
                     <span className="text-xs font-mono text-[#3A3A52] flex items-center gap-1">
-                        <Lock className="h-3 w-3" /> LOCKED
+                        <Lock className="size-3" /> LOCKED
                     </span>
                 )}
             </div>

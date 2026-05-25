@@ -41,8 +41,8 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
 
                 {/* ─── Top: Centered Mission Title ─── */}
                 <div className="flex flex-col items-center pt-10 pb-6 px-8">
-                    <div className="h-12 w-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
-                        <GraduationCap className="h-6 w-6 text-indigo-400" />
+                    <div className="size-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+                        <GraduationCap className="size-6 text-indigo-400" />
                     </div>
                     <h1 className="text-2xl md:text-3xl font-semibold text-[#F1F1F5] tracking-tight text-center">
                         {mission.title}
@@ -59,7 +59,7 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
 
                                 return (
                                     <div
-                                        key={index}
+                                        key={`${index}-${slide.title}`}
                                         className={`bg-[#22222B] border border-[#323242] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
                                             }`}
                                         style={{ animationDelay: `${index * 200}ms` }}
@@ -69,9 +69,9 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                         </h3>
                                         {Array.isArray(slide.content) ? (
                                             <ul className="space-y-2 text-[#8B8BA7] text-sm leading-relaxed">
-                                                {slide.content.map((point: string, i: number) => (
-                                                    <li key={i} className="flex items-start gap-2.5">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                                                {slide.content.map((point: string, pointIndex: number) => (
+                                                    <li key={`${index}-${pointIndex}-${point}`} className="flex items-start gap-2.5">
+                                                        <div className="size-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
                                                         <span>{point}</span>
                                                     </li>
                                                 ))}
@@ -95,11 +95,12 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                         <span className="text-xs font-semibold text-[#5C5C7A] uppercase mb-1">
                             Briefing
                         </span>
-                        <div className="relative h-20 w-20 md:h-40 md:w-40">
+                        <div className="relative size-20 md:h-40 md:w-40">
                             <Image
                                 src="/characters/platipus.png"
                                 alt="Lead Mentor"
                                 fill
+                                sizes="(min-width: 768px) 160px, 80px"
                                 className="object-contain"
                                 style={{ animation: "float 3s ease-in-out infinite" }}
                                 priority
@@ -109,11 +110,12 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
 
                     {/* Proceed Button */}
                     <button
+                        type="button"
                         onClick={onComplete}
                         className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 md:px-8 md:py-3 rounded-lg text-xs md:text-sm font-medium transition-colors group ml-4 border-none"
                     >
                         Proceed
-                        <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="size-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </div>

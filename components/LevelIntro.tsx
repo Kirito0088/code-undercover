@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 export interface LevelIntroProps {
@@ -16,9 +16,22 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
     const [phase, setPhase] = useState<
         "entering" | "scanning" | "verifying-yellow" | "denied-red" | "granted-green" | "opening" | "hidden"
     >("entering")
+    const startTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+    const onCompleteRef = useRef(onComplete)
 
     useEffect(() => {
-        const timeouts: NodeJS.Timeout[] = [];
+        onCompleteRef.current = onComplete
+    }, [onComplete])
+
+    const clearStartTimeouts = () => {
+        for (const timeout of startTimeoutsRef.current) {
+            clearTimeout(timeout)
+        }
+        startTimeoutsRef.current.clear()
+    }
+
+    useEffect(() => {
+        const timeouts: ReturnType<typeof setTimeout>[] = [];
 
         if (accessGranted) {
             // ── ACCESS GRANTED flow: red → yellow → green → auto open ──
@@ -38,10 +51,8 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
             timeouts.push(autoOpen);
             const autoHide = setTimeout(() => setPhase("hidden"), cumulativeDelay + 3300);
             timeouts.push(autoHide);
-            if (onComplete) {
-                const autoComplete = setTimeout(onComplete, cumulativeDelay + 3400);
-                timeouts.push(autoComplete);
-            }
+            const autoComplete = setTimeout(() => onCompleteRef.current?.(), cumulativeDelay + 3400);
+            timeouts.push(autoComplete);
         } else {
             // ── ACCESS DENIED flow: red → yellow → denied ──
             const timings = [
@@ -58,25 +69,34 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
         }
 
         return () => {
-            timeouts.forEach(clearTimeout);
+            for (const timeout of timeouts) {
+                clearTimeout(timeout);
+            }
         }
-    }, [accessGranted, onComplete])
+    }, [accessGranted])
+
+    useEffect(() => {
+        const startTimeouts = startTimeoutsRef.current
+        return () => {
+            for (const timeout of startTimeouts) {
+                clearTimeout(timeout)
+            }
+            startTimeouts.clear()
+        }
+    }, [])
 
     const handleStartMission = () => {
         if (phase !== "denied-red") return;
+        clearStartTimeouts();
         setPhase("opening");
-        setTimeout(() => setPhase("hidden"), 1300);
-        if (onComplete) {
-            setTimeout(onComplete, 1400);
-        }
+        startTimeoutsRef.current.add(setTimeout(() => setPhase("hidden"), 1300));
+        startTimeoutsRef.current.add(setTimeout(() => onCompleteRef.current?.(), 1400));
     }
 
     const handleSkip = () => {
         // Immediately skip the entire cinematic
         setPhase("hidden");
-        if (onComplete) {
-            onComplete();
-        }
+        onCompleteRef.current?.();
     }
 
     if (phase === "hidden") return null;
@@ -93,11 +113,12 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
             {/* Skip Button — top-right corner (only on denied/first-time flow) */}
             {!accessGranted && phase !== "opening" && (
                 <button
+                    type="button"
                     onClick={handleSkip}
                     className="absolute top-4 right-4 md:top-6 md:right-8 z-[110] flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-all duration-200 bg-[#1C1C24]/80 hover:bg-[#2A2A35] px-3.5 py-1.5 rounded-md border border-[#323242] hover:border-[#3F3F52] backdrop-blur-sm shadow-md"
                 >
                     Skip Intro
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5">
                         <path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.323-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.5a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-9a1 1 0 0 1 1-1Z" />
                     </svg>
                 </button>
@@ -198,7 +219,7 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
 
                                 {/* Center Lock Indicator Sphere */}
                                 <div className={cn(
-                                    "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-sm rotate-45 border-[3px] z-30 transition-all duration-300",
+                                    "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-12 rounded-sm rotate-45 border-[3px] z-30 transition-all duration-300",
                                     phase === "entering" || phase === "scanning" ? "bg-black border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.9)]" : "",
                                     phase === "verifying-yellow" ? "bg-yellow-950/80 border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,1)]" : "",
                                     isDeniedPhase ? "bg-red-950/80 border-red-500 shadow-[0_0_30px_rgba(220,38,38,1)] scale-110 animate-[denied-shake_0.4s_ease-in-out_2]" : "",
@@ -207,7 +228,7 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                                 )}>
                                     {/* Inner dot */}
                                     <div className={cn(
-                                        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full",
+                                        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-3 rounded-full",
                                         phase === "entering" || phase === "scanning" ? "bg-red-500" : "",
                                         phase === "verifying-yellow" ? "bg-yellow-400 animate-ping" : "",
                                         isDeniedPhase ? "bg-red-500 animate-ping" : "",
@@ -220,7 +241,7 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                                     <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
                                         <div className="relative">
                                             {/* Large X mark */}
-                                            <div className="w-20 h-20 relative animate-[denied-x-appear_0.3s_ease-out_forwards]">
+                                            <div className="size-20 relative animate-[denied-x-appear_0.3s_ease-out_forwards]">
                                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[4px] bg-red-500 rotate-45 shadow-[0_0_15px_rgba(239,68,68,0.8)]"></div>
                                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[4px] bg-red-500 -rotate-45 shadow-[0_0_15px_rgba(239,68,68,0.8)]"></div>
                                             </div>
@@ -260,6 +281,7 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
                             phase === "opening" ? "opacity-0 bottom-8 translate-y-8 pointer-events-none" : ""
                         )}>
                             <button
+                                type="button"
                                 onClick={handleStartMission}
                                 disabled={phase !== "denied-red"}
                                 className={cn(

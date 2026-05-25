@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
+import Image from "next/image"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { BookOpen, Play, Zap } from "lucide-react"
@@ -23,7 +24,7 @@ export default async function Home() {
           {/* H1 */}
           <h1 className="text-5xl font-semibold text-[#F1F1F5] tracking-tight leading-[1.1]">
             Welcome to <br />
-            <span className="font-bold bg-gradient-to-r from-[#0EB94D] to-[#065C25] bg-clip-text text-transparent">Code Undercover</span>
+            <span className="font-bold text-[#39D375]">Code Undercover</span>
           </h1>
 
           {/* Sub */}
@@ -43,7 +44,7 @@ export default async function Home() {
               <>
                 <Link href="/register">
                   <Button size="lg" className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white">
-                    Start Learning — Free
+                    Start Learning, Free
                   </Button>
                 </Link>
                 <Link href="/login" className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors">
@@ -61,9 +62,13 @@ export default async function Home() {
 
         {/* Right: mascot */}
         <div className="flex-1 flex items-center justify-center">
-          <img
+          <Image
             src="/mascot-logo.png"
             alt="Code Undercover"
+            width={460}
+            height={460}
+            sizes="460px"
+            priority
             className="w-full max-w-[460px] h-auto opacity-90 transition-transform duration-700 hover:scale-105"
           />
         </div>
@@ -79,14 +84,18 @@ export default async function Home() {
         {/* H1 */}
         <h1 className="text-3xl sm:text-4xl font-semibold text-[#F1F1F5] tracking-tight leading-[1.2]">
           Welcome to<br />
-          <span className="font-bold bg-gradient-to-r from-[#0EB94D] to-[#065C25] bg-clip-text text-transparent">Code Undercover</span>
+          <span className="font-bold text-[#39D375]">Code Undercover</span>
         </h1>
 
         {/* Mascot for mobile */}
         <div className="relative mt-8 flex items-center justify-center w-full max-w-[250px] sm:max-w-[300px]">
-          <img
+          <Image
             src="/mascot-logo.png"
             alt="Code Undercover"
+            width={300}
+            height={300}
+            sizes="(max-width: 640px) 250px, 300px"
+            priority
             className="w-full h-auto opacity-95"
           />
         </div>
@@ -108,7 +117,7 @@ export default async function Home() {
             <>
               <Link href="/register" className="w-full">
                 <Button size="lg" className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white">
-                  Start Learning — Free
+                  Start Learning, Free
                 </Button>
               </Link>
               <Link href="/login" className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors py-2">
@@ -133,8 +142,8 @@ export default async function Home() {
             { icon: Zap,      title: "Earn as You Learn",      desc: "Aura Points, rank progression, combo streaks, and daily challenges." },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title} className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 text-left transition-colors hover:border-[#3F3F52] hover:bg-[#14141C]">
-              <div className="w-9 h-9 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex items-center justify-center mb-4">
-                <Icon className="w-4 h-4 text-indigo-400" />
+              <div className="size-9 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex items-center justify-center mb-4">
+                <Icon className="size-4 text-indigo-400" />
               </div>
               <h3 className="text-sm font-medium text-[#F1F1F5]">{title}</h3>
               <p className="text-xs text-[#8B8BA7] mt-1.5 leading-relaxed">{desc}</p>

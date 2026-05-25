@@ -11,6 +11,24 @@ export default function IntroPage() {
     const [shouldPlay, setShouldPlay] = useState(false)
     const [autoplayBlocked, setAutoplayBlocked] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
+    const redirectTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+
+    useEffect(() => {
+        const redirectTimeouts = redirectTimeoutsRef.current
+        return () => {
+            for (const timeout of redirectTimeouts) {
+                clearTimeout(timeout)
+            }
+            redirectTimeouts.clear()
+        }
+    }, [])
+
+    const clearRedirectTimeouts = () => {
+        for (const timeout of redirectTimeoutsRef.current) {
+            clearTimeout(timeout)
+        }
+        redirectTimeoutsRef.current.clear()
+    }
 
     // ── Auth + intro-seen guard ──────────────────────────────────────────────
     useEffect(() => {
@@ -22,7 +40,12 @@ export default function IntroPage() {
         }
 
         const userId = session?.user?.id
-        if (!userId) return
+        if (!userId) {
+            // Authenticated but id not yet in token (transient race on first Google sign-in).
+            // Redirect to /levels rather than showing a permanent black screen.
+            replace("/levels")
+            return
+        }
 
         const hasSeenIntro = localStorage.getItem(`hasSeenIntro_${userId}`)
         if (hasSeenIntro === "true") {
@@ -53,7 +76,12 @@ export default function IntroPage() {
             localStorage.setItem(`hasSeenIntro_${userId}`, "true")
         }
         setIsFadingOut(true)
-        setTimeout(() => push("/levels"), 2000)
+        clearRedirectTimeouts()
+        const redirectTimeout = setTimeout(() => {
+            push("/levels")
+            redirectTimeoutsRef.current.delete(redirectTimeout)
+        }, 2000)
+        redirectTimeoutsRef.current.add(redirectTimeout)
     }
 
 

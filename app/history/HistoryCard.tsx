@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
     ChevronDown,
     ChevronUp,
@@ -60,14 +60,37 @@ function formatDate(date: Date | string | null): string {
 export function HistoryCard({ mission, index }: HistoryCardProps) {
     const [isExpanded, setIsExpanded] = useState(false)
     const [copied, setCopied] = useState(false)
+    const copiedTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
     const diff = getDifficultyStyle(mission.difficulty)
+
+    useEffect(() => {
+        const copiedTimeouts = copiedTimeoutsRef.current
+        return () => {
+            for (const timeout of copiedTimeouts) {
+                clearTimeout(timeout)
+            }
+            copiedTimeouts.clear()
+        }
+    }, [])
+
+    const clearCopiedTimeouts = () => {
+        for (const timeout of copiedTimeoutsRef.current) {
+            clearTimeout(timeout)
+        }
+        copiedTimeoutsRef.current.clear()
+    }
 
     const handleCopy = async () => {
         if (!mission.submittedCode) return
         try {
             await navigator.clipboard.writeText(mission.submittedCode)
             setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
+            clearCopiedTimeouts()
+            const copiedTimeout = setTimeout(() => {
+                setCopied(false)
+                copiedTimeoutsRef.current.delete(copiedTimeout)
+            }, 2000)
+            copiedTimeoutsRef.current.add(copiedTimeout)
         } catch {
             // Clipboard API might not be available
         }
@@ -80,7 +103,10 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
         >
             {/* Card Header — always visible */}
             <button
+                type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
+                aria-label={isExpanded ? "Collapse mission details" : "Expand mission details"}
+                aria-expanded={isExpanded}
                 className="w-full flex items-center justify-between p-5 text-left hover:bg-[#2A2A35]/50 transition-colors"
             >
                 <div className="flex items-center gap-4 min-w-0">
@@ -102,13 +128,13 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                         </div>
                         <div className="flex items-center gap-4 text-xs font-mono text-[#8B8BA7]">
                             <span className="flex items-center gap-1 text-indigo-400">
-                                <Zap className="w-3 h-3" />
+                                <Zap className="size-3" />
                                 +{mission.auraReward} AP
                             </span>
                             <span>{mission.attemptCount} attempt{mission.attemptCount !== 1 ? "s" : ""}</span>
                             {mission.hintsUsed > 0 && (
                                 <span className="flex items-center gap-1 text-amber-400/80">
-                                    <Lightbulb className="w-3 h-3" />
+                                    <Lightbulb className="size-3" />
                                     {mission.hintsUsed} hint{mission.hintsUsed !== 1 ? "s" : ""}
                                 </span>
                             )}
@@ -119,9 +145,9 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
 
                 <div className="flex-shrink-0 ml-4">
                     {isExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-[#8B8BA7] group-hover:text-indigo-400 transition-colors" />
+                        <ChevronUp className="size-5 text-[#8B8BA7] group-hover:text-indigo-400 transition-colors" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-[#8B8BA7] group-hover:text-indigo-400 transition-colors" />
+                        <ChevronDown className="size-5 text-[#8B8BA7] group-hover:text-indigo-400 transition-colors" />
                     )}
                 </div>
             </button>
@@ -139,9 +165,9 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                             <div className="flex items-center justify-between px-5 py-3 bg-[#22222B] border-b border-[#323242]">
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-[#323242]" />
-                                        <div className="w-2 h-2 rounded-full bg-[#323242]" />
-                                        <div className="w-2 h-2 rounded-full bg-[#323242]" />
+                                        <div className="size-2 rounded-full bg-[#323242]" />
+                                        <div className="size-2 rounded-full bg-[#323242]" />
+                                        <div className="size-2 rounded-full bg-[#323242]" />
                                     </div>
                                     <span className="text-xs font-mono text-[#8B8BA7]">
                                         solution.c
@@ -151,18 +177,20 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                                     </span>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={handleCopy}
                                     className="flex items-center gap-1.5 text-xs font-mono text-[#8B8BA7] hover:text-indigo-400 transition-colors px-2 py-1 rounded hover:bg-[#2A2A35]"
                                     title="Copy code"
+                                    aria-label={copied ? "Code copied" : "Copy code to clipboard"}
                                 >
                                     {copied ? (
                                         <>
-                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                            <Check className="size-3.5 text-emerald-400" />
                                             <span className="text-emerald-400">Copied!</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Copy className="w-3.5 h-3.5" />
+                                            <Copy className="size-3.5" />
                                             Copy
                                         </>
                                     )}
@@ -180,7 +208,7 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                         </div>
                     ) : (
                         <div className="p-8 text-center">
-                            <Code2 className="w-8 h-8 text-[#3A3A52] mx-auto mb-3" />
+                            <Code2 className="size-8 text-[#3A3A52] mx-auto mb-3" />
                             <p className="text-[#8B8BA7] font-mono text-sm">
                                 Code was not saved for this mission.
                             </p>

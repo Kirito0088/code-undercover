@@ -36,17 +36,18 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
   return (
     <div className="md:hidden" ref={menuRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
         aria-label="Toggle menu"
       >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
       </button>
 
       {/* Mobile Menu Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 bg-[#14141A]/98 backdrop-blur-xl border-b border-[#323242] shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="px-4 py-4 space-y-1">
+          <div className="p-4 space-y-1">
             {isAuthenticated ? (
               <>
                 <Link

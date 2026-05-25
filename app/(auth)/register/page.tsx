@@ -14,7 +14,7 @@ const LANGUAGES = [
 ]
 
 export default function RegisterPage() {
-    const router = useRouter()
+    const { push } = useRouter()
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -37,7 +37,7 @@ export default function RegisterPage() {
             })
 
             if (res.ok) {
-                router.push("/login")
+                push("/login")
             } else {
                 const data = await res.json()
                 setError(data.message || "Registration failed. Please check your inputs.")
@@ -124,14 +124,15 @@ export default function RegisterPage() {
                         </div>
 
                         {/* Language Selector */}
-                        <div>
-                            <label className="block text-xs font-medium text-[#8B8BA7] mb-3">
+                        <fieldset className="min-w-0 border-0 p-0 m-0">
+                            <legend className="mb-3 p-0 text-xs font-medium text-[#8B8BA7]">
                                 Select Language
-                            </label>
+                            </legend>
                             <div className="grid grid-cols-2 gap-3">
                                 {LANGUAGES.map((lang) => (
                                     <label
                                         key={lang.value}
+                                        htmlFor={`preferred-language-${lang.value}`}
                                         className={`
                                             relative flex items-center gap-3 cursor-pointer rounded-lg px-4 py-3 
                                             border transition-all duration-200 group
@@ -142,8 +143,10 @@ export default function RegisterPage() {
                                         `}
                                     >
                                         <input
+                                            id={`preferred-language-${lang.value}`}
                                             type="radio"
                                             name="preferredLanguage"
+                                            aria-label={lang.label}
                                             value={lang.value}
                                             checked={formData.preferredLanguage === lang.value}
                                             onChange={(e) => setFormData({ ...formData, preferredLanguage: e.target.value })}
@@ -151,7 +154,7 @@ export default function RegisterPage() {
                                         />
                                         {/* Custom radio indicator */}
                                         <span className={`
-                                            flex-shrink-0 h-4 w-4 rounded-full border-2 transition-all duration-200
+                                            flex-shrink-0 size-4 rounded-full border-2 transition-all duration-200
                                             flex items-center justify-center
                                             ${formData.preferredLanguage === lang.value
                                                 ? "border-indigo-500 bg-indigo-500"
@@ -159,7 +162,7 @@ export default function RegisterPage() {
                                             }
                                         `}>
                                             {formData.preferredLanguage === lang.value && (
-                                                <span className="h-1.5 w-1.5 rounded-full bg-black" />
+                                                <span className="size-1.5 rounded-full bg-white" />
                                             )}
                                         </span>
                                         <span className="text-lg">{lang.icon}</span>
@@ -169,7 +172,7 @@ export default function RegisterPage() {
                                     </label>
                                 ))}
                             </div>
-                        </div>
+                        </fieldset>
 
                         <div>
                             <Button type="submit" className="w-full text-sm font-medium" disabled={loading}>

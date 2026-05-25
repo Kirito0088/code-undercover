@@ -33,7 +33,7 @@ export default async function DebugLabPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-2xl font-semibold text-red-500 tracking-tight flex items-center gap-3">
-                            <BugOff className="h-8 w-8" />
+                            <BugOff className="size-8" />
                             Debug Lab
                         </h1>
                         <p className="mt-1 text-xs text-[#8B8BA7]">
@@ -65,7 +65,7 @@ export default async function DebugLabPage() {
 
                 {missions.length === 0 && (
                     <div className="text-center py-20">
-                        <BugOff className="h-12 w-12 text-[#3A3A52] mx-auto mb-4" />
+                        <BugOff className="size-12 text-[#3A3A52] mx-auto mb-4" />
                         <p className="text-[#8B8BA7] text-sm">No corrupted modules detected. The system is secure.</p>
                     </div>
                 )}
