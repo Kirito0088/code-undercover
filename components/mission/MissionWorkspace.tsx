@@ -39,20 +39,20 @@ export function MissionWorkspace({
     userMission,
 }: MissionWorkspaceProps) {
     const [phase, setPhase] = useState<"TEACHING" | "MCQ" | "CODING">(
-        (userMission.phase as "TEACHING" | "MCQ" | "CODING") || "TEACHING"
+        (userMission?.phase as "TEACHING" | "MCQ" | "CODING") || "TEACHING"
     )
-    const [hintsUsed, setHintsUsed] = useState(userMission.hintsUsed || 0)
+    const [hintsUsed, setHintsUsed] = useState(userMission?.hintsUsed || 0)
     const [attemptCount, setAttemptCount] = useState(
-        userMission.attemptCount || 0
+        userMission?.attemptCount || 0
     )
     const [innovationUnlocked, setInnovationUnlocked] = useState(
-        userMission.innovationUnlocked || false
+        userMission?.innovationUnlocked || false
     )
     const [missionCleared, setMissionCleared] = useState(false)
     const [clearInfo, setClearInfo] = useState<MissionClearInfo | null>(null)
     const [pendingClearInfo, setPendingClearInfo] = useState<MissionClearInfo | null>(null)
     const [showIntro, setShowIntro] = useState(
-        mission.order === 1 && (!userMission.phase || userMission.phase === "TEACHING")
+        mission.order === 1 && (!userMission?.phase || userMission.phase === "TEACHING")
     )
     const [showGrantedIntro, setShowGrantedIntro] = useState(false)
     const [activeTab, setActiveTab] = useState<"briefing" | "editor" | "terminal">("editor")

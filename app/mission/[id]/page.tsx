@@ -33,20 +33,34 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
         redirect("/dashboard")
     }
 
-    // Auto-create UserMission record if it doesn't exist (prevents "solve twice" bug)
-    // userMission upsert and userProfile fetch are independent — run concurrently
-    const [userMission, userProfile] = await Promise.all([
-        safeDbQuery(
-            () => db.userMission.upsert({
-                where: { userId_missionId: { userId: session.user.id, missionId: id } },
-                update: {},
-                create: {
+    // Concurrent-safe getOrCreateUserMission to eliminate unique index race condition
+    const getOrCreateUserMission = async () => {
+        const existing = await db.userMission.findUnique({
+            where: { userId_missionId: { userId: session.user.id, missionId: id } }
+        })
+        if (existing) return existing
+
+        try {
+            return await db.userMission.create({
+                data: {
                     userId: session.user.id,
                     missionId: id,
                     status: 'ACTIVE',
                     startedAt: new Date(),
                 }
-            }),
+            })
+        } catch (err) {
+            // Concurrent insert won — fetch it again
+            return await db.userMission.findUnique({
+                where: { userId_missionId: { userId: session.user.id, missionId: id } }
+            })
+        }
+    }
+
+    // Fetch userMission and userProfile concurrently
+    const [userMission, userProfile] = await Promise.all([
+        safeDbQuery(
+            () => getOrCreateUserMission(),
             null,
             "MissionPage.userMission"
         ),
