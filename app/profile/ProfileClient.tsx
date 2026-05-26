@@ -35,7 +35,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [deleteModal, setDeleteModal] = useState(false)
-  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const saveStatusTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
 
@@ -73,7 +72,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setDeleteModal(false)
-        setDeleteConfirmText('')
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -125,7 +123,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
 
   // Account deletion handler
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') return
     setDeleting(true)
 
     try {
@@ -144,7 +141,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
     } finally {
       setDeleting(false)
       setDeleteModal(false)
-      setDeleteConfirmText('')
     }
   }
 
@@ -421,24 +417,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
                   This action is permanent and completely irreversible. All your completed C challenges, sandbox codes, leaderboard rank points, and session keys will be wiped.
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <label id="delete-confirm-label" htmlFor="delete-confirm" className="text-[10px] font-extrabold uppercase tracking-wider text-[#8B8BA7]">
-                  Type <span className="text-red-400 font-black">DELETE</span> to authorize destruction:
-                </label>
-                <input
-                  id="delete-confirm"
-                  name="delete-confirm"
-                  autoComplete="off"
-                  type="text"
-                  aria-labelledby="delete-confirm-label"
-                  required
-                  placeholder="DELETE"
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-xs focus:outline-none focus:border-red-500 transition-all font-mono tracking-widest uppercase text-center"
-                  value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value)}
-                />
-              </div>
             </div>
 
             <div className="bg-[#14141A] px-6 py-4 flex justify-end gap-3 border-t border-[#323242]">
@@ -446,26 +424,25 @@ export function ProfileClient({ user }: ProfileClientProps) {
                 type="button"
                 onClick={() => {
                   setDeleteModal(false)
-                  setDeleteConfirmText('')
                 }}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35]/60 transition-all"
+                className="px-4 py-2 rounded-lg text-xs font-bold text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35]/60 transition-all border border-[#323242]"
               >
-                Abort Infiltration
+                Cancel Deletion
               </button>
 
               <button
                 type="button"
-                disabled={deleteConfirmText !== 'DELETE' || deleting}
+                disabled={deleting}
                 onClick={handleDeleteAccount}
-                className="px-4 py-2 rounded-lg bg-red-600/10 hover:bg-red-600 border border-red-500/30 hover:border-red-500 disabled:opacity-50 text-red-400 hover:text-white text-xs font-black transition-all flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 border border-red-500 disabled:opacity-50 text-white text-xs font-black transition-all flex items-center gap-1.5"
               >
                 {deleting ? (
                   <>
                     <Loader className="size-3 animate-spin" />
-                    Destroying&hellip;
+                    Deleting Account&hellip;
                   </>
                 ) : (
-                  "Confirm Destruction"
+                  "Confirm Delete"
                 )}
               </button>
             </div>
