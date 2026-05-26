@@ -3,8 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
-import { Terminal, AlertTriangle, Shield, Zap, LayoutDashboard, Rocket, History, Target, CheckCircle, Flame, Medal, Bolt, Play, BookOpen } from "lucide-react"
-import { MissionCard } from "./MissionCard"
+import { AlertTriangle, Shield, Zap, LayoutDashboard, History, Target, CheckCircle, Flame, Medal, Bolt, Play, BookOpen } from "lucide-react"
 import { DailyChallenge, type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { MissionIntelStory } from "./MissionIntelStory"
 import Link from "next/link"
@@ -265,7 +264,7 @@ export default async function DashboardPage() {
                     {/* Levels Section */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Beginner Level Card */}
-                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group">
+                        <Link href="/levels?path=Beginner" className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group block cursor-pointer">
                             <div className="size-10 bg-indigo-950/20 border border-indigo-500/30 rounded-lg flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform duration-300">
                                 <BookOpen className="size-5" />
                             </div>
@@ -273,10 +272,10 @@ export default async function DashboardPage() {
                             <p className="text-xs text-[#908fa0] leading-relaxed">
                                 Sequential C fundamentals and logic structures. Master basic syntax, variable declarations, and fundamental operators.
                             </p>
-                        </div>
+                        </Link>
 
                         {/* Intermediate Level Card */}
-                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group">
+                        <Link href="/levels?path=Intermediate" className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group block cursor-pointer">
                             <div className="size-10 bg-indigo-950/20 border border-indigo-500/30 rounded-lg flex items-center justify-center mb-4 text-[#4ae176] group-hover:scale-110 transition-transform duration-300">
                                 <Play className="size-5 fill-current" />
                             </div>
@@ -284,10 +283,10 @@ export default async function DashboardPage() {
                             <p className="text-xs text-[#908fa0] leading-relaxed">
                                 Solve complex C challenges with loops, control flow, pointers, memory addresses, and data structures.
                             </p>
-                        </div>
+                        </Link>
 
                         {/* Expert Level Card */}
-                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group">
+                        <Link href="/levels?path=Expert" className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group block cursor-pointer">
                             <div className="size-10 bg-indigo-950/20 border border-indigo-500/30 rounded-lg flex items-center justify-center mb-4 text-[#ffb95f] group-hover:scale-110 transition-transform duration-300">
                                 <Zap className="size-5 fill-current" />
                             </div>
@@ -295,35 +294,12 @@ export default async function DashboardPage() {
                             <p className="text-xs text-[#908fa0] leading-relaxed">
                                 Conquer advanced algorithm design, memory security audits, recursive compiler optimizations, and low-level performance.
                             </p>
-                        </div>
+                        </Link>
                     </div>
 
-                    {/* Split layout for Active Intel and Daily Challenge */}
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                        {/* Mission List */}
-                        <div id="missions-section" className="xl:col-span-2 flex flex-col gap-4 scroll-mt-20">
-                            <h3 className="text-lg font-bold text-[#e4e1e9] flex items-center gap-2">
-                                <Rocket className="size-5 text-indigo-400" />
-                                Active Intel
-                            </h3>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {missions.map((mission) => (
-                                    <MissionCard key={mission.id} mission={mission} />
-                                ))}
-                            </div>
-
-                            {missions.length === 0 && !dbOffline && (
-                                <div className="text-center py-20 bg-[#1C1C24] border border-[#323242] rounded-xl">
-                                    <Terminal className="size-12 text-[#5C5C7A] mx-auto mb-4" />
-                                    <p className="text-[#8B8BA7] font-mono">No missions available. Check back soon, Agent.</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Daily Challenge Widget */}
-                        <div id="challenge-section" className="xl:col-span-1 scroll-mt-20">
-                            <DailyChallenge initialQuestion={dailyChallengeQuestion} />
-                        </div>
+                    {/* Daily Challenge Widget */}
+                    <div id="challenge-section" className="scroll-mt-20">
+                        <DailyChallenge initialQuestion={dailyChallengeQuestion} />
                     </div>
                 </main>
             </div>

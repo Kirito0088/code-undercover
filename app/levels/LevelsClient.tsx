@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { BookOpen, Play, Zap, CheckCircle, Lock, Shield, Medal, Flame, Sparkles, X, ChevronRight, History } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
 
 interface LevelNode {
@@ -426,7 +427,17 @@ export function LevelsClient({
     currentRank, 
     nextThreshold 
 }: LevelsClientProps) {
+    const searchParams = useSearchParams()
+    const pathParam = searchParams ? searchParams.get('path') : null
+
     const [activePath, setActivePath] = useState<'Beginner' | 'Intermediate' | 'Expert'>('Beginner')
+
+    useEffect(() => {
+        if (pathParam === 'Beginner' || pathParam === 'Intermediate' || pathParam === 'Expert') {
+            setActivePath(pathParam)
+        }
+    }, [pathParam])
+
     const [infoModal, setInfoModal] = useState<{ isOpen: boolean; level: LevelNode | null }>({
         isOpen: false,
         level: null

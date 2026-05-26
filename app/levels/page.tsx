@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
@@ -69,12 +70,14 @@ export default async function LevelsPage() {
     }))
 
     return (
-        <LevelsClient
-            user={user}
-            dbMissions={dbMissions}
-            userMissions={mappedUserMissions}
-            currentRank={currentRank}
-            nextThreshold={nextThreshold}
-        />
+        <Suspense fallback={<div className="min-h-screen bg-[#14141A] text-white flex items-center justify-center font-mono">Loading Curriculum...</div>}>
+            <LevelsClient
+                user={user}
+                dbMissions={dbMissions}
+                userMissions={mappedUserMissions}
+                currentRank={currentRank}
+                nextThreshold={nextThreshold}
+            />
+        </Suspense>
     )
 }
