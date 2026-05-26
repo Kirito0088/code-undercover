@@ -78,39 +78,64 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
     try {
-        const session = await getServerSession(authOptions)
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        console.log("[DELETE PROFILE API] DELETE request received");
+        const session = await getServerSession(authOptions);
+        console.log("[DELETE PROFILE API] Session data:", JSON.stringify(session));
+
+        const userId = session?.user?.id;
+        const userEmail = session?.user?.email?.trim().toLowerCase();
+
+        if (!userId && !userEmail) {
+            console.error("[DELETE PROFILE API] Unauthorized: Missing user ID and email in session");
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Permanently delete the user from the PostgreSQL database.
-        // Relational cascades (onDelete: Cascade) will purge all linked accounts, sessions, and user missions.
-        await db.user.delete({
-            where: { id: session.user.id }
-        })
+        // Extremely robust lookup: check by both ID and email to protect against session/adapter sync edge cases
+        console.log(`[DELETE PROFILE API] Looking up user in database. ID: ${userId || 'N/A'}, Email: ${userEmail || 'N/A'}`);
+        const userToDelete = await db.user.findFirst({
+            where: {
+                OR: [
+                    ...(userId ? [{ id: userId }] : []),
+                    ...(userEmail ? [{ email: userEmail }] : [])
+                ]
+            }
+        });
+
+        if (!userToDelete) {
+            console.warn("[DELETE PROFILE API] User record not found in database for deletion.");
+            return NextResponse.json({ error: "Account not found or already deleted" }, { status: 404 });
+        }
+
+        console.log(`[DELETE PROFILE API] Executing db.user.delete for ID: ${userToDelete.id} (Email: ${userToDelete.email})`);
+        const deletedUser = await db.user.delete({
+            where: { id: userToDelete.id }
+        });
+        console.log("[DELETE PROFILE API] Successfully deleted user from database:", JSON.stringify(deletedUser));
 
         const response = NextResponse.json({ 
             success: true, 
             message: "Account deleted successfully." 
-        })
+        });
 
         // Server-Side Session Invalidation:
         // Set standard and secure NextAuth cookies to expire immediately (maxAge = 0)
         // to handle client-side signOut failures cleanly.
-        const cookieOptions = "path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
-        response.headers.append("Set-Cookie", `next-auth.session-token=; ${cookieOptions}`)
-        response.headers.append("Set-Cookie", `__Secure-next-auth.session-token=; ${cookieOptions}; Secure`)
+        const cookieOptions = "path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+        response.headers.append("Set-Cookie", `next-auth.session-token=; ${cookieOptions}`);
+        response.headers.append("Set-Cookie", `__Secure-next-auth.session-token=; ${cookieOptions}; Secure`);
 
-        return response
+        console.log("[DELETE PROFILE API] Returning success response and clearing cookies");
+        return response;
     } catch (error: unknown) {
-        console.error("[Profile DELETE Error]:", error)
+        console.error("[DELETE PROFILE API] Error in DELETE handler:", error);
         
         // Handle Prisma "Record not found" error (P2025)
-        const err = error as { code?: string }
+        const err = error as { code?: string };
         if (err.code === 'P2025') {
-            return NextResponse.json({ error: "Account not found or already deleted" }, { status: 404 })
+            console.warn("[DELETE PROFILE API] Record not found in database (P2025). User might already be deleted.");
+            return NextResponse.json({ error: "Account not found or already deleted" }, { status: 404 });
         }
 
-        return NextResponse.json({ error: "Failed to delete account" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
     }
 }
