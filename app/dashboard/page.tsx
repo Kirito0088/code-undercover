@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
-import { Terminal, AlertTriangle, Shield, Zap, LayoutDashboard, Rocket, History, Target, CheckCircle, Flame, Medal, Bolt, Play } from "lucide-react"
+import { Terminal, AlertTriangle, Shield, Zap, LayoutDashboard, Rocket, History, Target, CheckCircle, Flame, Medal, Bolt, Play, BookOpen } from "lucide-react"
 import { MissionCard } from "./MissionCard"
 import { DailyChallenge, type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { MissionIntelStory } from "./MissionIntelStory"
@@ -189,7 +189,7 @@ export default async function DashboardPage() {
                             <div>
                                 <p className="text-amber-400 font-mono text-sm font-bold">DATABASE CONNECTION FAILED</p>
                                 <p className="text-amber-400/70 font-mono text-xs mt-1">
-                                    Unable to reach the database. Check your DATABASE_URL in .env and ensure MongoDB Atlas is accessible from your network.
+                                    Unable to reach the database. Check your DATABASE_URL and DIRECT_URL in .env and ensure your PostgreSQL/Supabase database is accessible from your network.
                                 </p>
                             </div>
                         </div>
@@ -259,6 +259,42 @@ export default async function DashboardPage() {
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Levels Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Beginner Level Card */}
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group">
+                            <div className="size-10 bg-indigo-950/20 border border-indigo-500/30 rounded-lg flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                                <BookOpen className="size-5" />
+                            </div>
+                            <h3 className="text-base font-bold text-[#e4e1e9] mb-2 font-headline group-hover:text-indigo-400 transition-colors">Beginner</h3>
+                            <p className="text-xs text-[#908fa0] leading-relaxed">
+                                Sequential C fundamentals and logic structures. Master basic syntax, variable declarations, and fundamental operators.
+                            </p>
+                        </div>
+
+                        {/* Intermediate Level Card */}
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group">
+                            <div className="size-10 bg-indigo-950/20 border border-indigo-500/30 rounded-lg flex items-center justify-center mb-4 text-[#4ae176] group-hover:scale-110 transition-transform duration-300">
+                                <Play className="size-5 fill-current" />
+                            </div>
+                            <h3 className="text-base font-bold text-[#e4e1e9] mb-2 font-headline group-hover:text-indigo-400 transition-colors">Intermediate</h3>
+                            <p className="text-xs text-[#908fa0] leading-relaxed">
+                                Solve complex C challenges with loops, control flow, pointers, memory addresses, and data structures.
+                            </p>
+                        </div>
+
+                        {/* Expert Level Card */}
+                        <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-6 hover:border-indigo-500/30 transition-all duration-300 group">
+                            <div className="size-10 bg-indigo-950/20 border border-indigo-500/30 rounded-lg flex items-center justify-center mb-4 text-[#ffb95f] group-hover:scale-110 transition-transform duration-300">
+                                <Zap className="size-5 fill-current" />
+                            </div>
+                            <h3 className="text-base font-bold text-[#e4e1e9] mb-2 font-headline group-hover:text-indigo-400 transition-colors">Expert</h3>
+                            <p className="text-xs text-[#908fa0] leading-relaxed">
+                                Conquer advanced algorithm design, memory security audits, recursive compiler optimizations, and low-level performance.
+                            </p>
                         </div>
                     </div>
 
