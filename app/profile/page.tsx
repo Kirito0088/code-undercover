@@ -12,14 +12,19 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
+  if (!session?.user?.email && !session?.user?.id) {
     redirect("/login")
   }
 
   const user = await safeDbQuery(
-    () => db.user.findUnique({
-      where: { id: session.user.id },
-      select: { name: true, email: true, auraPoints: true, auraLevel: true }
+    () => db.user.findFirst({
+      where: {
+        OR: [
+          ...(session?.user?.id ? [{ id: session.user.id }] : []),
+          ...(session?.user?.email ? [{ email: session.user.email }] : [])
+        ]
+      },
+      select: { id: true, name: true, email: true, auraPoints: true, auraLevel: true }
     }),
     null,
     "ProfilePage.user"
@@ -32,7 +37,7 @@ export default async function ProfilePage() {
   return (
     <ProfileClient 
       user={{
-        id: session.user.id,
+        id: user.id,
         name: user.name,
         email: user.email,
         auraPoints: user.auraPoints,
