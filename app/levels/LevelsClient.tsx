@@ -42,7 +42,7 @@ interface LevelsClientProps {
     nextThreshold: number
 }
 
-// Complete 20-level curriculum structure for Beginner (EASY)
+// Complete 20-level curriculum structure for Beginner — ALL real missions + simulation nodes
 const BEGINNER_CURRICULUM: LevelNode[] = [
     {
         id: "beg-1",
@@ -52,7 +52,7 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         difficulty: "EASY",
         auraReward: 100,
         isReal: true,
-        realId: "af618526-a3c8-4031-a6a1-c8f8360a2978" // Matches order 1 database mission
+        realId: "af618526-a3c8-4031-a6a1-c8f8360a2978"
     },
     {
         id: "beg-2",
@@ -62,11 +62,41 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         difficulty: "EASY",
         auraReward: 100,
         isReal: true,
-        realId: "f3ca74df-0abb-4fa0-ac9c-982b837cd9c4" // Matches order 2 database mission
+        realId: "f3ca74df-0abb-4fa0-ac9c-982b837cd9c4"
     },
     {
         id: "beg-3",
         order: 3,
+        title: "Control Flow Lockdown",
+        description: "Override complex decision pathways using composite nested conditional controls and relational branches.",
+        difficulty: "EASY",
+        auraReward: 214,
+        isReal: true,
+        realId: "e9e4213c-b83a-4623-9d09-0b7d41bde0ee"
+    },
+    {
+        id: "beg-4",
+        order: 4,
+        title: "Loop Protocol",
+        description: "Decrypt transmission packages continuously using iterative for, while, and do-while loop constructs.",
+        difficulty: "EASY",
+        auraReward: 258,
+        isReal: true,
+        realId: "972215a4-9206-4095-81fa-674ea7ebd1db"
+    },
+    {
+        id: "beg-5",
+        order: 5,
+        title: "Function Assembly",
+        description: "Verify modular sub-systems and inject operational code parameters using reusable C functions.",
+        difficulty: "EASY",
+        auraReward: 300,
+        isReal: true,
+        realId: "442aaad0-2c5f-4daa-8198-f826fff535ca"
+    },
+    {
+        id: "beg-6",
+        order: 6,
         title: "Data Cryptography",
         description: "Perform terminal computations by executing operations using standard arithmetic precedence rules.",
         difficulty: "EASY",
@@ -74,8 +104,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-4",
-        order: 4,
+        id: "beg-7",
+        order: 7,
         title: "Operative Decisions",
         description: "Construct structural pathways using standard conditional decision blocks (if, else if, else).",
         difficulty: "EASY",
@@ -83,8 +113,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-5",
-        order: 5,
+        id: "beg-8",
+        order: 8,
         title: "Secure Logic Gates",
         description: "Evaluate complex conditions by chaining binary logical parameters using &&, ||, and ! operators.",
         difficulty: "EASY",
@@ -92,8 +122,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-6",
-        order: 6,
+        id: "beg-9",
+        order: 9,
         title: "Switching Frequencies",
         description: "Optimize conditional flow structures with multiple routing paths using switch-case statements.",
         difficulty: "EASY",
@@ -101,8 +131,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-7",
-        order: 7,
+        id: "beg-10",
+        order: 10,
         title: "Iterative Extraction",
         description: "Infiltrate and extract data logs continuously using basic pre-test while loops.",
         difficulty: "EASY",
@@ -110,8 +140,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-8",
-        order: 8,
+        id: "beg-11",
+        order: 11,
         title: "Loop Encryption",
         description: "Develop counter-controlled iteration routines using optimized C for-loop parameters.",
         difficulty: "EASY",
@@ -119,17 +149,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-9",
-        order: 9,
-        title: "Sentinel Surveillance",
-        description: "Ensure dynamic security handshakes using post-test do-while iterative code architectures.",
-        difficulty: "EASY",
-        auraReward: 100,
-        isReal: false
-    },
-    {
-        id: "beg-10",
-        order: 10,
+        id: "beg-12",
+        order: 12,
         title: "Breakout Protocols",
         description: "Exert absolute authority over looping execution using structured break and continue signals.",
         difficulty: "EASY",
@@ -137,8 +158,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-11",
-        order: 11,
+        id: "beg-13",
+        order: 13,
         title: "Nested Surveillance",
         description: "Process complex multi-dimensional data grids by executing loop operations inside loop frames.",
         difficulty: "EASY",
@@ -146,8 +167,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-12",
-        order: 12,
+        id: "beg-14",
+        order: 14,
         title: "Agent Signature",
         description: "Encapsulate executable actions into isolated, modular parameters using void functions.",
         difficulty: "EASY",
@@ -155,8 +176,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-13",
-        order: 13,
+        id: "beg-15",
+        order: 15,
         title: "Data Return Payload",
         description: "Develop standalone functional subroutines that process inputs and yield exact return parameters.",
         difficulty: "EASY",
@@ -164,8 +185,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-14",
-        order: 14,
+        id: "beg-16",
+        order: 16,
         title: "Scope & Lifetime",
         description: "Manage system memory scope and stack boundaries by regulating local vs global variable definitions.",
         difficulty: "EASY",
@@ -173,8 +194,8 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-15",
-        order: 15,
+        id: "beg-17",
+        order: 17,
         title: "Array Grid Infiltration",
         description: "Store, access, and parse linear data streams sequentially using C single-dimensional arrays.",
         difficulty: "EASY",
@@ -182,28 +203,10 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         isReal: false
     },
     {
-        id: "beg-16",
-        order: 16,
-        title: "Matrix Code Decryption",
-        description: "Map coordinate matrices and tabular database fields securely using two-dimensional arrays.",
-        difficulty: "EASY",
-        auraReward: 100,
-        isReal: false
-    },
-    {
-        id: "beg-17",
-        order: 17,
-        title: "Operative Strings",
-        description: "Store and process null-terminated character buffers (\0) using fundamental string properties.",
-        difficulty: "EASY",
-        auraReward: 100,
-        isReal: false
-    },
-    {
         id: "beg-18",
         order: 18,
-        title: "Password Validator",
-        description: "Write structural string-parsing routines using native library helpers from string.h.",
+        title: "Operative Strings",
+        description: "Store and process null-terminated character buffers (\\0) using fundamental string properties.",
         difficulty: "EASY",
         auraReward: 100,
         isReal: false
@@ -233,22 +236,20 @@ const INTERMEDIATE_CURRICULUM: LevelNode[] = [
     {
         id: "int-1",
         order: 1,
-        title: "Control Flow Lockdown",
-        description: "Override complex firewalls using composite nested decision controls and relational branches.",
+        title: "Advanced Control Logic",
+        description: "Analyze complex firewalls using composite nested decision controls and relational branches.",
         difficulty: "MEDIUM",
-        isReal: true,
-        auraReward: 100,
-        realId: "e9e4213c-b83a-4623-9d09-0b7d41bde0ee" // Matches order 3 database mission
+        isReal: false,
+        auraReward: 120
     },
     {
         id: "int-2",
         order: 2,
-        title: "Loop Protocol",
-        description: "Decrypt transmission packages continuously using iterative loop constructs.",
+        title: "Loop Optimization Protocol",
+        description: "Process transmission packages continuously using optimized iterative loop constructs.",
         difficulty: "MEDIUM",
-        isReal: true,
-        auraReward: 100,
-        realId: "972215a4-9206-4095-81fa-674ea7ebd1db" // Matches order 4 database mission
+        isReal: false,
+        auraReward: 120
     },
     {
         id: "int-3",
@@ -329,12 +330,11 @@ const EXPERT_CURRICULUM: LevelNode[] = [
     {
         id: "exp-1",
         order: 1,
-        title: "Function Assembly",
-        description: "Verify modular sub-systems and inject operational code parameters directly.",
+        title: "Deep Function Injection",
+        description: "Verify modular sub-systems and inject operational compiler instructions directly.",
         difficulty: "HARD",
-        isReal: true,
-        auraReward: 100,
-        realId: "442aaad0-2c5f-4daa-8198-f826fff535ca" // Matches order 5 database mission
+        isReal: false,
+        auraReward: 150
     },
     {
         id: "exp-2",
@@ -482,15 +482,20 @@ export function LevelsClient({
             const um = userMissionsMap.get(lvl.realId)
             const status = (um?.status || "LOCKED") as "COMPLETED" | "UNLOCKED" | "IN_PROGRESS" | "LOCKED"
             
-            // Hardcode: make order 1 and 2 unlocked by default if not completed or locked
-            if (lvl.order === 1 && status === "LOCKED") {
-                return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
-            }
-            if (lvl.order === 2) {
-                // If level 1 is completed, level 2 is unlocked
-                const level1Um = userMissionsMap.get(BEGINNER_CURRICULUM[0].realId!)
-                if (level1Um?.status === "COMPLETED" && status === "LOCKED") {
-                    return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+            // Sequential unlocking for real Beginner missions (1 to 5):
+            if (lvl.difficulty === "EASY") {
+                if (lvl.order === 1) {
+                    if (status === "LOCKED") {
+                        return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+                    }
+                } else {
+                    const precedingLvl = BEGINNER_CURRICULUM.find(b => b.order === lvl.order - 1)
+                    if (precedingLvl?.realId) {
+                        const precedingUm = userMissionsMap.get(precedingLvl.realId)
+                        if (precedingUm?.status === "COMPLETED" && status === "LOCKED") {
+                            return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+                        }
+                    }
                 }
             }
 
@@ -502,28 +507,28 @@ export function LevelsClient({
         }
 
         // For mock simulation levels, we lock them if the preceding real levels in the campaign aren't complete
-        // In Beginner path: require variable infiltration (beg-2) to be complete
+        // In Beginner path: require Function Assembly (beg-5) to be complete
         if (lvl.difficulty === "EASY") {
-            const varInfUm = userMissionsMap.get("f3ca74df-0abb-4fa0-ac9c-982b837cd9c4")
-            const isVarInfComplete = varInfUm?.status === "COMPLETED"
+            const funcAssUm = userMissionsMap.get("442aaad0-2c5f-4daa-8198-f826fff535ca")
+            const isFuncComplete = funcAssUm?.status === "COMPLETED"
             
-            if (isVarInfComplete) {
+            if (isFuncComplete) {
                 return { status: "SIMULATION", isLocked: false }
             }
             return { status: "LOCKED", isLocked: true }
         }
 
-        // For Intermediate path mock levels: require intermediate real levels to be complete
+        // For Intermediate path mock levels: require all Beginner real levels to be complete (Function Assembly)
         if (lvl.difficulty === "MEDIUM") {
-            const loopProtUm = userMissionsMap.get("972215a4-9206-4095-81fa-674ea7ebd1db")
-            const isLoopComplete = loopProtUm?.status === "COMPLETED"
-            if (isLoopComplete) {
+            const funcAssUm = userMissionsMap.get("442aaad0-2c5f-4daa-8198-f826fff535ca")
+            const isFuncComplete = funcAssUm?.status === "COMPLETED"
+            if (isFuncComplete) {
                 return { status: "SIMULATION", isLocked: false }
             }
             return { status: "LOCKED", isLocked: true }
         }
 
-        // For Expert path mock levels: require expert real levels to be complete
+        // For Expert path mock levels: require all Beginner real levels to be complete (Function Assembly)
         const funcAssUm = userMissionsMap.get("442aaad0-2c5f-4daa-8198-f826fff535ca")
         const isFuncComplete = funcAssUm?.status === "COMPLETED"
         if (isFuncComplete) {
