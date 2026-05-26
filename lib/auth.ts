@@ -95,6 +95,17 @@ export const authOptions: NextAuthOptions = {
             : []),
     ],
     callbacks: {
+        async signIn({ user, account }) {
+            if (account?.provider === "google") {
+                const existingUser = await db.user.findUnique({
+                    where: { email: user.email ?? "" }
+                });
+                if (!existingUser) {
+                    return "/login?error=AccountNotExist";
+                }
+            }
+            return true;
+        },
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id
