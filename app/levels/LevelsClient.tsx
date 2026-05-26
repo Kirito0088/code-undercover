@@ -613,19 +613,19 @@ export function LevelsClient({
                         </p>
                     </div>
 
-                    {/* Overall Progress */}
+                    {/* Track Progress Bar (Dynamic) */}
                     <div className="bg-[#1C1C24] border border-[#323242] rounded-xl p-5">
                         <div className="flex justify-between items-end mb-3">
                             <h3 className="text-sm font-bold text-[#e4e1e9] uppercase tracking-wider flex items-center gap-2">
                                 <Sparkles className="size-4 text-indigo-400" />
-                                Real Campaigns Infiltrated
+                                {activePath} Campaign Progress
                             </h3>
-                            <span className="text-xs text-[#908fa0] font-mono">{totalCompletedReal} of {totalRealMissions} missions completed · {overallPercent}%</span>
+                            <span className="text-xs text-[#908fa0] font-mono">{pathCompletions} of {totalPathLevels} levels completed · {pathPercent}%</span>
                         </div>
                         <div className="h-2.5 w-full bg-[#2A2A35] rounded-full overflow-hidden">
                             <div 
-                                className="h-full bg-indigo-500 rounded-full relative transition-all duration-1000 ease-out"
-                                style={{ width: `${overallPercent}%` }}
+                                className="h-full bg-indigo-500 rounded-full relative transition-all duration-500 ease-out"
+                                style={{ width: `${pathPercent}%` }}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
                             </div>
