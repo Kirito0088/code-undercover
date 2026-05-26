@@ -83,10 +83,34 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        // Stubbed delete action: returns success as per constraints
-        return NextResponse.json({ success: true, message: "Account deletion stub successful." })
+        // Permanently delete the user from the PostgreSQL database.
+        // Relational cascades (onDelete: Cascade) will purge all linked accounts, sessions, and user missions.
+        await db.user.delete({
+            where: { id: session.user.id }
+        })
+
+        const response = NextResponse.json({ 
+            success: true, 
+            message: "Account deleted successfully." 
+        })
+
+        // Server-Side Session Invalidation:
+        // Set standard and secure NextAuth cookies to expire immediately (maxAge = 0)
+        // to handle client-side signOut failures cleanly.
+        const cookieOptions = "path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+        response.headers.append("Set-Cookie", `next-auth.session-token=; ${cookieOptions}`)
+        response.headers.append("Set-Cookie", `__Secure-next-auth.session-token=; ${cookieOptions}; Secure`)
+
+        return response
     } catch (error: unknown) {
         console.error("[Profile DELETE Error]:", error)
+        
+        // Handle Prisma "Record not found" error (P2025)
+        const err = error as { code?: string }
+        if (err.code === 'P2025') {
+            return NextResponse.json({ error: "Account not found or already deleted" }, { status: 404 })
+        }
+
         return NextResponse.json({ error: "Failed to delete account" }, { status: 500 })
     }
 }

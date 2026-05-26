@@ -135,6 +135,9 @@ export function ProfileClient({ user }: ProfileClientProps) {
 
       if (response.ok) {
         await signOut({ callbackUrl: '/login' })
+      } else {
+        const data = await response.json().catch(() => ({}))
+        console.error('Failed to delete account:', data.error || 'Server error')
       }
     } catch (err) {
       console.error('Failed to delete account:', err)
