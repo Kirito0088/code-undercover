@@ -168,6 +168,9 @@ export function TerminalPanel({
                                     <span className="text-amber-400 whitespace-nowrap">{line.message}</span>
                                     <input 
                                         type="text"
+                                        id="terminal-input"
+                                        name="terminal-input"
+                                        autoComplete="off"
                                         ref={inputRef}
                                         aria-label={line.message}
                                         className="flex-1 bg-transparent border-none outline-none text-[#F1F1F5] font-mono caret-indigo-400"

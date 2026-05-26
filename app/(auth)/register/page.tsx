@@ -80,6 +80,7 @@ export default function RegisterPage() {
                                     id="name"
                                     name="name"
                                     type="text"
+                                    autoComplete="name"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -115,6 +116,7 @@ export default function RegisterPage() {
                                     id="password"
                                     name="password"
                                     type="password"
+                                    autoComplete="new-password"
                                     required
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}

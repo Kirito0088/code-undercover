@@ -272,6 +272,8 @@ export function ProfileClient({ user }: ProfileClientProps) {
                       <input
                         type="text"
                         id="name"
+                        name="name"
+                        autoComplete="name"
                         aria-labelledby="name-label"
                         maxLength={50}
                         required
@@ -288,6 +290,8 @@ export function ProfileClient({ user }: ProfileClientProps) {
                       <input
                         type="email"
                         id="email"
+                        name="email"
+                        autoComplete="email"
                         aria-labelledby="email-label"
                         required
                         className="w-full px-4 py-3 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-sm focus:outline-none focus:border-indigo-500 transition-all font-medium"
@@ -424,6 +428,8 @@ export function ProfileClient({ user }: ProfileClientProps) {
                 </label>
                 <input
                   id="delete-confirm"
+                  name="delete-confirm"
+                  autoComplete="off"
                   type="text"
                   aria-labelledby="delete-confirm-label"
                   required
