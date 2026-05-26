@@ -139,10 +139,10 @@ export default async function DashboardPage() {
                             <LayoutDashboard className="size-4 text-indigo-400" />
                             Dashboard
                         </Link>
-                        <a href="#missions-section" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
-                            <Rocket className="size-4 text-[#8B8BA7]" />
-                            Missions
-                        </a>
+                        <Link href="/levels" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
+                            <BookOpen className="size-4 text-indigo-400" />
+                            Curriculum
+                        </Link>
                         <Link href="/history" className="flex items-center gap-3 px-3 py-2.5 text-[#908fa0] hover:bg-[#2A2A35]/50 hover:text-[#e4e1e9] rounded-lg font-medium text-sm transition-colors">
                             <History className="size-4 text-[#8B8BA7]" />
                             History

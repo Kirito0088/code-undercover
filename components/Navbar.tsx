@@ -65,6 +65,12 @@ export default async function Navbar() {
                                     Dashboard
                                 </Link>
                                 <Link
+                                    href="/levels"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
+                                >
+                                    Curriculum
+                                </Link>
+                                <Link
                                     href="/debug-lab"
                                     className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
@@ -100,6 +106,12 @@ export default async function Navbar() {
                                     className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >
                                     Dashboard
+                                </Link>
+                                <Link
+                                    href="/levels"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
+                                >
+                                    Curriculum
                                 </Link>
                                 <Link
                                     href="/debug-lab"
