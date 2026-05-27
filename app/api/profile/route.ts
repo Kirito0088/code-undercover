@@ -83,32 +83,15 @@ export async function DELETE(req: Request) {
         console.log("[DELETE PROFILE API] Session data:", JSON.stringify(session));
 
         const userId = session?.user?.id;
-        const userEmail = session?.user?.email?.trim().toLowerCase();
 
-        if (!userId && !userEmail) {
-            console.error("[DELETE PROFILE API] Unauthorized: Missing user ID and email in session");
+        if (!userId) {
+            console.error("[DELETE PROFILE API] Unauthorized: Missing user ID in session");
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Extremely robust lookup: check by both ID and email to protect against session/adapter sync edge cases
-        console.log(`[DELETE PROFILE API] Looking up user in database. ID: ${userId || 'N/A'}, Email: ${userEmail || 'N/A'}`);
-        const userToDelete = await db.user.findFirst({
-            where: {
-                OR: [
-                    ...(userId ? [{ id: userId }] : []),
-                    ...(userEmail ? [{ email: userEmail }] : [])
-                ]
-            }
-        });
-
-        if (!userToDelete) {
-            console.warn("[DELETE PROFILE API] User record not found in database for deletion.");
-            return NextResponse.json({ error: "Account not found or already deleted" }, { status: 404 });
-        }
-
-        console.log(`[DELETE PROFILE API] Executing db.user.delete for ID: ${userToDelete.id} (Email: ${userToDelete.email})`);
+        console.log(`[DELETE PROFILE API] Executing db.user.delete for ID: ${userId}`);
         const deletedUser = await db.user.delete({
-            where: { id: userToDelete.id }
+            where: { id: userId }
         });
         console.log("[DELETE PROFILE API] Successfully deleted user from database:", JSON.stringify(deletedUser));
 
