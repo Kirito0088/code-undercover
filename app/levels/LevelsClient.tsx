@@ -52,8 +52,7 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         description: "Infiltrate target servers by mastering C printf syntax and standard formatted system outputs.",
         difficulty: "EASY",
         auraReward: 100,
-        isReal: true,
-        realId: "af618526-a3c8-4031-a6a1-c8f8360a2978"
+        isReal: true
     },
     {
         id: "beg-2",
@@ -62,8 +61,7 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         description: "Capture and declare local variables (int, float, char) and read terminal inputs using scanf.",
         difficulty: "EASY",
         auraReward: 100,
-        isReal: true,
-        realId: "f3ca74df-0abb-4fa0-ac9c-982b837cd9c4"
+        isReal: true
     },
     {
         id: "beg-3",
@@ -72,8 +70,7 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         description: "Override complex decision pathways using composite nested conditional controls and relational branches.",
         difficulty: "EASY",
         auraReward: 214,
-        isReal: true,
-        realId: "e9e4213c-b83a-4623-9d09-0b7d41bde0ee"
+        isReal: true
     },
     {
         id: "beg-4",
@@ -82,8 +79,7 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         description: "Decrypt transmission packages continuously using iterative for, while, and do-while loop constructs.",
         difficulty: "EASY",
         auraReward: 258,
-        isReal: true,
-        realId: "972215a4-9206-4095-81fa-674ea7ebd1db"
+        isReal: true
     },
     {
         id: "beg-5",
@@ -92,8 +88,7 @@ const BEGINNER_CURRICULUM: LevelNode[] = [
         description: "Verify modular sub-systems and inject operational code parameters using reusable C functions.",
         difficulty: "EASY",
         auraReward: 300,
-        isReal: true,
-        realId: "442aaad0-2c5f-4daa-8198-f826fff535ca"
+        isReal: true
     },
     {
         id: "beg-6",
@@ -445,11 +440,23 @@ export function LevelsClient({
 
     const userMissionsMap = new Map(userMissions.map((um) => [um.missionId, um]))
 
-    // Get levels for the active path
+    // Get levels for the active path, injecting the dynamic realId from dbMissions
     const getLevelsList = (): LevelNode[] => {
-        if (activePath === 'Beginner') return BEGINNER_CURRICULUM
-        if (activePath === 'Intermediate') return INTERMEDIATE_CURRICULUM
-        return EXPERT_CURRICULUM
+        const baseCurriculum = activePath === 'Beginner' 
+            ? BEGINNER_CURRICULUM 
+            : activePath === 'Intermediate' 
+            ? INTERMEDIATE_CURRICULUM 
+            : EXPERT_CURRICULUM
+
+        return baseCurriculum.map(lvl => {
+            if (lvl.isReal) {
+                const dbMatch = dbMissions.find(m => m.order === lvl.order)
+                if (dbMatch) {
+                    return { ...lvl, realId: dbMatch.id }
+                }
+            }
+            return lvl
+        })
     }
 
     const currentLevels = getLevelsList()
@@ -464,10 +471,13 @@ export function LevelsClient({
 
         let completed = 0
         curriculum.forEach((lvl) => {
-            if (lvl.isReal && lvl.realId) {
-                const um = userMissionsMap.get(lvl.realId)
-                if (um?.status === "COMPLETED") {
-                    completed++
+            if (lvl.isReal) {
+                const dbMatch = dbMissions.find(m => m.order === lvl.order)
+                if (dbMatch) {
+                    const um = userMissionsMap.get(dbMatch.id)
+                    if (um?.status === "COMPLETED") {
+                        completed++
+                    }
                 }
             }
         })
@@ -501,10 +511,13 @@ export function LevelsClient({
                     }
                 } else {
                     const precedingLvl = BEGINNER_CURRICULUM.find(b => b.order === lvl.order - 1)
-                    if (precedingLvl?.realId) {
-                        const precedingUm = userMissionsMap.get(precedingLvl.realId)
-                        if (precedingUm?.status === "COMPLETED" && status === "LOCKED") {
-                            return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+                    if (precedingLvl) {
+                        const dbMatch = dbMissions.find(m => m.order === precedingLvl.order)
+                        if (dbMatch) {
+                            const precedingUm = userMissionsMap.get(dbMatch.id)
+                            if (precedingUm?.status === "COMPLETED" && status === "LOCKED") {
+                                return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+                            }
                         }
                     }
                 }
@@ -519,10 +532,11 @@ export function LevelsClient({
 
         // For mock simulation levels, we lock them if the preceding real levels in the campaign aren't complete
         // In Beginner path: require Function Assembly (beg-5) to be complete
+        const funcAssMission = dbMissions.find(m => m.order === 5)
+        const funcAssUm = funcAssMission ? userMissionsMap.get(funcAssMission.id) : undefined
+        const isFuncComplete = funcAssUm?.status === "COMPLETED"
+
         if (lvl.difficulty === "EASY") {
-            const funcAssUm = userMissionsMap.get("442aaad0-2c5f-4daa-8198-f826fff535ca")
-            const isFuncComplete = funcAssUm?.status === "COMPLETED"
-            
             if (isFuncComplete) {
                 return { status: "SIMULATION", isLocked: false }
             }
@@ -531,8 +545,6 @@ export function LevelsClient({
 
         // For Intermediate path mock levels: require all Beginner real levels to be complete (Function Assembly)
         if (lvl.difficulty === "MEDIUM") {
-            const funcAssUm = userMissionsMap.get("442aaad0-2c5f-4daa-8198-f826fff535ca")
-            const isFuncComplete = funcAssUm?.status === "COMPLETED"
             if (isFuncComplete) {
                 return { status: "SIMULATION", isLocked: false }
             }
@@ -540,8 +552,6 @@ export function LevelsClient({
         }
 
         // For Expert path mock levels: require all Beginner real levels to be complete (Function Assembly)
-        const funcAssUm = userMissionsMap.get("442aaad0-2c5f-4daa-8198-f826fff535ca")
-        const isFuncComplete = funcAssUm?.status === "COMPLETED"
         if (isFuncComplete) {
             return { status: "SIMULATION", isLocked: false }
         }

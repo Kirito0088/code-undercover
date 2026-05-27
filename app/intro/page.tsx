@@ -53,15 +53,18 @@ export default function IntroPage() {
             return
         }
 
-        // Kick off video playback directly here — no second useEffect needed.
+        // Kick off video playback by mounting the video
         setShouldPlay(true)
-        if (videoRef.current) {
+    }, [replace, session, status])
+
+    useEffect(() => {
+        if (shouldPlay && videoRef.current) {
             videoRef.current.play().catch(() => {
                 // Browser blocked autoplay (video is unmuted); show manual prompt.
                 setAutoplayBlocked(true)
             })
         }
-    }, [replace, session, status])
+    }, [shouldPlay])
 
     const handleManualStart = () => {
         if (videoRef.current) {
@@ -70,7 +73,7 @@ export default function IntroPage() {
         }
     }
 
-    const handleVideoEnd = () => {
+    const handleVideoEnd = (isSkip = false) => {
         const userId = session?.user?.id
         if (userId) {
             localStorage.setItem(`hasSeenIntro_${userId}`, "true")
@@ -80,7 +83,7 @@ export default function IntroPage() {
         const redirectTimeout = setTimeout(() => {
             push("/levels")
             redirectTimeoutsRef.current.delete(redirectTimeout)
-        }, 2000)
+        }, isSkip ? 400 : 2000)
         redirectTimeoutsRef.current.add(redirectTimeout)
     }
 
@@ -94,7 +97,7 @@ export default function IntroPage() {
             {/* SKIP Button */}
             <button
                 type="button"
-                onClick={handleVideoEnd}
+                onClick={() => handleVideoEnd(true)}
                 aria-label="Skip intro video"
                 className="absolute top-6 right-8 z-[70] flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-all duration-200 bg-[#1C1C24]/80 hover:bg-[#2A2A35] px-3.5 py-1.5 rounded-md border border-[#323242] hover:border-[#3F3F52] backdrop-blur-sm shadow-md"
             >
@@ -120,7 +123,7 @@ export default function IntroPage() {
 
             {/* TERMINAL INITIALIZING fade overlay */}
             <div
-                className={`absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-[2000ms] ${
+                className={`absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-1000 ${
                     isFadingOut ? "opacity-100" : "opacity-0"
                 }`}
             >
@@ -143,10 +146,10 @@ export default function IntroPage() {
                 muted={false}
                 disablePictureInPicture
                 controlsList="nodownload nofullscreen noremoteplayback"
-                onEnded={handleVideoEnd}
-                onError={handleVideoEnd}
+                onEnded={() => handleVideoEnd(false)}
+                onError={() => handleVideoEnd(false)}
                 aria-label="Code Undercover intro cinematic"
-                className={`relative z-50 w-full h-full object-contain transition-opacity duration-[2000ms] bg-[#14141A] ${
+                className={`relative z-50 w-full h-full object-contain transition-opacity duration-1000 bg-[#14141A] ${
                     isFadingOut ? "opacity-0" : "opacity-100"
                 }`}
                 style={{ pointerEvents: "none" }}
