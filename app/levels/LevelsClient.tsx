@@ -501,7 +501,7 @@ export function LevelsClient({
     } => {
         if (lvl.isReal && lvl.realId) {
             const um = userMissionsMap.get(lvl.realId)
-            const status = (um?.status || "LOCKED") as "COMPLETED" | "UNLOCKED" | "IN_PROGRESS" | "LOCKED"
+            const status = (um?.status || "LOCKED") as "COMPLETED" | "UNLOCKED" | "IN_PROGRESS" | "ACTIVE" | "LOCKED"
             
             // Sequential unlocking for real Beginner missions (1 to 5):
             if (lvl.difficulty === "EASY") {
@@ -524,7 +524,7 @@ export function LevelsClient({
             }
 
             return { 
-                status: status === "UNLOCKED" || status === "IN_PROGRESS" ? "IN_PROGRESS" : status, 
+                status: status === "UNLOCKED" || status === "IN_PROGRESS" || status === "ACTIVE" ? "IN_PROGRESS" : status, 
                 isLocked: status === "LOCKED", 
                 realMissionId: lvl.realId 
             }
@@ -816,7 +816,18 @@ export function LevelsClient({
                                         <span className="text-[10px] font-mono text-[#5C5C7A]">Reward: <strong className="text-[#8B8BA7]">{lvl.auraReward} AP</strong></span>
                                         
                                         {isCompleted ? (
-                                            <span className="text-xs font-mono text-[#4ae176] font-bold">+{lvl.auraReward} AP</span>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-mono text-[#4ae176] font-bold">+{lvl.auraReward} AP</span>
+                                                {lvl.isReal && realMissionId && (
+                                                    <Link 
+                                                        href={`/mission/${realMissionId}`}
+                                                        className="bg-[#2A2A35] hover:bg-[#323242] text-[#F1F1F5] text-xs font-semibold px-4 py-2 rounded-lg transition-all text-center whitespace-nowrap border border-[#323242]"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        Replay Mission
+                                                    </Link>
+                                                )}
+                                            </div>
                                         ) : isCurrentlyUnlocked ? (
                                             lvl.isReal && realMissionId ? (
                                                 <Link 
@@ -824,7 +835,7 @@ export function LevelsClient({
                                                     className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-md shadow-indigo-500/15 text-center whitespace-nowrap"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
-                                                    Compile Node
+                                                    Compile Mission
                                                 </Link>
                                             ) : (
                                                 <button 
