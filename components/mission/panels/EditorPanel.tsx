@@ -165,9 +165,12 @@ export function EditorPanel({
                 }
 
                 // Platypus success explanation in the terminal
+                const earnedAuraVal = result.isReplay ? 0 : (result.earnedAura !== undefined ? result.earnedAura : 50)
                 lines.push(mkLine({
                     type: "hint" as const,
-                    message: `Excellent work, Agent.\n\nYour program compiled and executed successfully, producing the expected output.\n\nYour transmission module is now operational.\n\n+${result.earnedAura || result.auraEarned || 50} Aura Earned`
+                    message: result.isReplay
+                        ? `Excellent work, Agent.\n\nYour program compiled and executed successfully, producing the expected output.\n\nYour transmission module is now operational.\n\n[Replay Completed — 0 Aura Earned]`
+                        : `Excellent work, Agent.\n\nYour program compiled and executed successfully, producing the expected output.\n\nYour transmission module is now operational.\n\n+${earnedAuraVal} Aura Earned`
                 }))
 
                 // Innovation detection
@@ -186,9 +189,11 @@ export function EditorPanel({
 
                 // Store the clear info so the Finish button can trigger the popup
                 setPendingClearInfo({
-                    auraEarned: result.earnedAura || result.auraEarned || 50,
+                    auraEarned: earnedAuraVal,
                     comboStreak: result.comboStreak || 0,
                     comboBonus: result.comboBonus || 0,
+                    isReplay: result.isReplay || false,
+                    wouldHaveEarned: result.wouldHaveEarnedAura,
                 })
 
                 // NOTE: We do NOT call setMissionCleared(true) here anymore.

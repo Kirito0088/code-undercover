@@ -53,7 +53,16 @@ export function CharacterManager({
 
                         {/* Aura Block */}
                         <div className="bg-[#14141A] border border-[#323242] rounded-xl p-4 mt-6">
-                            <span className="text-2xl font-semibold font-mono text-indigo-400">+{clearInfo.auraEarned} AP</span>
+                            {clearInfo.isReplay ? (
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-2xl font-semibold font-mono text-[#8B8BA7]">0 AP (Replay)</span>
+                                    {clearInfo.wouldHaveEarned !== undefined && (
+                                        <span className="text-xs text-[#5C5C7A] font-mono">Would have earned: {clearInfo.wouldHaveEarned} AP</span>
+                                    )}
+                                </div>
+                            ) : (
+                                <span className="text-2xl font-semibold font-mono text-indigo-400">+{clearInfo.auraEarned} AP</span>
+                            )}
                         </div>
 
                         {/* Combo */}

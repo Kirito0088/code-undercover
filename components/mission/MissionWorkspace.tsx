@@ -32,6 +32,8 @@ export interface MissionClearInfo {
     auraEarned: number
     comboStreak: number
     comboBonus: number
+    isReplay?: boolean
+    wouldHaveEarned?: number
 }
 
 export function MissionWorkspace({
@@ -155,7 +157,7 @@ export function MissionWorkspace({
                 <div className="flex items-center gap-4">
                     <div className="text-xs text-indigo-400 font-mono flex items-center gap-1.5 bg-indigo-500/5 border border-[#323242] px-2.5 py-1 rounded-md">
                         <Zap className="size-3.5" />
-                        <span>+{mission.auraReward} AP</span>
+                        <span>{userMission?.status === "COMPLETED" ? "0 AP (Replay)" : `+${mission.auraReward} AP`}</span>
                     </div>
                 </div>
             </header>

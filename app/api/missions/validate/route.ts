@@ -89,6 +89,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Entities not found' }, { status: 404 })
         }
 
+        const isFirstTimeCompletion = userMission.status !== 'COMPLETED'
+
         // Fire-and-forget: increment attempt count (non-blocking)
         db.userMission.update({
             where: { id: userMission.id },
@@ -106,8 +108,10 @@ export async function POST(req: Request) {
         const syntaxCheck = validateCodeAgainstSyntaxRules(code, rules)
 
         if (!syntaxCheck.passed) {
-            // Combo Breaks
-            await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+            if (isFirstTimeCompletion) {
+                // Combo Breaks
+                await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+            }
             return NextResponse.json({
                 success: false,
                 stdout: "",
@@ -115,7 +119,7 @@ export async function POST(req: Request) {
                 validationErrors: syntaxCheck.failures,
                 ruleDescription: rules.description,
                 comboBonus: 0,
-                comboStreak: 0
+                comboStreak: isFirstTimeCompletion ? 0 : user.comboStreak
             })
         }
 
@@ -126,7 +130,9 @@ export async function POST(req: Request) {
 
         if (!runRes.success) {
             // Compilation error, runtime crash, or compiler service issue
-            await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+            if (isFirstTimeCompletion) {
+                await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+            }
 
             const errorDetail = runRes.compilerError || runRes.errors || "Execution failed"
             const isServiceError = errorDetail.includes("Compiler service") || errorDetail.includes("temporarily unavailable")
@@ -144,7 +150,7 @@ export async function POST(req: Request) {
                 explanation: runRes.explanation,
                 validationErrors: [validationMsg],
                 comboBonus: 0,
-                comboStreak: 0
+                comboStreak: isFirstTimeCompletion ? 0 : user.comboStreak
             })
         }
 
@@ -153,7 +159,9 @@ export async function POST(req: Request) {
 
         if (!validationResult.isCorrect) {
             // Combo breaks on incorrect output
-            await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+            if (isFirstTimeCompletion) {
+                await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
+            }
 
             return NextResponse.json({
                 success: false,
@@ -161,14 +169,13 @@ export async function POST(req: Request) {
                 stderr: "",
                 validationErrors: [validationResult.feedbackMessage || "Output validation failed. Please check your implementation."],
                 comboBonus: 0,
-                comboStreak: 0
+                comboStreak: isFirstTimeCompletion ? 0 : user.comboStreak
             })
         }
 
         // Code compiled, executed, and output validated successfully — mission passes!
 
         // 3. Success! Calculate Rewards and Combos
-        const isFirstTimeCompletion = userMission.status !== 'COMPLETED'
         const usedHints = userMission.hintsUsed > 0
 
         if (isFirstTimeCompletion) {
@@ -182,56 +189,86 @@ export async function POST(req: Request) {
 
         let isInnovation = false
         let innovationReason = ""
-        let earnedAura = comboBonusAura
 
         if (!userMission.innovationUnlocked) {
             const innovationResult = detectInnovation(code, mission.title)
             if (innovationResult.innovationUnlocked) {
                 isInnovation = true
                 innovationReason = innovationResult.innovationReason
-                earnedAura += AURA_FOX_INNOVATION
             }
         }
+
+        // Compute potential rewards as if it were a first-time completion
+        const potentialRewards = {
+            baseAura: mission.auraReward || AURA_MISSION_COMPLETE,
+            executionAura: AURA_CORRECT_EXECUTION,
+            firstAttemptBonus: userMission.attemptCount === 0 ? AURA_FIRST_ATTEMPT : 0,
+            innovationAura: isInnovation ? AURA_FOX_INNOVATION : 0,
+        }
+
+        // Compute actual earned rewards gated by isFirstTimeCompletion
+        const computedRewards = {
+            baseAura: isFirstTimeCompletion ? potentialRewards.baseAura : 0,
+            executionAura: isFirstTimeCompletion ? potentialRewards.executionAura : 0,
+            firstAttemptBonus: isFirstTimeCompletion ? potentialRewards.firstAttemptBonus : 0,
+            innovationAura: isFirstTimeCompletion ? potentialRewards.innovationAura : 0,
+            foxBadgeIncrement: isInnovation ? 1 : 0,
+        }
+
+        let earnedAura =
+            computedRewards.baseAura +
+            computedRewards.executionAura +
+            computedRewards.firstAttemptBonus +
+            computedRewards.innovationAura
 
         if (isFirstTimeCompletion) {
-            earnedAura += mission.auraReward || AURA_MISSION_COMPLETE
-            earnedAura += AURA_CORRECT_EXECUTION
-
-            if (userMission.attemptCount === 0) {
-                earnedAura += AURA_FIRST_ATTEMPT
-            }
             const hintPenalty = userMission.hintsUsed * AURA_HINT_PENALTY
             earnedAura = Math.max(10, earnedAura - hintPenalty)
+        } else {
+            earnedAura = 0
         }
 
-        // 4. Database Updates
-        if (earnedAura > 0 || isInnovation || isFirstTimeCompletion || newComboStreak !== user.comboStreak) {
-            const newAuraPoints = user.auraPoints + earnedAura
-            const newAuraLevel = calculateAuraLevel(newAuraPoints)
-            const newMaxCombo = Math.max(user.maxCombo, newComboStreak)
+        // 4. Database Updates in a Transaction
+        await db.$transaction(async (tx) => {
+            if (earnedAura > 0 || isInnovation || isFirstTimeCompletion || newComboStreak !== user.comboStreak) {
+                const newAuraPoints = user.auraPoints + earnedAura
+                const newAuraLevel = calculateAuraLevel(newAuraPoints)
+                const newMaxCombo = Math.max(user.maxCombo, newComboStreak)
 
-            await db.user.update({
-                where: { id: user.id },
+                await tx.user.update({
+                    where: { id: user.id },
+                    data: {
+                        auraPoints: newAuraPoints,
+                        auraLevel: newAuraLevel,
+                        comboStreak: newComboStreak,
+                        maxCombo: newMaxCombo,
+                        foxBadges: isInnovation ? { increment: 1 } : undefined,
+                        missionsCompleted: isFirstTimeCompletion ? { increment: 1 } : undefined
+                    }
+                })
+            }
+
+            await tx.userMission.update({
+                where: { id: userMission.id },
                 data: {
-                    auraPoints: newAuraPoints,
-                    auraLevel: newAuraLevel,
-                    comboStreak: newComboStreak,
-                    maxCombo: newMaxCombo,
-                    foxBadges: isInnovation ? { increment: 1 } : undefined,
-                    missionsCompleted: isFirstTimeCompletion ? { increment: 1 } : undefined
+                    status: 'COMPLETED',
+                    completedAt: new Date(),
+                    submittedCode: code,
+                    innovationUnlocked: isInnovation ? true : undefined
                 }
             })
-        }
-
-        await db.userMission.update({
-            where: { id: userMission.id },
-            data: {
-                status: 'COMPLETED',
-                completedAt: new Date(),
-                submittedCode: code,
-                innovationUnlocked: isInnovation ? true : undefined
-            }
         })
+
+        // Calculate potential total would-have-earned aura for UI context
+        const wouldHaveEarnedAura = isFirstTimeCompletion
+            ? undefined
+            : Math.max(10,
+                potentialRewards.baseAura +
+                potentialRewards.executionAura +
+                potentialRewards.firstAttemptBonus +
+                potentialRewards.innovationAura -
+                (userMission.hintsUsed * AURA_HINT_PENALTY)
+              )
 
         return NextResponse.json({
             success: true,
@@ -243,7 +280,9 @@ export async function POST(req: Request) {
             innovationReason,
             comboBonus: comboBonusAura,
             comboStreak: newComboStreak,
-            executionTimeMs: totalExecutionTimeMs
+            executionTimeMs: totalExecutionTimeMs,
+            isReplay: !isFirstTimeCompletion,
+            wouldHaveEarnedAura
         })
 
     } catch (error) {
