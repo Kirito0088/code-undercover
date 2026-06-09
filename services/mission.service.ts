@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { missions as missionData, missionDetails } from "@/src/data/missionsData"
+import { missions as missionData, missionDetails, dailyQuestions } from "@/src/data/missionsData"
 import type { DashboardMission, MissionStatus } from "@/types"
 
 // ─── Auto-seed guard ───
@@ -34,6 +34,10 @@ async function ensureMissionsSeeded(): Promise<void> {
                             language: m.language,
                             auraReward: m.aura,
                             teachingContent: m.teachingContent,
+                            mcqContent: m.mcqContent ?? null,
+                            validationRules: m.validationRules ?? null,
+                            startingCode: m.startingCode ?? null,
+                            goal: m.goal ?? null,
                         },
                         create: {
                             order: m.id,
@@ -44,6 +48,10 @@ async function ensureMissionsSeeded(): Promise<void> {
                             language: m.language,
                             auraReward: m.aura,
                             teachingContent: m.teachingContent,
+                            mcqContent: m.mcqContent ?? null,
+                            validationRules: m.validationRules ?? null,
+                            startingCode: m.startingCode ?? null,
+                            goal: m.goal ?? null,
                         },
                     })
                     console.log(`[MISSION] Auto-seeded Mission #${m.id}: "${m.title}"`)
@@ -53,6 +61,30 @@ async function ensureMissionsSeeded(): Promise<void> {
             console.log(`[MISSION] Auto-seed complete. ${missionData.length} missions ready.`)
         } else {
             console.log(`[MISSION] Mission collection already has ${count} entries — skipping auto-seed.`)
+        }
+
+        const dailyQuestionsCount = await db.dailyQuestion.count()
+        if (dailyQuestionsCount === 0) {
+            console.log("[MISSION] Daily questions collection is empty — auto-seeding...")
+            await Promise.all(
+                dailyQuestions.map(async (q) => {
+                    const mapped = {
+                        id: q.id,
+                        question: q.question,
+                        options: JSON.stringify(q.options),
+                        correctAnswer: q.correctAnswer,
+                        explanation: q.explanation,
+                    }
+                    await db.dailyQuestion.upsert({
+                        where: { id: q.id },
+                        update: mapped,
+                        create: mapped,
+                    })
+                })
+            )
+            console.log("[MISSION] Daily questions auto-seeded successfully.")
+        } else {
+            console.log(`[MISSION] Daily questions collection already has ${dailyQuestionsCount} entries — skipping auto-seed.`)
         }
 
         missionsSeeded = true

@@ -7,7 +7,12 @@ export interface CompilerDiagnostic {
     rawContext: string
 }
 
-// ─── Mission Status ───
+/**
+ * Canonical mission status vocabulary.
+ * This matches the values written and read from the UserMission DB table.
+ * Do NOT introduce new values here without updating mission.service.ts and LevelsClient.tsx.
+ * UI-only states (e.g. "SIMULATION") live only in LevelsClient and are not persisted.
+ */
 export type MissionStatus = "LOCKED" | "ACTIVE" | "COMPLETED"
 
 // ─── Mission (from DB) ───

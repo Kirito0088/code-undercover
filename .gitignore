@@ -60,3 +60,7 @@ start.bat
 tc-errors.txt
 generate_error.txt
 /tmp/
+
+# AI assistant directories
+.claude/
+.gemini/

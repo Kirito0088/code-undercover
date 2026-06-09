@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { BookOpen, Play, Zap, CheckCircle, Lock, Shield, Medal, Flame, Sparkles, X, ChevronRight, History } from "lucide-react"
+import type { MissionStatus } from "@/types"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
@@ -494,20 +495,22 @@ export function LevelsClient({
     const overallPercent = totalRealMissions > 0 ? Math.round((totalCompletedReal / totalRealMissions) * 100) : 0
 
     // Solve the status for a level node
+    // Uses canonical DB vocabulary: LOCKED | ACTIVE | COMPLETED
+    // Plus UI-only state: SIMULATION (for non-real levels)
     const getLevelStatus = (lvl: LevelNode): {
-        status: "COMPLETED" | "UNLOCKED" | "IN_PROGRESS" | "LOCKED" | "SIMULATION"
+        status: MissionStatus | "SIMULATION"
         isLocked: boolean
         realMissionId?: string
     } => {
         if (lvl.isReal && lvl.realId) {
             const um = userMissionsMap.get(lvl.realId)
-            const status = (um?.status || "LOCKED") as "COMPLETED" | "UNLOCKED" | "IN_PROGRESS" | "ACTIVE" | "LOCKED"
+            const status = (um?.status || "LOCKED") as MissionStatus
             
             // Sequential unlocking for real Beginner missions (1 to 5):
             if (lvl.difficulty === "EASY") {
                 if (lvl.order === 1) {
                     if (status === "LOCKED") {
-                        return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+                        return { status: "ACTIVE", isLocked: false, realMissionId: lvl.realId }
                     }
                 } else {
                     const precedingLvl = BEGINNER_CURRICULUM.find(b => b.order === lvl.order - 1)
@@ -516,7 +519,7 @@ export function LevelsClient({
                         if (dbMatch) {
                             const precedingUm = userMissionsMap.get(dbMatch.id)
                             if (precedingUm?.status === "COMPLETED" && status === "LOCKED") {
-                                return { status: "UNLOCKED", isLocked: false, realMissionId: lvl.realId }
+                                return { status: "ACTIVE", isLocked: false, realMissionId: lvl.realId }
                             }
                         }
                     }
@@ -524,7 +527,7 @@ export function LevelsClient({
             }
 
             return { 
-                status: status === "UNLOCKED" || status === "IN_PROGRESS" || status === "ACTIVE" ? "IN_PROGRESS" : status, 
+                status, 
                 isLocked: status === "LOCKED", 
                 realMissionId: lvl.realId 
             }
@@ -753,7 +756,7 @@ export function LevelsClient({
                             const { status, isLocked, realMissionId } = getLevelStatus(lvl)
 
                             const isCompleted = status === "COMPLETED"
-                            const isCurrentlyUnlocked = status === "UNLOCKED" || status === "IN_PROGRESS" || status === "SIMULATION"
+                            const isCurrentlyUnlocked = status === "ACTIVE" || status === "SIMULATION"
 
                             return (
                                 <div 

@@ -1,3 +1,7 @@
+// ARCHIVED — superseded by seed.ts. Do not run directly.
+// Kept temporarily to verify MCQ and validation rule parity with seed.ts.
+// This file contains mcqContent, validationRules, startingCode, and goal data
+// that seed.ts does NOT currently carry. Delete after parity check is confirmed.
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client")
 

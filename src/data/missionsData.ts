@@ -6,6 +6,10 @@ export interface MissionData {
     language: string;
     isLocked: boolean;
     teachingContent: string;
+    mcqContent?: string;
+    validationRules?: string;
+    startingCode?: string;
+    goal?: string;
 }
 
 export const missions: MissionData[] = [
@@ -37,6 +41,21 @@ export const missions: MissionData[] = [
                 ],
             },
         ]),
+        mcqContent: JSON.stringify([
+            {
+                id: 1,
+                question: "Which library is required to use printf?",
+                options: ["math.h", "stdio.h", "stdlib.h", "conio.h"],
+                correctIndex: 1
+            }
+        ]),
+        validationRules: JSON.stringify({
+            requiredKeywords: ["printf", "Hello Agent"],
+            forbiddenPatterns: ["// Agent, write your code here"],
+            minLength: 50,
+            requiredOutput: "Hello Agent",
+            description: "Your code must include the printf function and output exactly 'Hello Agent'."
+        })
     },
     {
         id: 2,
@@ -65,11 +84,36 @@ export const missions: MissionData[] = [
                 ],
             },
         ]),
+        mcqContent: JSON.stringify([
+            {
+                id: 1,
+                question: "Why do we use the & symbol in scanf for variables like integers?",
+                options: [
+                    "To print the variable",
+                    "To declare the variable",
+                    "To provide the memory address of the variable",
+                    "Because it is required by printf"
+                ],
+                correctIndex: 2
+            }
+        ]),
+        validationRules: JSON.stringify({
+            requiredKeywords: ["scanf", "%d", "printf", "&"],
+            forbiddenPatterns: ["// Agent, write your code here"],
+            minLength: 60,
+            testCases: [
+                { input: "7", output: "You entered: 7" },
+                { input: "42", output: "You entered: 42" }
+            ],
+            description: "Your code must declare an integer, read it using scanf, and output 'You entered: X', where X is the input."
+        })
     },
     {
         id: 3,
         title: "Control Flow Lockdown",
-        difficulty: "MEDIUM",
+        // All missions are EASY — they map to BEGINNER_CURRICULUM in LevelsClient.
+        // If difficulty tiers are added in future, update LevelsClient curriculum maps first.
+        difficulty: "EASY",
         aura: 214,
         language: "C",
         isLocked: true,
@@ -99,11 +143,32 @@ export const missions: MissionData[] = [
                 ],
             },
         ]),
+        mcqContent: JSON.stringify([
+            {
+                id: 1,
+                question: "What does the expression (7 % 2) evaluate to?",
+                options: ["0", "1", "3", "2"],
+                correctIndex: 1
+            }
+        ]),
+        validationRules: JSON.stringify({
+            requiredKeywords: ["if", "else", "scanf", "printf", "%"],
+            forbiddenPatterns: ["// Agent, write your code here"],
+            minLength: 80,
+            testCases: [
+                { input: "4", output: "Even" },
+                { input: "5", output: "Odd" },
+                { input: "0", output: "Even" },
+                { input: "-3", output: "Odd" }
+            ],
+            description: "Your code must read an integer and output exactly 'Even' or 'Odd'."
+        })
     },
     {
         id: 4,
         title: "Loop Protocol",
-        difficulty: "MEDIUM",
+        // All missions are EASY — they map to BEGINNER_CURRICULUM in LevelsClient.
+        difficulty: "EASY",
         aura: 250,
         language: "C",
         isLocked: true,
@@ -157,11 +222,40 @@ export const missions: MissionData[] = [
                 ],
             },
         ]),
+        goal: "Write a C program that uses a loop to allow 3 password attempts. Password: 'agent007'. Print 'Access Granted' on correct input, 'Wrong Password' on incorrect, and 'System Locked' after 3 failures.",
+        startingCode: "#include <stdio.h>\n#include <string.h>\n\nint main() {\n    // Agent, write your access protocol here.\n    // Password: \"agent007\"\n    // Max attempts: 3\n    \n    return 0;\n}",
+        mcqContent: JSON.stringify([
+            {
+                id: 1,
+                question: "Which loop guarantees at least one execution?",
+                options: ["for loop", "while loop", "do-while loop", "infinite loop"],
+                correctIndex: 2
+            },
+            {
+                id: 2,
+                question: "What does strcmp() return when two strings are equal?",
+                options: ["1", "-1", "0", "true"],
+                correctIndex: 2
+            },
+            {
+                id: 3,
+                question: "Which keyword immediately exits a loop?",
+                options: ["return", "exit", "continue", "break"],
+                correctIndex: 3
+            }
+        ]),
+        validationRules: JSON.stringify({
+            requiredKeywords: ["for", "strcmp"],
+            forbiddenPatterns: ["// Agent, write your access protocol here"],
+            minLength: 100,
+            description: "Your code must use a for/while loop with strcmp() to check the password 'agent007'. Print 'Access Granted', 'Wrong Password', or 'System Locked'."
+        })
     },
     {
         id: 5,
         title: "Function Assembly",
-        difficulty: "HARD",
+        // All missions are EASY — they map to BEGINNER_CURRICULUM in LevelsClient.
+        difficulty: "EASY",
         aura: 350,
         language: "C",
         isLocked: true,
@@ -267,4 +361,40 @@ export const secureMissionValidations: Record<number, SecureMissionValidation> =
         ],
     },
 };
+
+export interface DailyQuestionData {
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: string;
+    explanation: string;
+}
+
+export const dailyQuestions: DailyQuestionData[] = [
+    {
+        id: "dq-1",
+        question: "What is the correct way to allocate memory for an integer array of size 10 in C?",
+        options: [
+            "int *arr = malloc(10);",
+            "int *arr = malloc(10 * sizeof(int));",
+            "int arr = malloc(10);",
+            "int *arr = calloc(10);"
+        ],
+        correctAnswer: "int *arr = malloc(10 * sizeof(int));",
+        explanation: "malloc requires the total number of bytes. 10 integers * the size of an integer in bytes."
+    },
+    {
+        id: "dq-2",
+        question: "Which format specifier is used to print a double in C?",
+        options: [
+            "%d",
+            "%f",
+            "%lf",
+            "%s"
+        ],
+        correctAnswer: "%lf",
+        explanation: "%lf stands for 'long float', which is the historical C designation for double precision floats in scanf/printf."
+    }
+];
+
 

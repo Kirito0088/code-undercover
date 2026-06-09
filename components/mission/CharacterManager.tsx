@@ -71,7 +71,7 @@ export function CharacterManager({
                         <div className="flex flex-col gap-2 mt-8">
                             <button
                                 type="button"
-                                onClick={() => push("/dashboard")}
+                                onClick={() => push("/levels")}
                                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors border-none"
                             >
                                 Next Mission →
