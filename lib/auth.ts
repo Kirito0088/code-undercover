@@ -107,17 +107,41 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
+            // On first sign-in, embed hasSeenIntro from DB into the JWT
             if (user) {
                 token.id = user.id
                 token.username = (user as { username?: string | null }).username
+
+                const dbUser = await db.user.findUnique({
+                    where: { id: user.id },
+                    select: { hasSeenIntro: true, missionsCompleted: true },
+                })
+
+                // Auto-mark intro seen for returning users who already have missions
+                // (handles Google OAuth on a new device — they never see the intro again)
+                token.hasSeenIntro =
+                    dbUser?.hasSeenIntro === true ||
+                    (dbUser?.missionsCompleted ?? 0) > 0
             }
+
+            // After the intro page calls updateSession(), refresh the flag from DB
+            if (trigger === "update" && token.id) {
+                const dbUser = await db.user.findUnique({
+                    where: { id: token.id as string },
+                    select: { hasSeenIntro: true },
+                })
+                token.hasSeenIntro = dbUser?.hasSeenIntro ?? false
+            }
+
             return token
         },
+
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.id = token.id as string
                 session.user.username = token.username as string
+                session.user.hasSeenIntro = token.hasSeenIntro as boolean
             }
             return session
         },
