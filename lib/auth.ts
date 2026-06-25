@@ -76,6 +76,7 @@ export const authOptions: NextAuthOptions = {
                         id: user.id,
                         email: user.email,
                         name: user.name,
+                        username: user.username,
                     }
                 } catch (error) {
                     console.error("[AUTH] Error during authentication:", error)
@@ -109,12 +110,14 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id
+                token.username = (user as { username?: string | null }).username
             }
             return token
         },
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.id = token.id as string
+                session.user.username = token.username as string
             }
             return session
         },

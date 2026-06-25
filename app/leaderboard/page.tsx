@@ -122,9 +122,6 @@ export default async function LeaderboardPage({
                                                         <div className="text-sm font-medium text-[#F1F1F5]">
                                                             {u.name || "Anonymous Learner"}
                                                         </div>
-                                                        <div className="text-xs text-[#5C5C7A]">
-                                                            {u.email?.split('@')[0]}
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

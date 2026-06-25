@@ -28,7 +28,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script dangerouslySetInnerHTML={{
+          __html: `
           try {
             const t = localStorage.getItem('cu_theme');
             if (t === 'light') document.documentElement.classList.add('light');

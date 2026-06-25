@@ -10,7 +10,7 @@ import Link from "next/link"
 function LoginForm() {
     const { push, refresh } = useRouter()
     const searchParams = useSearchParams()
-    
+
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
@@ -42,7 +42,7 @@ function LoginForm() {
             if (!checkRes.ok || !checkData.exists) {
                 setError("Account not exist.")
                 setLoading(false)
-                
+
                 // Automatically redirect to register after 2.5 seconds
                 setTimeout(() => {
                     push("/register")
@@ -63,15 +63,9 @@ function LoginForm() {
                 const userId = session?.user?.id
 
                 if (userId) {
-                    const hasSeen = localStorage.getItem(`hasSeenIntro_${userId}`)
-                    if (hasSeen === "true") {
-                        push("/levels")
-                    } else {
-                        push("/intro")
-                    }
-                } else {
-                    push("/intro")
+                    localStorage.setItem(`hasSeenIntro_${userId}`, "true")
                 }
+                push("/levels")
                 refresh()
             }
         } catch {
@@ -85,7 +79,7 @@ function LoginForm() {
         setGoogleLoading(true)
         setError("")
         try {
-            await signIn("google", { callbackUrl: "/intro" })
+            await signIn("google", { callbackUrl: "/levels" })
         } catch {
             setError("Google authentication failed.")
             setGoogleLoading(false)

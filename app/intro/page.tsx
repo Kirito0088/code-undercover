@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 
 export default function IntroPage() {
-    const { replace, push } = useRouter()
+    const { replace, push, refresh } = useRouter()
     const { data: session, status } = useSession()
     const [isFadingOut, setIsFadingOut] = useState(false)
     const [shouldPlay, setShouldPlay] = useState(false)
@@ -82,6 +82,7 @@ export default function IntroPage() {
         clearRedirectTimeouts()
         const redirectTimeout = setTimeout(() => {
             push("/levels")
+            refresh()
             redirectTimeoutsRef.current.delete(redirectTimeout)
         }, isSkip ? 400 : 2000)
         redirectTimeoutsRef.current.add(redirectTimeout)
@@ -123,9 +124,8 @@ export default function IntroPage() {
 
             {/* TERMINAL INITIALIZING fade overlay */}
             <div
-                className={`absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-1000 ${
-                    isFadingOut ? "opacity-100" : "opacity-0"
-                }`}
+                className={`absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-1000 ${isFadingOut ? "opacity-100" : "opacity-0"
+                    }`}
             >
                 <div className="flex flex-col items-center">
                     <span className="relative flex size-3 mb-4">
@@ -149,9 +149,8 @@ export default function IntroPage() {
                 onEnded={() => handleVideoEnd(false)}
                 onError={() => handleVideoEnd(false)}
                 aria-label="Code Undercover intro cinematic"
-                className={`relative z-50 w-full h-full object-contain transition-opacity duration-1000 bg-[#14141A] ${
-                    isFadingOut ? "opacity-0" : "opacity-100"
-                }`}
+                className={`relative z-50 w-full h-full object-contain transition-opacity duration-1000 bg-[#14141A] ${isFadingOut ? "opacity-0" : "opacity-100"
+                    }`}
                 style={{ pointerEvents: "none" }}
             >
                 {/* Captions file — add a real VTT when available */}

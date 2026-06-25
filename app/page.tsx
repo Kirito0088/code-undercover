@@ -4,9 +4,13 @@ import Image from "next/image"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { BookOpen, Play, Zap } from "lucide-react"
+import { redirect } from "next/navigation"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
+  if (session) {
+    redirect("/dashboard")
+  }
 
   return (
     <div className="relative isolate overflow-hidden flex-1 flex flex-col justify-center w-full min-h-[calc(100vh-56px)] bg-[#14141A]">
