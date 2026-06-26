@@ -101,8 +101,7 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                 alt="Lead Mentor"
                                 fill
                                 sizes="(min-width: 768px) 160px, 80px"
-                                className="object-contain"
-                                style={{ animation: "float 3s ease-in-out infinite" }}
+                                className="object-contain animate-[float_3s_ease-in-out_infinite]"
                                 priority
                             />
                         </div>

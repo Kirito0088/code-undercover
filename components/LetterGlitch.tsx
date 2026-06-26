@@ -120,6 +120,11 @@ const LetterGlitch = ({
     }
   }, [smooth, glitchColors, characters]);
 
+  const drawRef = useRef(draw);
+  useEffect(() => {
+    drawRef.current = draw;
+  }, [draw]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -140,7 +145,7 @@ const LetterGlitch = ({
 
     const animate = (time: number) => {
       if (time - lastTime >= interval) {
-        draw();
+        drawRef.current();
         lastTime = time;
       }
       animationRef.current = requestAnimationFrame(animate);
@@ -162,7 +167,7 @@ const LetterGlitch = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  }, [glitchSpeed, smooth, draw, resizeCanvas]);
+  }, [glitchSpeed, resizeCanvas]);
 
   return (
     <div className="relative w-full h-full bg-[#14141A] overflow-hidden">

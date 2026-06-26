@@ -95,23 +95,26 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
     const [currentQIndex, setCurrentQIndex] = useState(0)
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [showError, setShowError] = useState(false)
-    const errorTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+    const errorTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>> | null>(null)
+    if (errorTimeoutsRef.current === null) {
+        errorTimeoutsRef.current = new Set()
+    }
+    const errorTimeouts = errorTimeoutsRef.current
 
     useEffect(() => {
-        const errorTimeouts = errorTimeoutsRef.current
         return () => {
             for (const timeout of errorTimeouts) {
                 clearTimeout(timeout)
             }
             errorTimeouts.clear()
         }
-    }, [])
+    }, [errorTimeouts])
 
     const clearErrorTimeouts = () => {
-        for (const timeout of errorTimeoutsRef.current) {
+        for (const timeout of errorTimeouts) {
             clearTimeout(timeout)
         }
-        errorTimeoutsRef.current.clear()
+        errorTimeouts.clear()
     }
 
     // Clamp index to valid range
@@ -126,9 +129,9 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
             clearErrorTimeouts()
             const errorTimeout = setTimeout(() => {
                 setShowError(false)
-                errorTimeoutsRef.current.delete(errorTimeout)
+                errorTimeouts.delete(errorTimeout)
             }, 2000)
-            errorTimeoutsRef.current.add(errorTimeout)
+            errorTimeouts.add(errorTimeout)
             return
         }
 

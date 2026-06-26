@@ -16,9 +16,10 @@ export function SubscriptionTab() {
     const upgradeNoteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
+        const timeoutId = upgradeNoteTimeoutRef.current
         return () => {
-            if (upgradeNoteTimeoutRef.current !== null) {
-                clearTimeout(upgradeNoteTimeoutRef.current)
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId)
             }
         }
     }, [])

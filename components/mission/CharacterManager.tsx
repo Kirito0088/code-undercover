@@ -23,16 +23,16 @@ export function CharacterManager({
     systemMessage
 }: CharacterManagerProps) {
     const { push } = useRouter()
-    const [showFoxAnimation, setShowFoxAnimation] = useState(false)
+    const [foxDismissed, setFoxDismissed] = useState(false)
+    const showFoxAnimation = innovationUnlocked && !foxDismissed
 
-    // Trigger fox animation once when unlocked
+    // Auto-dismiss fox animation after 5 seconds
     useEffect(() => {
-        if (innovationUnlocked) {
-            setShowFoxAnimation(true)
-            const timer = setTimeout(() => setShowFoxAnimation(false), 5000)
+        if (showFoxAnimation) {
+            const timer = setTimeout(() => setFoxDismissed(true), 5000)
             return () => clearTimeout(timer)
         }
-    }, [innovationUnlocked])
+    }, [showFoxAnimation])
 
     return (
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">

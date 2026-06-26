@@ -3,6 +3,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
+const HINTS = [
+    "System Log > Pointers must point to valid memory addresses.",
+    "System Log > Use malloc() for dynamic memory.",
+    "System Log > Remember to check if your pointer is NULL before using it.",
+    "System Log > Freeing memory twice will cause a crash (double free).",
+    "System Log > After freeing a pointer, set it to NULL to prevent dangling."
+]
+
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
@@ -37,16 +45,7 @@ export async function POST(req: Request) {
             data: { hintsUsed: userMission.hintsUsed + 1 }
         })
 
-        // Dynamic hint text could be pulled from DB in future, mocking specific strings for MVP
-        const hints = [
-            "System Log > Pointers must point to valid memory addresses.",
-            "System Log > Use malloc() for dynamic memory.",
-            "System Log > Remember to check if your pointer is NULL before using it.",
-            "System Log > Freeing memory twice will cause a crash (double free).",
-            "System Log > After freeing a pointer, set it to NULL to prevent dangling."
-        ]
-
-        const hintAssigned = hints[updated.hintsUsed - 1]
+        const hintAssigned = HINTS[updated.hintsUsed - 1]
 
         return NextResponse.json({ success: true, hintsUsed: updated.hintsUsed, hint: hintAssigned })
     } catch (error) {

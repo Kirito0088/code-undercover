@@ -18,6 +18,17 @@ interface TerminalPanelProps {
     onFinishMission: () => void
 }
 
+function getLineColor(type: string) {
+    switch (type) {
+        case "error": return "text-red-400"
+        case "success": return "text-emerald-400"
+        case "hint": return "text-amber-400"
+        case "finish": return "text-indigo-400"
+        case "input-prompt": return "text-amber-400"
+        default: return "text-[#5C5C7A]"  // system lines
+    }
+}
+
 export function TerminalPanel({
     mission,
     terminalOutput,
@@ -60,17 +71,6 @@ export function TerminalPanel({
             }
         } catch (e) {
             console.error("Hint failed", e)
-        }
-    }
-
-    const getLineColor = (type: string) => {
-        switch (type) {
-            case "error": return "text-red-400"
-            case "success": return "text-emerald-400"
-            case "hint": return "text-amber-400"
-            case "finish": return "text-indigo-400"
-            case "input-prompt": return "text-amber-400"
-            default: return "text-[#5C5C7A]"  // system lines
         }
     }
 

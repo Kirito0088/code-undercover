@@ -60,24 +60,27 @@ function formatDate(date: Date | string | null): string {
 export function HistoryCard({ mission, index }: HistoryCardProps) {
     const [isExpanded, setIsExpanded] = useState(false)
     const [copied, setCopied] = useState(false)
-    const copiedTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+    const copiedTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>> | null>(null)
+    if (copiedTimeoutsRef.current === null) {
+        copiedTimeoutsRef.current = new Set()
+    }
+    const copiedTimeouts = copiedTimeoutsRef.current
     const diff = getDifficultyStyle(mission.difficulty)
 
     useEffect(() => {
-        const copiedTimeouts = copiedTimeoutsRef.current
         return () => {
             for (const timeout of copiedTimeouts) {
                 clearTimeout(timeout)
             }
             copiedTimeouts.clear()
         }
-    }, [])
+    }, [copiedTimeouts])
 
     const clearCopiedTimeouts = () => {
-        for (const timeout of copiedTimeoutsRef.current) {
+        for (const timeout of copiedTimeouts) {
             clearTimeout(timeout)
         }
-        copiedTimeoutsRef.current.clear()
+        copiedTimeouts.clear()
     }
 
     const handleCopy = async () => {
@@ -88,9 +91,9 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
             clearCopiedTimeouts()
             const copiedTimeout = setTimeout(() => {
                 setCopied(false)
-                copiedTimeoutsRef.current.delete(copiedTimeout)
+                copiedTimeouts.delete(copiedTimeout)
             }, 2000)
-            copiedTimeoutsRef.current.add(copiedTimeout)
+            copiedTimeouts.add(copiedTimeout)
         } catch {
             // Clipboard API might not be available
         }

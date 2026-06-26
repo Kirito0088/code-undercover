@@ -7,23 +7,25 @@ import { useSession } from "next-auth/react"
 export default function IntroPage() {
     const { push, refresh } = useRouter()
     const { data: session, status, update: updateSession } = useSession()
-    const [shouldPlay, setShouldPlay] = useState(false)
     const [isFadingOut, setIsFadingOut] = useState(false)
     const [autoplayBlocked, setAutoplayBlocked] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
-    const redirectTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+    const redirectTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>> | null>(null)
+    if (redirectTimeoutsRef.current === null) {
+        redirectTimeoutsRef.current = new Set()
+    }
+    const redirectTimeouts = redirectTimeoutsRef.current
     const markingRef = useRef(false)
 
     // Cleanup timeouts on unmount
     useEffect(() => {
-        const redirectTimeouts = redirectTimeoutsRef.current
         return () => {
             redirectTimeouts.forEach(clearTimeout)
             redirectTimeouts.clear()
         }
-    }, [])
+    }, [redirectTimeouts])
 
-    // Auth guard (defensive — middleware already handles this at the edge)
+    // Auth guard (defensive — middleware already handles this at the edge) and autoplay video
     useEffect(() => {
         if (status === "loading") return
         if (status === "unauthenticated") {
@@ -34,14 +36,10 @@ export default function IntroPage() {
             push("/levels")
             return
         }
-        setShouldPlay(true)
-    }, [status, session, push])
-
-    useEffect(() => {
-        if (shouldPlay && videoRef.current) {
+        if (videoRef.current) {
             videoRef.current.play().catch(() => setAutoplayBlocked(true))
         }
-    }, [shouldPlay])
+    }, [status, session, push])
 
     /**
      * Called when the video ends or the user clicks Skip.
@@ -79,18 +77,18 @@ export default function IntroPage() {
             }
 
             // Clear any pending redirect timers
-            redirectTimeoutsRef.current.forEach(clearTimeout)
-            redirectTimeoutsRef.current.clear()
+            redirectTimeouts.forEach(clearTimeout)
+            redirectTimeouts.clear()
 
             const delay = isSkip ? 400 : 2000
             const t = setTimeout(() => {
                 push("/levels")
                 refresh()
-                redirectTimeoutsRef.current.delete(t)
+                redirectTimeouts.delete(t)
             }, delay)
-            redirectTimeoutsRef.current.add(t)
+            redirectTimeouts.add(t)
         },
-        [session, push, refresh, updateSession]
+        [session, push, refresh, updateSession, redirectTimeouts]
     )
 
     const handleManualStart = () => {
@@ -100,8 +98,10 @@ export default function IntroPage() {
         }
     }
 
+    const isReady = status === "authenticated" && !session?.user?.hasSeenIntro
+
     // Dark screen while session loads (prevents flash of unprotected content)
-    if (!shouldPlay) {
+    if (!isReady) {
         return (
             <div
                 className="fixed inset-0 bg-[#14141A] z-50 pointer-events-none"

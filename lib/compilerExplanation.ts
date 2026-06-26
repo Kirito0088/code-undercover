@@ -77,7 +77,7 @@ const PLATYPUS_EXPLANATIONS: Record<CompilerErrorType, string> = {
 // the targeted Platypus explanation.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function explainCompilerError(errorTextOrDiagnostic: string | CompilerDiagnostic): string {
+function explainCompilerError(errorTextOrDiagnostic: string | CompilerDiagnostic): string {
     // Handle legacy string call path (for backwards compat with any call sites
     // that pass raw error text instead of a structured diagnostic)
     if (typeof errorTextOrDiagnostic === 'string') {

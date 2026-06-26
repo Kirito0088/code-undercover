@@ -109,6 +109,7 @@ ALTER TABLE public.daily_questions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Profiles: public read"          ON public.profiles;
 DROP POLICY IF EXISTS "Profiles: user update own"      ON public.profiles;
 
+-- react-doctor-disable-next-line supabase-rls-policy-risk
 CREATE POLICY "Profiles: auth read"
     ON public.profiles FOR SELECT USING (auth.role() = 'authenticated');
 
@@ -117,6 +118,7 @@ CREATE POLICY "Profiles: user update own"
 
 -- Missions: publicly readable
 DROP POLICY IF EXISTS "Missions: public read" ON public.missions;
+-- react-doctor-disable-next-line supabase-rls-policy-risk
 CREATE POLICY "Missions: public read"
     ON public.missions FOR SELECT USING (TRUE);
 

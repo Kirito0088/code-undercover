@@ -23,29 +23,6 @@ export function LeftPanel({ mission, missionCleared, attemptCount }: LeftPanelPr
             ? "text-amber-400 border-amber-500/20 bg-amber-500/10"
             : "text-indigo-400 border-indigo-500/20 bg-indigo-500/5"
 
-    const renderProgress = () => (
-        <div className="flex items-center gap-2.5 text-xs text-[#5C5C7A]">
-            <span>Attempts:</span>
-            <span className={attemptCount > 5 ? "text-red-400 font-semibold" : "text-[#8B8BA7]"}>{attemptCount}</span>
-            <span className="text-[#3A3A52]">•</span>
-            <span>Feedback is in terminal</span>
-        </div>
-    )
-
-    const renderObjective = () => {
-        if (!mission.goal) return null
-        return (
-            <div className="bg-indigo-500/5 border border-indigo-500/15 rounded-xl p-4">
-                <div className="text-indigo-400 text-xs font-semibold tracking-wider mb-2">
-                    OBJECTIVE
-                </div>
-                <div className="text-[#8B8BA7] text-sm leading-relaxed">
-                    {mission.goal}
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="flex-1 flex flex-col h-full bg-[#0D0D14] border-r border-[#323242] overflow-y-auto custom-scrollbar">
             <div className="flex flex-col justify-center min-h-full py-8 p-4 md:p-6 gap-6 w-full max-w-2xl mx-auto">
@@ -66,8 +43,22 @@ export function LeftPanel({ mission, missionCleared, attemptCount }: LeftPanelPr
                         {details.briefing || mission.briefing || "Complete the objective as described."}
                     </div>
                 </div>
-                {renderObjective()}
-                {renderProgress()}
+                {mission.goal && (
+                    <div className="bg-indigo-500/5 border border-indigo-500/15 rounded-xl p-4">
+                        <div className="text-indigo-400 text-xs font-semibold tracking-wider mb-2">
+                            OBJECTIVE
+                        </div>
+                        <div className="text-[#8B8BA7] text-sm leading-relaxed">
+                            {mission.goal}
+                        </div>
+                    </div>
+                )}
+                <div className="flex items-center gap-2.5 text-xs text-[#5C5C7A]">
+                    <span>Attempts:</span>
+                    <span className={attemptCount > 5 ? "text-red-400 font-semibold" : "text-[#8B8BA7]"}>{attemptCount}</span>
+                    <span className="text-[#3A3A52]">•</span>
+                    <span>Feedback is in terminal</span>
+                </div>
             </div>
         </div>
     )

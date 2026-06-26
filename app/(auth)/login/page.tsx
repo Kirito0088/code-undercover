@@ -1,27 +1,72 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useReducer, useEffect, Suspense } from "react"
 import { signIn, getSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import Link from "next/link"
 
+interface LoginState {
+    email: string
+    password: string
+    error: string
+    loading: boolean
+    googleLoading: boolean
+}
+
+type LoginAction =
+    | { type: "SET_EMAIL"; payload: string }
+    | { type: "SET_PASSWORD"; payload: string }
+    | { type: "SET_ERROR"; payload: string }
+    | { type: "SET_LOADING"; payload: boolean }
+    | { type: "SET_GOOGLE_LOADING"; payload: boolean }
+    | { type: "START_SUBMIT" }
+    | { type: "SUBMIT_ERROR"; payload: string }
+    | { type: "FINISH_LOADING" }
+
+const initialLoginState: LoginState = {
+    email: "",
+    password: "",
+    error: "",
+    loading: false,
+    googleLoading: false,
+}
+
+function loginReducer(state: LoginState, action: LoginAction): LoginState {
+    switch (action.type) {
+        case "SET_EMAIL":
+            return { ...state, email: action.payload }
+        case "SET_PASSWORD":
+            return { ...state, password: action.payload }
+        case "SET_ERROR":
+            return { ...state, error: action.payload }
+        case "SET_LOADING":
+            return { ...state, loading: action.payload }
+        case "SET_GOOGLE_LOADING":
+            return { ...state, googleLoading: action.payload }
+        case "START_SUBMIT":
+            return { ...state, loading: true, error: "" }
+        case "SUBMIT_ERROR":
+            return { ...state, error: action.payload, loading: false }
+        case "FINISH_LOADING":
+            return { ...state, loading: false }
+        default:
+            return state
+    }
+}
+
 function LoginForm() {
     const { push, refresh } = useRouter()
     const searchParams = useSearchParams()
 
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [error, setError] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [googleLoading, setGoogleLoading] = useState(false)
+    const [state, dispatch] = useReducer(loginReducer, initialLoginState)
 
     // Handle Google OAuth/external "AccountNotExist" redirect
     useEffect(() => {
         const errorParam = searchParams.get("error")
         if (errorParam === "AccountNotExist") {
-            setError("Account not exist.")
+            dispatch({ type: "SET_ERROR", payload: "Account not exist." })
             const timer = setTimeout(() => {
                 push("/register")
             }, 2500)
@@ -31,17 +76,15 @@ function LoginForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setLoading(true)
-        setError("")
+        dispatch({ type: "START_SUBMIT" })
 
         try {
             // First check if the email exists in the database
-            const checkRes = await fetch(`/api/auth/check-user?email=${encodeURIComponent(email)}`)
+            const checkRes = await fetch(`/api/auth/check-user?email=${encodeURIComponent(state.email)}`)
             const checkData = await checkRes.json()
 
             if (!checkRes.ok || !checkData.exists) {
-                setError("Account not exist.")
-                setLoading(false)
+                dispatch({ type: "SUBMIT_ERROR", payload: "Account not exist." })
 
                 // Automatically redirect to register after 2.5 seconds
                 setTimeout(() => {
@@ -51,13 +94,13 @@ function LoginForm() {
             }
 
             const res = await signIn("credentials", {
-                email,
-                password,
+                email: state.email,
+                password: state.password,
                 redirect: false,
             })
 
             if (res?.error) {
-                setError("Incorrect email or password.")
+                dispatch({ type: "SUBMIT_ERROR", payload: "Incorrect email or password." })
             } else {
                 const session = await getSession()
                 const userId = session?.user?.id
@@ -69,29 +112,29 @@ function LoginForm() {
                 refresh()
             }
         } catch {
-            setError("Something went wrong. Please try again.")
+            dispatch({ type: "SUBMIT_ERROR", payload: "Something went wrong. Please try again." })
         } finally {
-            setLoading(false)
+            dispatch({ type: "FINISH_LOADING" })
         }
     }
 
     const handleGoogleSignIn = async () => {
-        setGoogleLoading(true)
-        setError("")
+        dispatch({ type: "SET_GOOGLE_LOADING", payload: true })
+        dispatch({ type: "SET_ERROR", payload: "" })
         try {
             await signIn("google", { callbackUrl: "/levels" })
         } catch {
-            setError("Google authentication failed.")
-            setGoogleLoading(false)
+            dispatch({ type: "SET_ERROR", payload: "Google authentication failed." })
+            dispatch({ type: "SET_GOOGLE_LOADING", payload: false })
         }
     }
 
     return (
         <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
             <form className="space-y-6" onSubmit={handleSubmit}>
-                {error && (
+                {state.error && (
                     <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
-                        {error}
+                        {state.error}
                     </div>
                 )}
 
@@ -106,8 +149,8 @@ function LoginForm() {
                             type="email"
                             autoComplete="email"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={state.email}
+                            onChange={(e) => dispatch({ type: "SET_EMAIL", payload: e.target.value })}
                             placeholder="name@email.com"
                         />
                     </div>
@@ -124,8 +167,8 @@ function LoginForm() {
                             type="password"
                             autoComplete="current-password"
                             required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            value={state.password}
+                            onChange={(e) => dispatch({ type: "SET_PASSWORD", payload: e.target.value })}
                             placeholder="••••••••"
                         />
                     </div>
@@ -153,8 +196,8 @@ function LoginForm() {
                 </div>
 
                 <div>
-                    <Button type="submit" className="w-full text-sm font-medium" disabled={loading}>
-                        {loading ? "Signing in..." : "Sign In"}
+                    <Button type="submit" className="w-full text-sm font-medium" disabled={state.loading}>
+                        {state.loading ? "Signing in..." : "Sign In"}
                     </Button>
                 </div>
             </form>
@@ -176,7 +219,7 @@ function LoginForm() {
                 <button
                     type="button"
                     onClick={handleGoogleSignIn}
-                    disabled={googleLoading}
+                    disabled={state.googleLoading}
                     className="w-full flex items-center justify-center gap-3 rounded-md px-4 py-2.5 
                                bg-[#14141A] border border-[#323242] 
                                text-[#8B8BA7] text-sm
@@ -184,7 +227,7 @@ function LoginForm() {
                                focus:outline-none focus:ring-2 focus:ring-indigo-500/30 
                                transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {googleLoading ? (
+                    {state.googleLoading ? (
                         <svg className="animate-spin size-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -197,7 +240,7 @@ function LoginForm() {
                             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                         </svg>
                     )}
-                    {googleLoading ? "Connecting..." : "Sign in with Google"}
+                    {state.googleLoading ? "Connecting..." : "Sign in with Google"}
                 </button>
             </div>
 

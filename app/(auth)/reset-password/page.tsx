@@ -1,11 +1,54 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useReducer, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { KeyRound, ShieldCheck } from "lucide-react"
 import Link from "next/link"
+
+interface ResetState {
+    password: string
+    confirmPassword: string
+    error: string
+    success: boolean
+    loading: boolean
+}
+
+type ResetAction =
+    | { type: "SET_PASSWORD"; payload: string }
+    | { type: "SET_CONFIRM"; payload: string }
+    | { type: "START_SUBMIT" }
+    | { type: "SUBMIT_ERROR"; payload: string }
+    | { type: "SUBMIT_SUCCESS" }
+    | { type: "FINISH_LOADING" }
+
+const initialResetState: ResetState = {
+    password: "",
+    confirmPassword: "",
+    error: "",
+    success: false,
+    loading: false,
+}
+
+function resetReducer(state: ResetState, action: ResetAction): ResetState {
+    switch (action.type) {
+        case "SET_PASSWORD":
+            return { ...state, password: action.payload }
+        case "SET_CONFIRM":
+            return { ...state, confirmPassword: action.payload }
+        case "START_SUBMIT":
+            return { ...state, error: "", loading: true }
+        case "SUBMIT_ERROR":
+            return { ...state, error: action.payload, loading: false }
+        case "SUBMIT_SUCCESS":
+            return { ...state, success: true, loading: false }
+        case "FINISH_LOADING":
+            return { ...state, loading: false }
+        default:
+            return state
+    }
+}
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams()
@@ -14,11 +57,7 @@ function ResetPasswordForm() {
     const token = getSearchParam("token")
     const email = getSearchParam("email")
 
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
-    const [error, setError] = useState("")
-    const [success, setSuccess] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const [state, dispatch] = useReducer(resetReducer, initialResetState)
 
     if (!token || !email) {
         return (
@@ -44,18 +83,15 @@ function ResetPasswordForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError("")
-        setLoading(true)
+        dispatch({ type: "START_SUBMIT" })
 
-        if (password !== confirmPassword) {
-            setError("Passwords do not match")
-            setLoading(false)
+        if (state.password !== state.confirmPassword) {
+            dispatch({ type: "SUBMIT_ERROR", payload: "Passwords do not match" })
             return
         }
 
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters")
-            setLoading(false)
+        if (state.password.length < 8) {
+            dispatch({ type: "SUBMIT_ERROR", payload: "Password must be at least 8 characters" })
             return
         }
 
@@ -65,24 +101,22 @@ function ResetPasswordForm() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ token, email, password }),
+                body: JSON.stringify({ token, email, password: state.password }),
             })
 
             const data = await res.json()
 
             if (res.ok) {
-                setSuccess(true)
+                dispatch({ type: "SUBMIT_SUCCESS" })
             } else {
-                setError(data.message || "Something went wrong")
+                dispatch({ type: "SUBMIT_ERROR", payload: data.message || "Something went wrong" })
             }
-        } catch (err) {
-            setError("Failed to connect to servers")
-        } finally {
-            setLoading(false)
+        } catch {
+            dispatch({ type: "SUBMIT_ERROR", payload: "Failed to connect to servers" })
         }
     }
 
-    if (success) {
+    if (state.success) {
         return (
             <div className="text-center py-4">
                 <div className="mx-auto size-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
@@ -106,9 +140,9 @@ function ResetPasswordForm() {
 
     return (
         <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
+            {state.error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                    <p className="text-xs text-red-400 text-center">{error}</p>
+                    <p className="text-xs text-red-400 text-center">{state.error}</p>
                 </div>
             )}
             <div>
@@ -121,8 +155,8 @@ function ResetPasswordForm() {
                         name="password"
                         type="password"
                         required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={state.password}
+                        onChange={(e) => dispatch({ type: "SET_PASSWORD", payload: e.target.value })}
                         placeholder="••••••••"
                     />
                 </div>
@@ -138,8 +172,8 @@ function ResetPasswordForm() {
                         name="confirmPassword"
                         type="password"
                         required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={state.confirmPassword}
+                        onChange={(e) => dispatch({ type: "SET_CONFIRM", payload: e.target.value })}
                         placeholder="••••••••"
                     />
                 </div>
@@ -149,9 +183,9 @@ function ResetPasswordForm() {
                 <Button
                     type="submit"
                     className="w-full text-sm font-medium"
-                    disabled={loading}
+                    disabled={state.loading}
                 >
-                    {loading ? "Updating..." : "Update Password"}
+                    {state.loading ? "Updating..." : "Update Password"}
                 </Button>
             </div>
         </form>

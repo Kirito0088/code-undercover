@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import Navbar from "@/components/Navbar";
@@ -28,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script dangerouslySetInnerHTML={{
+        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{
           __html: `
           try {
             const t = localStorage.getItem('cu_theme');

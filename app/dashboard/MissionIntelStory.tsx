@@ -30,17 +30,19 @@ function subscribeToIntroStory(onStoreChange: () => void) {
     }
 }
 
+function handleContinue() {
+    if (typeof window !== "undefined") {
+        localStorage.setItem(INTRO_STORY_KEY, "true")
+        window.dispatchEvent(new Event(INTRO_STORY_EVENT))
+    }
+}
+
 export function MissionIntelStory() {
     const hasSeenIntro = useSyncExternalStore(
         subscribeToIntroStory,
         getHasSeenIntroSnapshot,
         () => true
     )
-
-    const handleContinue = () => {
-        localStorage.setItem(INTRO_STORY_KEY, "true")
-        window.dispatchEvent(new Event(INTRO_STORY_EVENT))
-    }
 
     if (hasSeenIntro) {
         return null
