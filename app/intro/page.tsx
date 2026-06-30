@@ -148,9 +148,8 @@ export default function IntroPage() {
 
             {/* Fade-out overlay */}
             <div
-                className={`absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-1000 ${
-                    isFadingOut ? "opacity-100" : "opacity-0"
-                }`}
+                className={`absolute inset-0 z-40 flex items-center justify-center transition-opacity duration-1000 ${isFadingOut ? "opacity-100" : "opacity-0"
+                    }`}
             >
                 <div className="flex flex-col items-center">
                     <span className="relative flex size-3 mb-4">
@@ -174,9 +173,8 @@ export default function IntroPage() {
                 onEnded={() => markIntroComplete(false)}
                 onError={() => markIntroComplete(false)}
                 aria-label="Code Undercover intro cinematic"
-                className={`relative z-50 w-full h-full object-contain transition-opacity duration-1000 bg-[#14141A] ${
-                    isFadingOut ? "opacity-0" : "opacity-100"
-                }`}
+                className={`relative z-50 w-full h-full object-contain transition-opacity duration-1000 bg-[#14141A] ${isFadingOut ? "opacity-0" : "opacity-100"
+                    }`}
                 style={{ pointerEvents: "none" }}
             >
                 <track kind="captions" srcLang="en" label="English" default />

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { canAccessMission } from '@/services/mission.service'
 
 export async function POST(req: Request) {
     try {
@@ -11,8 +12,14 @@ export async function POST(req: Request) {
         }
 
         const { missionId, phase } = await req.json()
-        if (!missionId || !phase) {
-            return NextResponse.json({ error: 'Missing logic payload' }, { status: 400 })
+        if (!missionId || typeof missionId !== 'string' || !phase) {
+            return NextResponse.json({ error: 'Missing or invalid parameters' }, { status: 400 })
+        }
+
+        // 🔒 Access check — must happen before any DB writes or phase logic
+        const hasAccess = await canAccessMission(session.user.id, missionId)
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'You do not have access to this mission' }, { status: 403 })
         }
 
         // Must be a valid phase

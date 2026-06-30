@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { executeCode } from '@/lib/compiler'
 import { detectInnovation, validateMissionOutput } from '@/lib/validation/missionValidator'
+import { canAccessMission } from '@/services/mission.service'
 import {
     AURA_MISSION_COMPLETE,
     AURA_FIRST_ATTEMPT,
@@ -65,8 +66,14 @@ export async function POST(req: Request) {
         }
 
         const { missionId, code, input = "" } = body
-        if (!missionId || !code || typeof code !== 'string' || code.length > 10000) {
-            return NextResponse.json({ error: 'Missing or invalid code' }, { status: 400 })
+        if (!missionId || typeof missionId !== 'string' || !code || typeof code !== 'string' || code.length > 10000) {
+            return NextResponse.json({ error: 'Missing or invalid parameters' }, { status: 400 })
+        }
+
+        // 🔒 Access check — must happen before any DB writes or validation logic
+        const hasAccess = await canAccessMission(session.user.id, missionId)
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'You do not have access to this mission' }, { status: 403 })
         }
 
         // Fetch mission, user, and upsert UserMission in parallel — all independent
