@@ -8,17 +8,19 @@ export default function CountdownTimer() {
     useEffect(() => {
         const calculateTimeLeft = () => {
             const now = new Date()
-            // Reset daily at midnight UTC
-            const nextReset = new Date()
-            nextReset.setUTCHours(24, 0, 0, 0)
+            // Baseline target: July 12, 2026, 08:44:10 UTC (exactly 12 hours from 02:14:10 AM local time)
+            const targetReset = new Date("2026-07-12T08:44:10Z")
+            const intervalMs = 12 * 60 * 60 * 1000 // 12 hours
             
-            const difference = nextReset.getTime() - now.getTime()
+            let difference = targetReset.getTime() - now.getTime()
             if (difference <= 0) {
-                return { h1: "0", h2: "0", m1: "0", m2: "0" }
+                const elapsed = now.getTime() - targetReset.getTime()
+                const nextTargetMs = targetReset.getTime() + Math.ceil(elapsed / intervalMs) * intervalMs
+                difference = nextTargetMs - now.getTime()
             }
 
-            const totalHours = Math.floor(difference / (1000 * 60 * 60))
-            const totalMinutes = Math.floor((difference / 1000 / 60) % 60)
+            const totalHours = Math.max(0, Math.floor(difference / (1000 * 60 * 60)))
+            const totalMinutes = Math.max(0, Math.floor((difference / 1000 / 60) % 60))
 
             const hoursStr = totalHours.toString().padStart(2, "0")
             const minutesStr = totalMinutes.toString().padStart(2, "0")
@@ -34,7 +36,7 @@ export default function CountdownTimer() {
         setTimeDigits(calculateTimeLeft())
         const timer = setInterval(() => {
             setTimeDigits(calculateTimeLeft())
-        }, 60000) // Update every minute is enough since we only show hours & minutes
+        }, 10000) // Update every 10 seconds for responsive updates
 
         return () => clearInterval(timer)
     }, [])
