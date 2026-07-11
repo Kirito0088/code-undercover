@@ -8,7 +8,7 @@ import {
     Search, LayoutDashboard, Users, Settings, MessageSquare
 } from "lucide-react"
 import Link from "next/link"
-import { calculateAgentRank } from "@/lib/aura"
+import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
 import CountdownTimer from "@/components/leaderboard/CountdownTimer"
 
 // Force Next.js to render this page dynamically on every request (opts out of build-time caching)
@@ -69,66 +69,33 @@ function mapUserToPlayer(user: {
     }
 }
 
-function mapRankToTier(rank: string): string {
+function getRankIcon(rank: string) {
     switch (rank) {
         case "Platypus":
-        case "Fox":
-            return "Challenger"
-        case "Wolf":
-            return "Grandmaster"
-        case "Chameleon":
-            return "Master"
-        case "Eagle":
-        case "Octopus":
-            return "Gold"
-        case "Raccoon":
-            return "Silver"
-        case "Owl":
-            return "Bronze"
-        case "Panda":
-        default:
-            return "Iron"
-    }
-}
-
-function getTierIcon(tier: string) {
-    switch (tier) {
-        case "Challenger":
             return <Crown className="size-3.5 text-amber-400" />
-        case "Grandmaster":
-            return <Flame className="size-3.5 text-orange-500" />
-        case "Master":
+        case "Fox":
+            return <Crown className="size-3.5 text-orange-400" />
+        case "Wolf":
+            return <Flame className="size-3.5 text-red-400" />
+        case "Chameleon":
             return <Zap className="size-3.5 text-purple-400" />
-        case "Gold":
+        case "Eagle":
             return <Trophy className="size-3.5 text-yellow-500" />
-        case "Silver":
+        case "Octopus":
+            return <Trophy className="size-3.5 text-teal-400" />
+        case "Raccoon":
             return <Medal className="size-3.5 text-gray-300" />
-        case "Bronze":
+        case "Owl":
             return <Award className="size-3.5 text-amber-600" />
-        case "Iron":
+        case "Panda":
         default:
             return <Shield className="size-3.5 text-gray-500" />
     }
 }
 
-function getTierColorClass(tier: string): string {
-    switch (tier) {
-        case "Challenger":
-            return "text-[#F1F1F5] font-semibold"
-        case "Grandmaster":
-            return "text-orange-400"
-        case "Master":
-            return "text-purple-400"
-        case "Gold":
-            return "text-yellow-500"
-        case "Silver":
-            return "text-gray-300"
-        case "Bronze":
-            return "text-amber-600"
-        case "Iron":
-        default:
-            return "text-[#8B8BA7]"
-    }
+function getRankColorClass(rank: string): string {
+    const styles = getRankBadgeStyles(rank)
+    return styles.colorText
 }
 
 export default async function LeaderboardPage({
@@ -438,7 +405,7 @@ export default async function LeaderboardPage({
                                     trophyGlow = "drop-shadow-[0_0_10px_rgba(217,119,6,0.3)]"
                                 }
 
-                                const tier = mapRankToTier(player.rankTier)
+                                const rank = player.rankTier
 
                                 return (
                                     <div 
@@ -462,9 +429,9 @@ export default async function LeaderboardPage({
                                                 
                                                 {/* Rank Badge */}
                                                 <div className="flex items-center gap-1.5 mt-1">
-                                                    {getTierIcon(tier)}
-                                                    <span className={`text-xs font-semibold ${getTierColorClass(tier)}`}>
-                                                        {tier}
+                                                    {getRankIcon(rank)}
+                                                    <span className={`text-xs font-semibold ${getRankColorClass(rank)}`}>
+                                                        {rank}
                                                     </span>
                                                 </div>
                                             </div>
@@ -522,7 +489,7 @@ export default async function LeaderboardPage({
                                 </thead>
                                 <tbody className="divide-y divide-[#252532]/40">
                                     {tablePlayers.map((player) => {
-                                        const tier = mapRankToTier(player.rankTier)
+                                        const rank = player.rankTier
                                         const winrateVal = player.winrate
                                         let barColor = "bg-[#10B981]" // Green
                                         if (winrateVal < 48) barColor = "bg-red-500"
@@ -583,9 +550,9 @@ export default async function LeaderboardPage({
                                                 {/* Rank */}
                                                 <td className="px-6 py-4 align-middle">
                                                     <div className="flex items-center gap-2">
-                                                        {getTierIcon(tier)}
-                                                        <span className={`text-xs font-semibold ${getTierColorClass(tier)}`}>
-                                                            {tier}
+                                                        {getRankIcon(rank)}
+                                                        <span className={`text-xs font-semibold ${getRankColorClass(rank)}`}>
+                                                            {rank}
                                                         </span>
                                                     </div>
                                                 </td>
