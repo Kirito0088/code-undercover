@@ -57,14 +57,19 @@ export default function IntroPage() {
 
             setIsFadingOut(true)
 
-            // Fire server write + JWT refresh (non-blocking — redirect
-            // does not wait for this; middleware will catch any mismatch
-            // on the /levels request and re-evaluate from the DB)
-            fetch("/api/auth/intro-seen", { method: "POST" })
-                .then(() => updateSession())
-                .catch(() => {
-                    // Non-critical — jwt trigger on next sign-in will fix it
-                })
+            // Clear any pending redirect timers
+            redirectTimeouts.forEach(clearTimeout)
+            redirectTimeouts.clear()
+
+            try {
+                // 1. Await database write to mark intro seen
+                await fetch("/api/auth/intro-seen", { method: "POST" })
+                
+                // 2. Await NextAuth JWT token update so middleware is unblocked
+                await updateSession()
+            } catch (err) {
+                console.error("[INTRO] Failed to record intro complete on server:", err)
+            }
 
             // Optimistic localStorage cache for UI speed
             const userId = session?.user?.id
@@ -76,11 +81,8 @@ export default function IntroPage() {
                 }
             }
 
-            // Clear any pending redirect timers
-            redirectTimeouts.forEach(clearTimeout)
-            redirectTimeouts.clear()
-
-            const delay = isSkip ? 400 : 2000
+            // Small delay to let the fade out transition visually complete
+            const delay = isSkip ? 300 : 1000
             const t = setTimeout(() => {
                 push("/levels")
                 refresh()

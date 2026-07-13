@@ -2,6 +2,7 @@
 import Image from "next/image"
 
 import { useSyncExternalStore } from "react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/Button"
 import { ArrowLeft } from "lucide-react"
 
@@ -38,13 +39,14 @@ function handleContinue() {
 }
 
 export function MissionIntelStory() {
+    const { data: session } = useSession()
     const hasSeenIntro = useSyncExternalStore(
         subscribeToIntroStory,
         getHasSeenIntroSnapshot,
         () => true
     )
 
-    if (hasSeenIntro) {
+    if (hasSeenIntro || session?.user?.hasSeenIntro === true) {
         return null
     }
 
