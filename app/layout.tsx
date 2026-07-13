@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import Navbar from "@/components/Navbar";
+import { NetworkProvider } from "@/components/common/NetworkProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,10 +42,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <AuthProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1 flex flex-col">{children}</main>
-          </div>
+          <NetworkProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1 flex flex-col">{children}</main>
+            </div>
+          </NetworkProvider>
         </AuthProvider>
       </body>
     </html>

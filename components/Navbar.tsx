@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { Code } from "lucide-react"

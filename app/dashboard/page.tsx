@@ -6,7 +6,7 @@ import { db, safeDbQuery } from "@/lib/db"
 import { AlertTriangle, Shield, Zap, LayoutDashboard, History, Target, CheckCircle, Flame, Medal, Bolt, Play, BookOpen } from "lucide-react"
 import { DailyChallenge, type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { MissionIntelStory } from "./MissionIntelStory"
-import Link from "next/link"
+import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
 import { calculateAgentRank } from "@/lib/aura"
 
 function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThreshold: number } {
