@@ -67,4 +67,7 @@ generate_error.txt
 
 # react-doctor
 .react-doctor/
-.react-doctor-output.json
+.react-doctor-output.json
+
+# AI agents
+.agents/
