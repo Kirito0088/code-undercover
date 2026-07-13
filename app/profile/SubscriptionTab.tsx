@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { Sparkles } from "lucide-react"
 
 const PRO_PERKS = [
@@ -13,25 +13,11 @@ const PRO_PERKS = [
 
 export function SubscriptionTab() {
     const [showUpgradeNote, setShowUpgradeNote] = useState(false)
-    const upgradeNoteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-    useEffect(() => {
-        const timeoutId = upgradeNoteTimeoutRef.current
-        return () => {
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId)
-            }
-        }
-    }, [])
 
     const handleUpgradeClick = () => {
         setShowUpgradeNote(true)
-        if (upgradeNoteTimeoutRef.current !== null) {
-            clearTimeout(upgradeNoteTimeoutRef.current)
-        }
-        upgradeNoteTimeoutRef.current = setTimeout(() => {
+        setTimeout(() => {
             setShowUpgradeNote(false)
-            upgradeNoteTimeoutRef.current = null
         }, 5000)
     }
 

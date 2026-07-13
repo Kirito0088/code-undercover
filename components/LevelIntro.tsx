@@ -222,44 +222,33 @@ export function LevelIntro({ onComplete, accessGranted = false }: LevelIntroProp
     }
 
     useEffect(() => {
-        const timeouts: ReturnType<typeof setTimeout>[] = [];
+        let t1: ReturnType<typeof setTimeout> | undefined;
+        let t2: ReturnType<typeof setTimeout> | undefined;
+        let t3: ReturnType<typeof setTimeout> | undefined;
+        let t4: ReturnType<typeof setTimeout> | undefined;
+        let t5: ReturnType<typeof setTimeout> | undefined;
+        let t6: ReturnType<typeof setTimeout> | undefined;
 
         if (accessGranted) {
-            const timings = [
-                { time: 500, next: "scanning" as const },
-                { time: 3500, next: "verifying-yellow" as const },
-                { time: 4500, next: "granted-green" as const },
-            ];
-            let cumulativeDelay = 0;
-            for (const t of timings) {
-                cumulativeDelay += t.time;
-                const to = setTimeout(() => dispatch({ type: "SET_PHASE", phase: t.next }), cumulativeDelay);
-                timeouts.push(to);
-            }
-            const autoOpen = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "opening" }), cumulativeDelay + 2000);
-            timeouts.push(autoOpen);
-            const autoHide = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "hidden" }), cumulativeDelay + 3300);
-            timeouts.push(autoHide);
-            const autoComplete = setTimeout(() => onCompleteRef.current?.(), cumulativeDelay + 3400);
-            timeouts.push(autoComplete);
+            t1 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "scanning" }), 500);
+            t2 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "verifying-yellow" }), 4000);
+            t3 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "granted-green" }), 8500);
+            t4 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "opening" }), 10500);
+            t5 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "hidden" }), 11800);
+            t6 = setTimeout(() => onCompleteRef.current?.(), 11900);
         } else {
-            const timings = [
-                { time: 500, next: "scanning" as const },
-                { time: 3500, next: "verifying-yellow" as const },
-                { time: 4500, next: "denied-red" as const },
-            ];
-            let cumulativeDelay = 0;
-            for (const t of timings) {
-                cumulativeDelay += t.time;
-                const to = setTimeout(() => dispatch({ type: "SET_PHASE", phase: t.next }), cumulativeDelay);
-                timeouts.push(to);
-            }
+            t1 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "scanning" }), 500);
+            t2 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "verifying-yellow" }), 4000);
+            t3 = setTimeout(() => dispatch({ type: "SET_PHASE", phase: "denied-red" }), 8500);
         }
 
         return () => {
-            for (const timeout of timeouts) {
-                clearTimeout(timeout);
-            }
+            if (t1) clearTimeout(t1);
+            if (t2) clearTimeout(t2);
+            if (t3) clearTimeout(t3);
+            if (t4) clearTimeout(t4);
+            if (t5) clearTimeout(t5);
+            if (t6) clearTimeout(t6);
         }
     }, [accessGranted])
 

@@ -22,20 +22,16 @@ export default function CountdownTimer() {
             const targetReset = new Date("2026-07-12T08:44:10Z")
             const intervalMs = 12 * 60 * 60 * 1000 // 12 hours
             
-            let nextTargetMs = targetReset.getTime()
-            let difference = nextTargetMs - now.getTime()
-            if (difference <= 0) {
-                const elapsed = now.getTime() - nextTargetMs
-                nextTargetMs = nextTargetMs + Math.ceil(elapsed / intervalMs) * intervalMs
-                difference = nextTargetMs - now.getTime()
-            }
+            const elapsed = now.getTime() - targetReset.getTime()
+            const difference = intervalMs - (elapsed % intervalMs)
+            const cycleIndex = Math.floor(elapsed / intervalMs)
 
             // Check if we crossed the reset boundary
-            if (prevTargetRef.current !== null && nextTargetMs !== prevTargetRef.current) {
+            if (prevTargetRef.current !== null && cycleIndex !== prevTargetRef.current) {
                 // The target time has changed, meaning we crossed the 12-hour boundary!
                 router.refresh()
             }
-            prevTargetRef.current = nextTargetMs
+            prevTargetRef.current = cycleIndex
 
             const totalHours = Math.max(0, Math.floor(difference / (1000 * 60 * 60)))
             const totalMinutes = Math.max(0, Math.floor((difference / 1000 / 60) % 60))
