@@ -21,11 +21,20 @@ function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThres
     return { nextRank: "Max Rank", nextThreshold: 2500 }
 }
 
+const globalForDailyChallenge = globalThis as unknown as {
+    dailyChallenge: { question: DailyChallengeQuestion | null; expiresAt: number } | undefined
+}
+
 async function getDailyChallengeQuestion(): Promise<DailyChallengeQuestion | null> {
+    const now = Date.now()
+    if (globalForDailyChallenge.dailyChallenge && globalForDailyChallenge.dailyChallenge.expiresAt > now) {
+        return globalForDailyChallenge.dailyChallenge.question
+    }
+
     const count = await db.dailyQuestion.count()
     if (count === 0) return null
 
-    const index = Math.floor(Date.now() / 86400000) % count
+    const index = Math.floor(now / 86400000) % count
     const dailyQuestion = await db.dailyQuestion.findFirst({
         skip: index,
         orderBy: { id: "asc" },
@@ -45,11 +54,21 @@ async function getDailyChallengeQuestion(): Promise<DailyChallengeQuestion | nul
         return null
     }
 
-    return {
+    const question: DailyChallengeQuestion = {
         id: dailyQuestion.id,
         question: dailyQuestion.question,
         options,
     }
+
+    // Cache until end of day (midnight)
+    const midnight = new Date()
+    midnight.setHours(23, 59, 59, 999)
+    globalForDailyChallenge.dailyChallenge = {
+        question,
+        expiresAt: midnight.getTime()
+    }
+
+    return question
 }
 
 export default async function DashboardPage() {

@@ -5,7 +5,9 @@ import type { DashboardMission, MissionStatus } from "@/types"
 // ─── Auto-seed guard ───
 // Tracks whether we've already verified/seeded the Mission collection
 // this server lifecycle. Prevents redundant checks on every request.
-let missionsSeeded = false
+const globalForSeeding = globalThis as unknown as {
+    missionsSeeded: boolean | undefined
+}
 
 /**
  * Ensures the Mission collection in the database is populated.
@@ -13,7 +15,7 @@ let missionsSeeded = false
  * This runs once per server lifecycle (cached via `missionsSeeded` flag).
  */
 async function ensureMissionsSeeded(): Promise<void> {
-    if (missionsSeeded) return
+    if (globalForSeeding.missionsSeeded) return
 
     try {
         const count = await db.mission.count()
@@ -87,7 +89,7 @@ async function ensureMissionsSeeded(): Promise<void> {
             console.log(`[MISSION] Daily questions collection already has ${dailyQuestionsCount} entries — skipping auto-seed.`)
         }
 
-        missionsSeeded = true
+        globalForSeeding.missionsSeeded = true
     } catch (error) {
         // Don't set missionsSeeded = true on error, so it retries next request
         console.error("[MISSION] Auto-seed failed:", error)
