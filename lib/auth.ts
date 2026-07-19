@@ -7,7 +7,7 @@ import { compare } from "bcryptjs"
 import { loginFailedLimiter, getIpFromHeaders } from "./rate-limit"
 
 if (!process.env.NEXTAUTH_SECRET) {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
         throw new Error("NEXTAUTH_SECRET is not set. This is a critical security risk in production.")
     }
     console.warn(

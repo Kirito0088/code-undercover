@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: "standalone",
+const nextConfig = (phase) => {
+  return {
+    output: "standalone",
+    env: {
+      NEXT_PHASE: phase,
+    },
+  };
 };
 
 export default nextConfig;
