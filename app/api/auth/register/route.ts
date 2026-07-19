@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { hash } from "bcryptjs"
+import { registerLimiter, getIpFromHeaders } from "@/lib/rate-limit"
 
 const VALID_LANGUAGES = ["C", "Java", "Python", "DBMS"]
 
 export async function POST(req: Request) {
     try {
+        const ip = getIpFromHeaders(req.headers)
+        if (registerLimiter.isRateLimited(ip)) {
+            return NextResponse.json(
+                { error: "Too many requests. Please try again later.", message: "Too many requests. Please try again later." },
+                { status: 429 }
+            )
+        }
+
         const body = await req.json()
         const { email, password, name, username, preferredLanguage } = body
 
@@ -107,7 +116,7 @@ export async function POST(req: Request) {
                     preferredLanguage: language,
                 },
             })
-            console.log(`[REGISTER] Password initialized for existing user: ${newUser.id}`)
+            console.log("[REGISTER] Password initialized for existing user")
         } else {
             // Create brand new user
             newUser = await db.user.create({
@@ -119,10 +128,10 @@ export async function POST(req: Request) {
                     preferredLanguage: language,
                 },
             })
-            console.log(`[REGISTER] New user created: ${newUser.id}`)
+            console.log("[REGISTER] New user created")
         }
 
-        console.log(`[REGISTER] User created successfully: ${newUser.id}`)
+        console.log("[REGISTER] User created successfully")
 
         return NextResponse.json(
             {

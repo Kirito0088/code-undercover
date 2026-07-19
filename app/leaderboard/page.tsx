@@ -262,7 +262,7 @@ export default async function LeaderboardPage({
                         Settings
                     </Link>
 
-                    <button className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold shadow-md transition-colors">
+                    <button type="button" className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold shadow-md transition-colors">
                         <MessageSquare className="size-4 fill-white text-transparent" />
                         Invite Miko
                     </button>
@@ -316,16 +316,16 @@ export default async function LeaderboardPage({
                                 
                                 {/* Actions under text */}
                                 <div className="flex flex-wrap items-center gap-2.5 mt-4">
-                                    <button className="bg-[#1C1C24] border border-[#323242] p-2 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors" title="Bookmark">
+                                    <button type="button" className="bg-[#1C1C24] border border-[#323242] p-2 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors" title="Bookmark">
                                         <Bookmark className="size-4" />
                                     </button>
-                                    <button className="bg-[#1C1C24] border border-[#323242] px-4 py-2 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-all">
+                                    <button type="button" className="bg-[#1C1C24] border border-[#323242] px-4 py-2 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-all">
                                         Upgrade my data
                                     </button>
-                                    <button className="bg-[#1C1C24] border border-[#323242] px-4 py-2 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-all">
+                                    <button type="button" className="bg-[#1C1C24] border border-[#323242] px-4 py-2 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-all">
                                         Edit club
                                     </button>
-                                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md transition-all">
+                                    <button type="button" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md transition-all">
                                         Invite friends
                                     </button>
                                 </div>
@@ -345,13 +345,13 @@ export default async function LeaderboardPage({
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#1C1C24]/60 border border-[#252532] px-6 py-4 rounded-2xl select-none w-full">
                         {/* Left Filters */}
                         <div className="flex items-center gap-1.5 bg-[#0F0F12] p-1 rounded-lg border border-[#252532]">
-                            <button className="bg-[#1C1C24] text-white px-4 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all">
+                            <button type="button" className="bg-[#1C1C24] text-white px-4 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all">
                                 Rank
                             </button>
-                            <button className="text-[#8B8BA7] hover:text-[#F1F1F5] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
+                            <button type="button" className="text-[#8B8BA7] hover:text-[#F1F1F5] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
                                 Win Rate
                             </button>
-                            <button className="text-[#8B8BA7] hover:text-[#F1F1F5] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
+                            <button type="button" className="text-[#8B8BA7] hover:text-[#F1F1F5] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
                                 KDA
                             </button>
                         </div>
@@ -359,16 +359,16 @@ export default async function LeaderboardPage({
                         {/* Right Filters */}
                         <div className="flex flex-wrap items-center gap-3">
                             <div className="flex items-center gap-1 bg-[#0F0F12] p-1 rounded-lg border border-[#252532]">
-                                <button className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-1.2 rounded text-[11px] font-medium transition-all">
+                                <button type="button" className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-1.2 rounded text-[11px] font-medium transition-all">
                                     24h
                                 </button>
-                                <button className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-1.2 rounded text-[11px] font-medium transition-all">
+                                <button type="button" className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-1.2 rounded text-[11px] font-medium transition-all">
                                     7D
                                 </button>
-                                <button className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-1.2 rounded text-[11px] font-medium transition-all">
+                                <button type="button" className="text-[#8B8BA7] hover:text-[#F1F1F5] px-3 py-1.2 rounded text-[11px] font-medium transition-all">
                                     30D
                                 </button>
-                                <button className="bg-[#1C1C24] text-white px-3 py-1 rounded text-[11px] font-semibold transition-all">
+                                <button type="button" className="bg-[#1C1C24] text-white px-3 py-1 rounded text-[11px] font-semibold transition-all">
                                     Seasonal
                                 </button>
                             </div>
@@ -380,7 +380,7 @@ export default async function LeaderboardPage({
                             </div>
 
                             {/* Show My Place Button */}
-                            <button className="bg-[#1C1C24] border border-[#2B2B38] px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-colors">
+                            <button type="button" className="bg-[#1C1C24] border border-[#2B2B38] px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-colors">
                                 Show my place
                             </button>
                         </div>

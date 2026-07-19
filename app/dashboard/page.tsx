@@ -5,6 +5,7 @@ import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
 import { AlertTriangle, Shield, Zap, LayoutDashboard, History, Target, CheckCircle, Flame, Medal, Bolt, Play, BookOpen } from "lucide-react"
 import { DailyChallenge, type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
+import { DailyChallengeModal } from "@/components/dashboard/DailyChallengeModal"
 import { MissionIntelStory } from "./MissionIntelStory"
 import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
 import { calculateAgentRank } from "@/lib/aura"
@@ -316,9 +317,9 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
 
-                    {/* Daily Challenge Widget */}
                     <div id="challenge-section" className="scroll-mt-20">
                         <DailyChallenge initialQuestion={dailyChallengeQuestion} />
+                        <DailyChallengeModal initialQuestion={dailyChallengeQuestion} />
                     </div>
                 </main>
             </div>

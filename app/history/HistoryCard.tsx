@@ -67,6 +67,19 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
     const copiedTimeouts = copiedTimeoutsRef.current
     const diff = getDifficultyStyle(mission.difficulty)
 
+    const [formattedDate, setFormattedDate] = useState<string>(() => {
+        if (!mission.completedAt) return "Unknown"
+        try {
+            return new Date(mission.completedAt).toISOString().split('T')[0]
+        } catch {
+            return "Unknown"
+        }
+    })
+
+    useEffect(() => {
+        setFormattedDate(formatDate(mission.completedAt))
+    }, [mission.completedAt])
+
     useEffect(() => {
         return () => {
             for (const timeout of copiedTimeouts) {
@@ -141,7 +154,7 @@ export function HistoryCard({ mission, index }: HistoryCardProps) {
                                     {mission.hintsUsed} hint{mission.hintsUsed !== 1 ? "s" : ""}
                                 </span>
                             )}
-                            <span className="text-[#5C5C7A]">{formatDate(mission.completedAt)}</span>
+                            <span className="text-[#5C5C7A]">{formattedDate}</span>
                         </div>
                     </div>
                 </div>

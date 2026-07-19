@@ -26,10 +26,13 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const nav = navigator as Navigator & { connection?: NetworkInformation }
         const connection = nav.connection
+        const controller = new AbortController()
+        let active = true
 
         // 1. If navigator.connection is supported (Chrome/Edge/Opera/Android)
         if (connection) {
             const checkConnection = () => {
+                if (!active) return
                 const type = connection.effectiveType
                 const isSlow = type === "slow-2g" || type === "2g" || type === "3g" || connection.saveData === true
                 setIsFastConnection(!isSlow)
@@ -40,19 +43,28 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
             if (connection.addEventListener) {
                 connection.addEventListener("change", checkConnection)
                 return () => {
+                    active = false
+                    controller.abort()
                     if (connection.removeEventListener) {
                         connection.removeEventListener("change", checkConnection)
                     }
                 }
             }
-            return
+            return () => {
+                active = false
+                controller.abort()
+            }
         }
 
         // 2. Fallback for browsers without navigator.connection (Safari/iOS/Firefox)
         const measureLatency = async () => {
             const start = performance.now()
             try {
-                const res = await fetch("/api/ping", { cache: "no-store" })
+                const res = await fetch("/api/ping", { 
+                    cache: "no-store",
+                    signal: controller.signal
+                })
+                if (!active) return
                 if (res.ok) {
                     const rtt = performance.now() - start
                     // Fast connection if round trip latency is under 150ms
@@ -61,11 +73,20 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
                     setIsFastConnection(false)
                 }
             } catch (err) {
+                if (!active) return
+                if (err instanceof Error && err.name === "AbortError") {
+                    return
+                }
                 setIsFastConnection(false) // Safe fallback on error
             }
         }
 
         measureLatency()
+
+        return () => {
+            active = false
+            controller.abort()
+        }
     }, [])
 
     return (

@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { checkUserLimiter, getIpFromHeaders } from "@/lib/rate-limit"
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
     try {
+        const ip = getIpFromHeaders(req.headers)
+        if (checkUserLimiter.isRateLimited(ip)) {
+            return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+        }
+
         const { searchParams } = new URL(req.url)
         const email = searchParams.get("email")
 

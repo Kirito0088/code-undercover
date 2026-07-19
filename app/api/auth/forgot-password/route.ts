@@ -2,15 +2,33 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import crypto from "crypto"
 import { sendPasswordResetEmail } from "@/lib/email"
+import { forgotPasswordLimiter, getIpFromHeaders } from "@/lib/rate-limit"
 
 export async function POST(req: Request) {
     try {
+        const ip = getIpFromHeaders(req.headers)
+        if (forgotPasswordLimiter.isRateLimited(ip)) {
+            return NextResponse.json(
+                { message: "Too many requests. Please try again later." },
+                { status: 429 }
+            )
+        }
+
         const body = await req.json()
         const { email } = body
 
         if (!email) {
             return NextResponse.json(
                 { message: "Email is required" },
+                { status: 400 }
+            )
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            return NextResponse.json(
+                { message: "Invalid email format" },
                 { status: 400 }
             )
         }

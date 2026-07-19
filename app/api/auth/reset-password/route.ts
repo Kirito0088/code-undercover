@@ -2,9 +2,18 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
+import { resetPasswordLimiter, getIpFromHeaders } from "@/lib/rate-limit"
 
 export async function POST(req: Request) {
     try {
+        const ip = getIpFromHeaders(req.headers)
+        if (resetPasswordLimiter.isRateLimited(ip)) {
+            return NextResponse.json(
+                { message: "Too many requests. Please try again later." },
+                { status: 429 }
+            )
+        }
+
         const body = await req.json()
         const { token, email, password } = body
 

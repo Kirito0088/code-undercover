@@ -15,8 +15,13 @@ function dedupeOptions(options: string[]) {
 
 function normalizeQuestionOptions(question: { id?: number; question: string; options: string[]; correctIndex: number }) {
     const correctAnswer = question.options?.[question.correctIndex]
-    const options = dedupeOptions(question.options ?? [])
-    const correctIndex = correctAnswer ? options.indexOf(correctAnswer) : question.correctIndex
+    const optionStrings = dedupeOptions(question.options ?? [])
+    const correctIndex = correctAnswer ? optionStrings.indexOf(correctAnswer) : question.correctIndex
+
+    const options = optionStrings.map((opt, idx) => ({
+        id: `opt-${question.id ?? 'q'}-${idx}-${opt.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+        text: opt
+    }))
 
     return {
         ...question,
@@ -26,20 +31,20 @@ function normalizeQuestionOptions(question: { id?: number; question: string; opt
 }
 
 export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
-    let questions: { id?: number; question: string; options: string[]; correctIndex: number }[] = []
+    let rawQuestions: { id?: number; question: string; options: string[]; correctIndex: number }[] = []
 
     try {
-        questions = mission.mcqContent
+        rawQuestions = mission.mcqContent
             ? JSON.parse(mission.mcqContent)
             : []
     } catch {
-        questions = []
+        rawQuestions = []
     }
 
     // Guarantee at least one fallback question
-    if (!Array.isArray(questions) || questions.length === 0) {
+    if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
         if (mission.order === 1) {
-            questions = [
+            rawQuestions = [
                 {
                     id: 1,
                     question: "What is the primary function of printf() in C?",
@@ -64,7 +69,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                 },
             ]
         } else {
-            questions = [
+            rawQuestions = [
                 {
                     id: 1,
                     question: "What is the main use of scanf() in C?",
@@ -90,7 +95,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
             ]
         }
     }
-    questions = questions.map(normalizeQuestionOptions)
+    const questions = rawQuestions.map(normalizeQuestionOptions)
 
     const [currentQIndex, setCurrentQIndex] = useState(0)
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
@@ -202,10 +207,10 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                     </h3>
 
                     <div className="space-y-4">
-                        {(q.options ?? []).map((opt: string, index: number) => (
+                        {(q.options ?? []).map((opt, index: number) => (
                             <button
                                 type="button"
-                                key={`${index}-${opt}`}
+                                key={opt.id}
                                 onClick={() => {
                                     setSelectedOption(index)
                                     setShowError(false)
@@ -219,7 +224,7 @@ export function MCQPhase({ mission, onComplete }: MCQPhaseProps) {
                                     <span
                                         className={`text-sm ${selectedOption === index ? "text-[#F1F1F5]" : "text-[#8B8BA7]"}`}
                                     >
-                                        {opt}
+                                        {opt.text}
                                     </span>
                                 </div>
                             </button>

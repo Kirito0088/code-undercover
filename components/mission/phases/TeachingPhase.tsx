@@ -10,7 +10,7 @@ interface TeachingPhaseProps {
 }
 
 export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
-    const slides = mission.teachingContent
+    const rawSlides = mission.teachingContent
         ? JSON.parse(mission.teachingContent)
         : [
             {
@@ -33,6 +33,35 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
             },
         ]
 
+    interface Point {
+        id: string
+        text: string
+    }
+
+    interface Slide {
+        id: string
+        title: string
+        content: string | Point[]
+    }
+
+    const slides: Slide[] = rawSlides.map((slide: { title: string; content: string | string[] }, slideIdx: number) => {
+        const slideId = `slide-${mission.id ?? 'm'}-${slideIdx}-${slide.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`
+        let content: string | Point[]
+        if (Array.isArray(slide.content)) {
+            content = slide.content.map((point: string, pointIdx: number) => ({
+                id: `point-${slideId}-${pointIdx}-${point.substring(0, 15).replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+                text: point
+            }))
+        } else {
+            content = slide.content
+        }
+        return {
+            id: slideId,
+            title: slide.title,
+            content
+        }
+    })
+
     return (
         <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#14141A]/98 z-40 overflow-y-auto">
             <div className="max-w-5xl w-full bg-[#1C1C24] border border-[#323242] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
@@ -53,13 +82,13 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                 <div className="px-6 md:px-8 pb-6 flex-1 overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {slides.map(
-                            (slide: { title: string; content: string | string[] }, index: number) => {
+                            (slide, index: number) => {
                                 // If 3 slides, the third one spans full width
                                 const isLastOdd = slides.length % 2 === 1 && index === slides.length - 1
 
                                 return (
                                     <div
-                                        key={`${index}-${slide.title}`}
+                                        key={slide.id}
                                         className={`bg-[#22222B] border border-[#323242] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
                                             }`}
                                         style={{ animationDelay: `${index * 200}ms` }}
@@ -69,10 +98,10 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                         </h3>
                                         {Array.isArray(slide.content) ? (
                                             <ul className="space-y-2 text-[#8B8BA7] text-sm leading-relaxed">
-                                                {slide.content.map((point: string, pointIndex: number) => (
-                                                    <li key={`${index}-${pointIndex}-${point}`} className="flex items-start gap-2.5">
+                                                {slide.content.map((point) => (
+                                                    <li key={point.id} className="flex items-start gap-2.5">
                                                         <div className="size-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                                                        <span>{point}</span>
+                                                        <span>{point.text}</span>
                                                     </li>
                                                 ))}
                                             </ul>

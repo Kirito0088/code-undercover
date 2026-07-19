@@ -1,33 +1,16 @@
-import { exec, spawn } from 'child_process'
-import { promisify } from 'util'
-import * as fs from 'fs/promises'
-import * as os from 'os'
-import * as path from 'path'
 import { explainFirstDiagnostic } from './compilerExplanation'
 import { CompilerDiagnostic } from '@/types'
-
-const execAsync = promisify(exec)
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 /** Name shown to the user in diagnostic messages */
 const VIRTUAL_FILE_NAME = 'solution.c'
 
-/** Source file written inside each temp dir */
-const SOURCE_FILE_NAME = 'prog.c'
-
-/** Output binary name (platform-aware) */
-const BINARY_NAME = process.platform === 'win32' ? 'prog.exe' : 'prog'
-
-/** Compilation flags */
-const GCC_FLAGS = '-Wall -Wextra -O0 -pipe'
-
 /** Maximum time (ms) allowed for the C compilation to finish */
 const COMPILATION_TIMEOUT_MS = 4000
 
 /** Maximum time (ms) allowed for the compiled binary to run */
 const EXECUTION_TIMEOUT_MS = 3000
-
 
 // ─── Result Interface ────────────────────────────────────────────────────────
 
@@ -76,19 +59,11 @@ function setCachedResult(code: string, input: string, result: CompileExecutionRe
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Sanitize GCC output: replace the OS temp path and internal filename with
- * the user-friendly virtual name, and filter out noise lines that confuse
+ * Sanitize GCC output: filter out noise lines that confuse
  * beginners (MinGW internals, system includes, linker cruft, etc.).
  */
-function sanitizeString(raw: string, tmpDir: string): string {
+function sanitizeString(raw: string): string {
     if (!raw) return ''
-
-    // Replace the full temp-dir path prefix so users only see "solution.c"
-    const s = raw
-        .split(path.join(tmpDir, SOURCE_FILE_NAME)).join(VIRTUAL_FILE_NAME)
-        .split(SOURCE_FILE_NAME).join(VIRTUAL_FILE_NAME)
-        // Windows: also handle forward-slash variants GCC emits
-        .split(tmpDir.replace(/\\/g, '/')).join('')
 
     const NOISE_PATTERNS = [
         /^In file included from/i,
@@ -103,7 +78,7 @@ function sanitizeString(raw: string, tmpDir: string): string {
         /^\/opt\//i,
     ]
 
-    const filtered = s.split('\n').filter(line => {
+    const filtered = raw.split('\n').filter(line => {
         const t = line.trim()
         if (!t) return true // keep blank lines for context
         return !NOISE_PATTERNS.some(pat => pat.test(t))
@@ -154,82 +129,6 @@ function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
     return diagnostics
 }
 
-/**
- * Create a fresh isolated temporary directory for each compilation request.
- * Using a timestamp + random suffix guarantees no collision under concurrent load.
- */
-async function createTempDir(): Promise<string> {
-    const base = path.join(os.tmpdir(), `code-undercover-${Date.now()}-${Math.random().toString(36).slice(2)}`)
-    await fs.mkdir(base, { recursive: true })
-    return base
-}
-
-/**
- * Silently remove the temp directory and all its contents.
- * Called in `finally` — never throws, never leaks files.
- */
-async function cleanupTempDir(tmpDir: string): Promise<void> {
-    try {
-        await fs.rm(tmpDir, { recursive: true, force: true })
-    } catch {
-        // Best-effort: log but don't surface cleanup failures to the caller
-        console.warn(`[COMPILER] Failed to clean up temp dir: ${tmpDir}`)
-    }
-}
-
-// ─── Spawn Helper ─────────────────────────────────────────────────────────────
-
-interface SpawnResult {
-    stdout: string
-    stderr: string
-    exitCode: number | null
-    timedOut: boolean
-}
-
-/**
- * Execute a binary with optional stdin, a hard timeout, and capped output buffers.
- * Uses `spawn` (not `exec`) so we can pipe arbitrary input into stdin cleanly.
- */
-function spawnWithInput(
-    binaryPath: string,
-    stdinData: string,
-    timeoutMs: number
-): Promise<SpawnResult> {
-    return new Promise((resolve) => {
-        const child = spawn(binaryPath, [], {
-            stdio: ['pipe', 'pipe', 'pipe'],
-            // Windows: prevent a new console window from flashing open
-            windowsHide: true,
-        })
-
-        let stdout = ''
-        let stderr = ''
-        let timedOut = false
-        const MAX_BYTES = 10 * 1024 * 1024 // 10 MB safety cap
-
-        child.stdout.on('data', (chunk: Buffer) => {
-            if (stdout.length < MAX_BYTES) stdout += chunk.toString()
-        })
-        child.stderr.on('data', (chunk: Buffer) => {
-            if (stderr.length < MAX_BYTES) stderr += chunk.toString()
-        })
-
-        const timer = setTimeout(() => {
-            timedOut = true
-            child.kill('SIGKILL')
-        }, timeoutMs)
-
-        child.on('close', (code) => {
-            clearTimeout(timer)
-            resolve({ stdout, stderr, exitCode: code, timedOut })
-        })
-
-        // Write all stdin then close so the child doesn't block waiting for EOF
-        if (stdinData) child.stdin.write(stdinData)
-        child.stdin.end()
-    })
-}
-
 // ─── Main Entry Point ─────────────────────────────────────────────────────────
 
 export async function executeCode(
@@ -244,36 +143,76 @@ export async function executeCode(
     }
 
     const startTime = Date.now()
-    const tmpDir = await createTempDir()
 
     try {
-        const sourceFile = path.join(tmpDir, SOURCE_FILE_NAME)
-        const binaryFile = path.join(tmpDir, BINARY_NAME)
+        const apiUrl = process.env.PISTON_API_URL || 'https://emkc.org/api/v2/piston/execute'
 
-        // ── Step 1: Write source to disk ─────────────────────────────────
-        await fs.writeFile(sourceFile, code, 'utf-8')
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), COMPILATION_TIMEOUT_MS + EXECUTION_TIMEOUT_MS + 4000)
 
-        // ── Step 2: Compile ───────────────────────────────────────────────
-        const gccCommand = `gcc "${sourceFile}" -o "${binaryFile}" ${GCC_FLAGS}`
-
-        let compileStderr = ''
+        let pistonResponse;
         try {
-            await execAsync(gccCommand, { timeout: COMPILATION_TIMEOUT_MS, killSignal: 'SIGKILL' })
-        } catch (compileError: unknown) {
-            // GCC exits non-zero on any error/warning-as-error; capture stderr
-            if (compileError && typeof compileError === 'object') {
-                if ('killed' in compileError && (compileError as { killed: boolean }).killed) {
-                    compileStderr = `error: Compilation Timeout: Your program took longer than ${COMPILATION_TIMEOUT_MS / 1000}s to compile.`
-                } else if ('stderr' in compileError) {
-                    compileStderr = String((compileError as { stderr: string }).stderr)
-                } else if ('message' in compileError) {
-                    compileStderr = String((compileError as { message: string }).message)
-                }
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    language: 'c',
+                    version: '*',
+                    files: [
+                        {
+                            name: VIRTUAL_FILE_NAME,
+                            content: code,
+                        },
+                    ],
+                    stdin: input,
+                    compile_timeout: COMPILATION_TIMEOUT_MS,
+                    run_timeout: EXECUTION_TIMEOUT_MS
+                }),
+                signal: controller.signal,
+            })
+
+            if (!response.ok) {
+                const errText = await response.text()
+                throw new Error(`Piston API returned status ${response.status}: ${errText}`)
             }
+
+            pistonResponse = await response.json()
+        } finally {
+            clearTimeout(timeoutId)
         }
 
-        const sanitizedCompilerError = sanitizeString(compileStderr, tmpDir)
-        const hasGccErrors = /\b(error|fatal error):/i.test(sanitizedCompilerError)
+        if (!pistonResponse || typeof pistonResponse !== 'object') {
+            throw new Error('Invalid response from Piston API')
+        }
+
+        const compileData = pistonResponse.compile
+        const runData = pistonResponse.run
+
+        if (!runData) {
+            // If compile exists and exited non-zero, or no runData is present, compilation failed
+            const compileStderr = compileData ? (compileData.stderr || compileData.output || '') : ''
+            const sanitizedCompilerError = sanitizeString(compileStderr)
+            const diagnostics = parseGccDiagnostics(sanitizedCompilerError)
+            const explanationText =
+                explainFirstDiagnostic(diagnostics) ??
+                'There is a compilation error. Read the output above for details.'
+
+            const compileErrorResult: CompileExecutionResult = {
+                success: false,
+                compilerError: sanitizedCompilerError || 'Compilation failed',
+                diagnostics,
+                explanation: explanationText,
+                executionTimeMs: Date.now() - startTime,
+            }
+            setCachedResult(code, input, compileErrorResult)
+            return compileErrorResult
+        }
+
+        const compileStderr = compileData ? (compileData.stderr || compileData.output || '') : ''
+        const sanitizedCompilerError = sanitizeString(compileStderr)
+        const hasGccErrors = /\b(error|fatal error):/i.test(sanitizedCompilerError) || (compileData && compileData.code !== 0 && compileData.code !== null)
 
         if (hasGccErrors) {
             const diagnostics = parseGccDiagnostics(sanitizedCompilerError)
@@ -288,21 +227,18 @@ export async function executeCode(
                 explanation: explanationText,
                 executionTimeMs: Date.now() - startTime,
             }
-            // Compile errors are deterministic — safe to cache
             setCachedResult(code, input, compileErrorResult)
             return compileErrorResult
         }
 
-        // ── Step 3: Execute the binary ────────────────────────────────────
-        const { stdout, stderr: runStderr, exitCode, timedOut } =
-            await spawnWithInput(binaryFile, input, EXECUTION_TIMEOUT_MS)
-
-        const programOutput = sanitizeString(stdout, tmpDir)
-        const programError = sanitizeString(runStderr, tmpDir)
+        // ── Step 3: Parse run results ────────────────────────────────────
+        const programOutput = sanitizeString(runData.stdout || '')
+        const programError = sanitizeString(runData.stderr || '')
         const executionTimeMs = Date.now() - startTime
 
         // ── Timeout ───────────────────────────────────────────────────────
-        if (timedOut) {
+        const isTimeout = runData.signal === 'SIGKILL' || runData.signal === 'SIGTERM' || runData.code === null || (runData.stderr && runData.stderr.includes('timeout'))
+        if (isTimeout) {
             return {
                 success: false,
                 output: programOutput || undefined,
@@ -313,12 +249,12 @@ export async function executeCode(
         }
 
         // ── Runtime error (non-zero exit) ─────────────────────────────────
-        if (exitCode !== null && exitCode !== 0) {
+        if (runData.code !== null && runData.code !== 0) {
             return {
                 success: false,
                 output: programOutput || undefined,
-                errors: programError || `Program exited with code ${exitCode}`,
-                exitCode,
+                errors: programError || `Program exited with code ${runData.code}`,
+                exitCode: runData.code,
                 executionTimeMs,
             }
         }
@@ -336,21 +272,18 @@ export async function executeCode(
             compilerError: sanitizedWarnings,
             diagnostics: warningDiagnostics,
             errors: programError || undefined,
-            exitCode: exitCode ?? 0,
+            exitCode: runData.code ?? 0,
             executionTimeMs,
         }
         setCachedResult(code, input, successResult)
         return successResult
 
     } catch (error) {
-        console.error('[COMPILER] Unexpected error during local GCC execution:', error)
+        console.error('[COMPILER] Unexpected error during Piston API execution:', error)
         return {
             success: false,
             errors: `Internal compiler error: ${error instanceof Error ? error.message : 'Unknown error'}`,
             executionTimeMs: Date.now() - startTime,
         }
-    } finally {
-        // ── Guaranteed cleanup — runs on success, failure, and timeout ────
-        await cleanupTempDir(tmpDir)
     }
 }

@@ -4,8 +4,12 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { db } from "@/lib/db"
 import { compare } from "bcryptjs"
+import { loginFailedLimiter, getIpFromHeaders } from "./rate-limit"
 
 if (!process.env.NEXTAUTH_SECRET) {
+    if (process.env.NODE_ENV === "production") {
+        throw new Error("NEXTAUTH_SECRET is not set. This is a critical security risk in production.")
+    }
     console.warn(
         "[AUTH] NEXTAUTH_SECRET is not set. Using fallback for development only."
     )
@@ -32,16 +36,22 @@ export const authOptions: NextAuthOptions = {
                 },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
+            async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) {
                     console.warn("[AUTH] Missing credentials in login attempt")
                     return null
                 }
 
-                try {
-                    // Normalize email to prevent case/whitespace mismatches
-                    const normalizedEmail = credentials.email.trim().toLowerCase()
+                const ip = getIpFromHeaders(req?.headers)
+                const normalizedEmail = credentials.email.trim().toLowerCase()
+                const rateLimitKey = `${ip}:${normalizedEmail}`
 
+                if (loginFailedLimiter.check(rateLimitKey)) {
+                    console.warn("[AUTH] Login attempt blocked by rate limit")
+                    return null
+                }
+
+                try {
                     const user = await db.user.findUnique({
                         where: {
                             email: normalizedEmail,
@@ -49,12 +59,14 @@ export const authOptions: NextAuthOptions = {
                     })
 
                     if (!user) {
-                        console.warn(`[AUTH] No user record found for email: ${normalizedEmail}`)
+                        console.warn("[AUTH] No user record found")
+                        loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
                     if (!user.password) {
-                        console.warn(`[AUTH] User exists but has no password (needs registration): ${normalizedEmail}`)
+                        console.warn("[AUTH] User exists but has no password (needs registration)")
+                        loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
@@ -64,13 +76,12 @@ export const authOptions: NextAuthOptions = {
                     )
 
                     if (!isPasswordValid) {
-                        console.warn(
-                            `[AUTH] Invalid password for email: ${credentials.email}`
-                        )
+                        console.warn("[AUTH] Invalid password")
+                        loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
-                    console.log(`[AUTH] User authenticated: ${user.id}`)
+                    console.log("[AUTH] User authenticated successfully")
 
                     return {
                         id: user.id,
