@@ -109,11 +109,16 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user, account }) {
             if (account?.provider === "google") {
-                const existingUser = await db.user.findUnique({
-                    where: { email: user.email ?? "" }
-                });
-                if (!existingUser) {
-                    return "/login?error=AccountNotExist";
+                try {
+                    const existingUser = await db.user.findUnique({
+                        where: { email: user.email ?? "" }
+                    });
+                    if (!existingUser) {
+                        return "/login?error=AccountNotExist";
+                    }
+                } catch (e) {
+                    console.error("[AUTH] Database offline during google provider sign-in query:", e)
+                    return "/login?error=DatabaseOffline";
                 }
             }
             return true;
@@ -124,25 +129,35 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id
                 token.username = (user as { username?: string | null }).username
 
-                const dbUser = await db.user.findUnique({
-                    where: { id: user.id },
-                    select: { hasSeenIntro: true, missionsCompleted: true },
-                })
+                try {
+                    const dbUser = await db.user.findUnique({
+                        where: { id: user.id },
+                        select: { hasSeenIntro: true, missionsCompleted: true },
+                    })
 
-                // Auto-mark intro seen for returning users who already have missions
-                // (handles Google OAuth on a new device — they never see the intro again)
-                token.hasSeenIntro =
-                    dbUser?.hasSeenIntro === true ||
-                    (dbUser?.missionsCompleted ?? 0) > 0
+                    // Auto-mark intro seen for returning users who already have missions
+                    // (handles Google OAuth on a new device — they never see the intro again)
+                    token.hasSeenIntro =
+                        dbUser?.hasSeenIntro === true ||
+                        (dbUser?.missionsCompleted ?? 0) > 0
+                } catch (e) {
+                    console.error("[AUTH] Database offline during sign-in jwt query:", e)
+                    token.hasSeenIntro = false
+                }
             }
 
             // After the intro page calls updateSession(), refresh the flag from DB
             if (trigger === "update" && token.id) {
-                const dbUser = await db.user.findUnique({
-                    where: { id: token.id as string },
-                    select: { hasSeenIntro: true },
-                })
-                token.hasSeenIntro = dbUser?.hasSeenIntro ?? false
+                try {
+                    const dbUser = await db.user.findUnique({
+                        where: { id: token.id as string },
+                        select: { hasSeenIntro: true },
+                    })
+                    token.hasSeenIntro = dbUser?.hasSeenIntro ?? false
+                } catch (e) {
+                    console.error("[AUTH] Database offline during trigger update jwt query:", e)
+                    token.hasSeenIntro = token.hasSeenIntro ?? false
+                }
             }
 
             return token

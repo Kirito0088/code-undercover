@@ -174,3 +174,62 @@ html.light textarea::placeholder {
   60% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* ─── TERMINAL BOOT/FLICKER ANIMATIONS ─── */
+@keyframes terminal-flicker {
+  0% { 
+    opacity: 0; 
+    filter: brightness(2) contrast(1.5);
+  }
+  2% { opacity: 0.8; }
+  4% { opacity: 0.15; }
+  8% { opacity: 0.9; }
+  12% { opacity: 0.3; }
+  16% { 
+    opacity: 1;
+    filter: brightness(1) contrast(1);
+  }
+  70% { opacity: 0.9; }
+  72% { opacity: 0.25; }
+  76% { opacity: 0.95; }
+  100% { 
+    opacity: 1; 
+    filter: brightness(1) contrast(1);
+  }
+}
+
+@keyframes scanline-vertical {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.animate-terminal-flicker {
+  animation: terminal-flicker 0.65s steps(12) both;
+}
+
+.animate-scanline-sweep {
+  animation: scanline-vertical 4s linear infinite;
+}
+
+.animation-delay-75 {
+  animation-delay: 75ms;
+}
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+.animation-delay-225 {
+  animation-delay: 225ms;
+}
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+.animation-delay-375 {
+  animation-delay: 375ms;
+}
+.animation-delay-450 {
+  animation-delay: 450ms;
+}
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
