@@ -6,22 +6,46 @@ import { db } from "@/lib/db"
 import { compare } from "bcryptjs"
 import { loginFailedLimiter, getIpFromHeaders } from "./rate-limit"
 
-if (!process.env.NEXTAUTH_SECRET) {
-    if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
-        throw new Error("NEXTAUTH_SECRET is not set. This is a critical security risk in production.")
+/**
+ * Derive a base username from a name or email, then guarantee uniqueness
+ * by appending a numeric suffix if the base is already taken.
+ */
+async function generateUniqueUsername(seed: string): Promise<string> {
+    const base = seed
+        .split("@")[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 20) || "agent";
+
+    let candidate = base;
+    let suffix = 0;
+
+    // Loop until we find a codename that isn't taken.
+    while (suffix < 1000) {
+        const existing = await db.user.findUnique({ where: { username: candidate } });
+        if (!existing) return candidate;
+        suffix += 1;
+        candidate = `${base}${suffix}`;
     }
-    console.warn(
-        "[AUTH] NEXTAUTH_SECRET is not set. Using fallback for development only."
-    )
+
+    // Fallback: timestamp-based, essentially guaranteed unique.
+    return `${base}${Date.now()}`;
 }
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(db),
-    secret: process.env.NEXTAUTH_SECRET,
     session: {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
     },
+    secret: (() => {
+        const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+        if (secret) return secret;
+        if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
+            throw new Error("NEXTAUTH_SECRET (or AUTH_SECRET) must be set in production.");
+        }
+        return "fallback_development_secret_key";
+    })(),
     pages: {
         signIn: "/login",
     },
@@ -46,7 +70,7 @@ export const authOptions: NextAuthOptions = {
                 const normalizedEmail = credentials.email.trim().toLowerCase()
                 const rateLimitKey = `${ip}:${normalizedEmail}`
 
-                if (loginFailedLimiter.check(rateLimitKey)) {
+                if (loginFailedLimiter.isRateLimited(rateLimitKey)) {
                     console.warn("[AUTH] Login attempt blocked by rate limit")
                     return null
                 }
@@ -108,68 +132,89 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async signIn({ user, account }) {
-            if (account?.provider === "google") {
+            if (account?.provider === "google" && user.email) {
                 try {
+                    const emailStr = user.email as string;
                     const existingUser = await db.user.findUnique({
-                        where: { email: user.email ?? "" }
+                        where: { email: emailStr },
                     });
-                    if (!existingUser) {
-                        return "/login?error=AccountNotExist";
+
+                    if (existingUser && !existingUser.username) {
+                        const username = await generateUniqueUsername(
+                            existingUser.name || emailStr
+                        );
+                        await db.user.update({
+                            where: { id: existingUser.id },
+                            data: { username },
+                        });
                     }
                 } catch (e) {
-                    console.error("[AUTH] Database offline during google provider sign-in query:", e)
-                    return "/login?error=DatabaseOffline";
+                    console.error("[AUTH] Error during Google signIn username backfill:", e);
                 }
             }
             return true;
         },
+
         async jwt({ token, user, trigger }) {
-            // On first sign-in, embed hasSeenIntro from DB into the JWT
             if (user) {
-                token.id = user.id
-                token.username = (user as { username?: string | null }).username
+                token.id = user.id;
+                token.username =
+                    (user as { username?: string | null }).username ||
+                    (user.email ? user.email.split("@")[0] : "agent");
 
                 try {
                     const dbUser = await db.user.findUnique({
                         where: { id: user.id },
                         select: { hasSeenIntro: true, missionsCompleted: true },
-                    })
+                    });
 
-                    // Auto-mark intro seen for returning users who already have missions
-                    // (handles Google OAuth on a new device — they never see the intro again)
                     token.hasSeenIntro =
                         dbUser?.hasSeenIntro === true ||
-                        (dbUser?.missionsCompleted ?? 0) > 0
+                        (dbUser?.missionsCompleted ?? 0) > 0;
                 } catch (e) {
-                    console.error("[AUTH] Database offline during sign-in jwt query:", e)
-                    token.hasSeenIntro = false
+                    console.error("[AUTH] Database offline during sign-in jwt query:", e);
+                    token.hasSeenIntro = false;
                 }
             }
 
-            // After the intro page calls updateSession(), refresh the flag from DB
+            if (!token.username && token.email) {
+                try {
+                    const emailStr = token.email as string;
+                    const dbUser = await db.user.findUnique({
+                        where: { email: emailStr },
+                        select: { username: true, hasSeenIntro: true },
+                    });
+                    token.username = dbUser?.username || emailStr.split("@")[0];
+                    token.hasSeenIntro = token.hasSeenIntro ?? (dbUser?.hasSeenIntro ?? false);
+                } catch (e) {
+                    console.error("[AUTH] Error fetching dbUser for username in jwt:", e);
+                    token.username = token.username || (token.email as string).split("@")[0];
+                }
+            }
+
             if (trigger === "update" && token.id) {
                 try {
                     const dbUser = await db.user.findUnique({
                         where: { id: token.id as string },
                         select: { hasSeenIntro: true },
-                    })
-                    token.hasSeenIntro = dbUser?.hasSeenIntro ?? false
+                    });
+                    token.hasSeenIntro = dbUser?.hasSeenIntro ?? false;
                 } catch (e) {
-                    console.error("[AUTH] Database offline during trigger update jwt query:", e)
-                    token.hasSeenIntro = token.hasSeenIntro ?? false
+                    console.error("[AUTH] Database offline during trigger update jwt query:", e);
+                    token.hasSeenIntro = token.hasSeenIntro ?? false;
                 }
             }
 
-            return token
+            return token;
         },
 
         async session({ session, token }) {
-            if (token && session.user) {
-                session.user.id = token.id as string
-                session.user.username = token.username as string
-                session.user.hasSeenIntro = token.hasSeenIntro as boolean
+            if (session.user) {
+                session.user.id = token.id as string;
+                session.user.username = (token.username as string) || "agent";
+                session.user.hasSeenIntro = (token.hasSeenIntro as boolean) ?? false;
             }
-            return session
+            return session;
         },
     },
 }

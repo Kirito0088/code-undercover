@@ -751,11 +751,18 @@ export default function RegisterPage() {
                     router.refresh()
                 }
             } else {
-                if (res.status === 409 && data.error?.includes("Codename")) {
-                    // Duplicate username error
+                if (res.status === 409) {
+                    const errText = (data.error || data.message || "").toLowerCase()
                     dispatch({ type: "SET_STEP", step: 1 })
-                    dispatch({ type: "SET_VALIDATION_ERROR", field: "username", error: "Codename already taken. Choose another." })
-                    dispatch({ type: "BLUR_FIELD", field: "username", error: "Codename already taken. Choose another." })
+                    if (errText.includes("codename") || errText.includes("username")) {
+                        dispatch({ type: "SET_VALIDATION_ERROR", field: "username", error: "Codename already taken. Choose another." })
+                        dispatch({ type: "BLUR_FIELD", field: "username", error: "Codename already taken. Choose another." })
+                    } else if (errText.includes("email")) {
+                        dispatch({ type: "SET_VALIDATION_ERROR", field: "email", error: "User with this email already exists." })
+                        dispatch({ type: "BLUR_FIELD", field: "email", error: "User with this email already exists." })
+                    } else {
+                        dispatch({ type: "SET_API_ERROR", error: data.error || "User already exists." })
+                    }
                     dispatch({ type: "SET_SELECTED_LANGUAGE", language: "" })
                     dispatch({ type: "SET_FOLDER_CLASS", folderClass: "closed" })
                 } else {

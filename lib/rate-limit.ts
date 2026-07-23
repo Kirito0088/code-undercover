@@ -1,72 +1,81 @@
-interface LimiterRecord {
+interface Bucket {
     count: number;
-    resetTime: number;
+    resetAt: number;
 }
 
 export class SimpleRateLimiter {
-    private cache = new Map<string, LimiterRecord>();
-    private limit: number;
-    private windowMs: number;
+    private hits = new Map<string, Bucket>();
 
-    constructor(limit: number, windowMs: number) {
-        this.limit = limit;
-        this.windowMs = windowMs;
+    constructor(
+        private readonly limit: number,
+        private readonly windowMs: number
+    ) {}
+
+    /**
+     * Consume 1 request token from the bucket.
+     * Returns { success, remaining, retryAfterMs }
+     */
+    public check(key: string): { success: boolean; remaining: number; retryAfterMs: number } {
+        const now = Date.now();
+        const bucket = this.hits.get(key);
+
+        if (!bucket || now > bucket.resetAt) {
+            this.hits.set(key, { count: 1, resetAt: now + this.windowMs });
+            return { success: true, remaining: this.limit - 1, retryAfterMs: 0 };
+        }
+
+        if (bucket.count >= this.limit) {
+            return {
+                success: false,
+                remaining: 0,
+                retryAfterMs: bucket.resetAt - now,
+            };
+        }
+
+        bucket.count += 1;
+        return {
+            success: true,
+            remaining: this.limit - bucket.count,
+            retryAfterMs: 0,
+        };
     }
 
+    /**
+     * Peek to see if a key is currently rate-limited (does NOT consume a token).
+     */
     public isRateLimited(key: string): boolean {
         const now = Date.now();
-        
-        // Lightweight cleanup of expired entries
-        if (Math.random() < 0.01) {
-            for (const [k, r] of this.cache.entries()) {
-                if (now > r.resetTime) {
-                    this.cache.delete(k);
-                }
-            }
-        }
-
-        const record = this.cache.get(key);
-
-        if (!record || now > record.resetTime) {
-            this.cache.set(key, {
-                count: 1,
-                resetTime: now + this.windowMs,
-            });
+        const bucket = this.hits.get(key);
+        if (!bucket || now > bucket.resetAt) {
             return false;
         }
-
-        if (record.count >= this.limit) {
-            return true;
-        }
-
-        record.count++;
-        return false;
+        return bucket.count >= this.limit;
     }
 
-    public check(key: string): boolean {
-        const now = Date.now();
-        const record = this.cache.get(key);
-        if (!record || now > record.resetTime) {
-            return false;
-        }
-        return record.count >= this.limit;
-    }
-
+    /**
+     * Explicitly increment failure count for a key (used for tracking failed attempts).
+     */
     public increment(key: string): void {
         const now = Date.now();
-        const record = this.cache.get(key);
-        if (!record || now > record.resetTime) {
-            this.cache.set(key, {
-                count: 1,
-                resetTime: now + this.windowMs,
-            });
+        const bucket = this.hits.get(key);
+        if (!bucket || now > bucket.resetAt) {
+            this.hits.set(key, { count: 1, resetAt: now + this.windowMs });
         } else {
-            record.count++;
+            bucket.count += 1;
+        }
+    }
+
+    /**
+     * Sweep expired keys from memory.
+     */
+    public sweep(): void {
+        const now = Date.now();
+        for (const [key, bucket] of this.hits.entries()) {
+            if (now > bucket.resetAt) this.hits.delete(key);
         }
     }
 }
 
-// Extract IP from a headers object (works for standard Headers, NextRequest, NextApiRequest headers, and next-auth request headers)
 export function getIpFromHeaders(headersObj: Headers | Record<string, string | string[] | undefined> | null | undefined): string {
     if (!headersObj) return "127.0.0.1";
 
@@ -99,13 +108,18 @@ export function getIpFromHeaders(headersObj: Headers | Record<string, string | s
     return "127.0.0.1";
 }
 
-// 5 requests per 1 minute (60,000 ms) per IP.
-// Note: In-memory store resets on serverless cold start / doesn't sync across multiple serverless instances.
-// Upstash Redis rate limiting is the production-grade replacement once this is deployed at scale.
-export const checkUserLimiter = new SimpleRateLimiter(5, 60000);
-export const registerLimiter = new SimpleRateLimiter(5, 60000);
-export const forgotPasswordLimiter = new SimpleRateLimiter(5, 60000);
-export const resetPasswordLimiter = new SimpleRateLimiter(5, 60000);
-
-// 10 failed login attempts per 15 minutes (900,000 ms) keyed by IP + email combo.
+export const checkUserLimiter = new SimpleRateLimiter(30, 60000);
+export const registerLimiter = new SimpleRateLimiter(20, 60000);
+export const forgotPasswordLimiter = new SimpleRateLimiter(10, 900000);
+export const resetPasswordLimiter = new SimpleRateLimiter(10, 900000);
 export const loginFailedLimiter = new SimpleRateLimiter(10, 900000);
+
+if (typeof setInterval !== "undefined") {
+    setInterval(() => {
+        checkUserLimiter.sweep();
+        registerLimiter.sweep();
+        forgotPasswordLimiter.sweep();
+        resetPasswordLimiter.sweep();
+        loginFailedLimiter.sweep();
+    }, 5 * 60000);
+}

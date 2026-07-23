@@ -6,84 +6,71 @@ import { registerLimiter, getIpFromHeaders } from "@/lib/rate-limit"
 const VALID_LANGUAGES = ["C", "Java", "Python", "DBMS"]
 
 export async function POST(req: Request) {
+    const ip = getIpFromHeaders(req.headers)
+    const rate = registerLimiter.check(ip)
+
+    if (!rate.success) {
+        return NextResponse.json(
+            {
+                error: `Too many registration attempts. Try again in ${Math.ceil(
+                    rate.retryAfterMs / 1000
+                )}s.`,
+                message: `Too many registration attempts. Try again in ${Math.ceil(
+                    rate.retryAfterMs / 1000
+                )}s.`,
+            },
+            { status: 429 }
+        )
+    }
+
+    let body: Record<string, unknown>
     try {
-        const ip = getIpFromHeaders(req.headers)
-        if (registerLimiter.isRateLimited(ip)) {
-            return NextResponse.json(
-                { error: "Too many requests. Please try again later.", message: "Too many requests. Please try again later." },
-                { status: 429 }
-            )
-        }
+        body = await req.json()
+    } catch {
+        return NextResponse.json(
+            { error: "Invalid request body.", message: "Invalid request body." },
+            { status: 400 }
+        )
+    }
 
-        const body = await req.json()
-        const { email, password, name, username, preferredLanguage } = body
+    const name = typeof body.name === "string" ? body.name.trim() : ""
+    const username = typeof body.username === "string" ? body.username.trim() : ""
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : ""
+    const password = typeof body.password === "string" ? body.password : ""
+    const preferredLanguageRaw = typeof body.preferredLanguage === "string" ? body.preferredLanguage : "C"
+    const preferredLanguage = VALID_LANGUAGES.includes(preferredLanguageRaw) ? preferredLanguageRaw : "C"
 
-        // Validate required fields
-        if (!email || !password) {
-            return NextResponse.json(
-                { error: "Email and password are required", message: "Email and password are required" },
-                { status: 400 }
-            )
-        }
+    // --- Validation (400) ---
+    const errors: string[] = []
+    if (!name || name.length < 2) errors.push("Name must be at least 2 characters.")
+    if (!username || username.length < 3 || username.length > 20) {
+        errors.push("Codename must be between 3 and 20 characters.")
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        errors.push("Codename can only contain letters, numbers, underscores, and hyphens.")
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.push("A valid email format is required.")
+    }
+    if (!password || password.length < 6) {
+        errors.push("Password must be at least 6 characters.")
+    }
 
-        // Validate username (codename) presence
-        if (!username || typeof username !== "string" || username.trim() === "") {
-            return NextResponse.json(
-                { error: "Codename is required", message: "Codename is required" },
-                { status: 400 }
-            )
-        }
+    if (errors.length > 0) {
+        const errorMsg = errors.join(" ")
+        return NextResponse.json({ error: errorMsg, message: errorMsg }, { status: 400 })
+    }
 
-        // Validate username length (3-20 chars)
-        const trimmedUsername = username.trim()
-        if (trimmedUsername.length < 3 || trimmedUsername.length > 20) {
-            return NextResponse.json(
-                { error: "Codename must be between 3 and 20 characters", message: "Codename must be between 3 and 20 characters" },
-                { status: 400 }
-            )
-        }
-
-        // Validate username pattern (/^[a-zA-Z0-9_-]+$/)
-        const usernameRegex = /^[a-zA-Z0-9_-]+$/
-        if (!usernameRegex.test(trimmedUsername)) {
-            return NextResponse.json(
-                { error: "Codename can only contain letters, numbers, underscores, and hyphens", message: "Codename can only contain letters, numbers, underscores, and hyphens" },
-                { status: 400 }
-            )
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email)) {
-            return NextResponse.json(
-                { error: "Invalid email format", message: "Invalid email format" },
-                { status: 400 }
-            )
-        }
-
-        // Validate password length
-        if (password.length < 6) {
-            return NextResponse.json(
-                { error: "Password must be at least 6 characters", message: "Password must be at least 6 characters" },
-                { status: 400 }
-            )
-        }
-
-        // Validate preferred language (default to "C" if invalid/missing)
-        const language = VALID_LANGUAGES.includes(preferredLanguage) ? preferredLanguage : "C"
-
-        // Normalize email
-        const normalizedEmail = email.trim().toLowerCase()
-
-        // Check if user exists by email
+    try {
+        // --- Existing user / Conflict check (409) ---
         const existingUser = await db.user.findUnique({
-            where: { email: normalizedEmail },
+            where: { email },
         })
 
-        // Check if username is already taken
         const existingUsername = await db.user.findUnique({
-            where: { username: trimmedUsername },
+            where: { username },
         })
+
         if (existingUsername && (!existingUser || existingUser.id !== existingUsername.id)) {
             return NextResponse.json(
                 { error: "Codename already taken. Choose another.", message: "Codename already taken. Choose another." },
@@ -91,14 +78,10 @@ export async function POST(req: Request) {
             )
         }
 
-        // Hash password with bcrypt (cost factor 12 for production security)
         const hashedPassword = await hash(password, 12)
-
         let newUser
 
         if (existingUser) {
-            // If user exists but has NO password (auto-created by Navbar/session),
-            // allow them to "register" by setting a password
             if (existingUser.password) {
                 return NextResponse.json(
                     { error: "User with this email already exists", message: "User with this email already exists" },
@@ -106,26 +89,24 @@ export async function POST(req: Request) {
                 )
             }
 
-            // Initialize password for existing password-less user
             newUser = await db.user.update({
                 where: { id: existingUser.id },
                 data: {
                     password: hashedPassword,
-                    name: name || existingUser.name || normalizedEmail.split("@")[0],
-                    username: trimmedUsername,
-                    preferredLanguage: language,
+                    name: name || existingUser.name || email.split("@")[0],
+                    username,
+                    preferredLanguage,
                 },
             })
             console.log("[REGISTER] Password initialized for existing user")
         } else {
-            // Create brand new user
             newUser = await db.user.create({
                 data: {
-                    email: normalizedEmail,
+                    email,
                     password: hashedPassword,
-                    name: name || normalizedEmail.split("@")[0],
-                    username: trimmedUsername,
-                    preferredLanguage: language,
+                    name: name || email.split("@")[0],
+                    username,
+                    preferredLanguage,
                 },
             })
             console.log("[REGISTER] New user created")

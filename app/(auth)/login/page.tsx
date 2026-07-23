@@ -62,46 +62,38 @@ function LoginForm() {
 
     const [state, dispatch] = useReducer(loginReducer, initialLoginState)
 
-    // Handle Google OAuth/external "AccountNotExist" redirect
+    // Handle OAuth/external query params errors
     useEffect(() => {
         const errorParam = searchParams.get("error")
         if (errorParam === "AccountNotExist") {
-            dispatch({ type: "SET_ERROR", payload: "Account not exist." })
-            const timer = setTimeout(() => {
-                push("/register")
-            }, 2500)
-            return () => clearTimeout(timer)
+            dispatch({ type: "SET_ERROR", payload: "Account does not exist. Please sign up." })
+        } else if (errorParam === "OAuthCallback" || errorParam === "OAuthCreateAccount") {
+            dispatch({ type: "SET_ERROR", payload: "Unable to authenticate with Google. Please try again or sign up with credentials." })
+        } else if (errorParam) {
+            dispatch({ type: "SET_ERROR", payload: "Authentication failed. Please try again." })
         }
-    }, [searchParams, push])
+    }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         dispatch({ type: "START_SUBMIT" })
 
         try {
-            // First check if the email exists in the database
-            const checkRes = await fetch(`/api/auth/check-user?email=${encodeURIComponent(state.email)}`)
-            const checkData = await checkRes.json()
-
-            if (!checkRes.ok || !checkData.exists) {
-                dispatch({ type: "SUBMIT_ERROR", payload: "Account not exist." })
-
-                // Automatically redirect to register after 2.5 seconds
-                setTimeout(() => {
-                    push("/register")
-                }, 2500)
-                return
-            }
-
+            // Direct NextAuth credentials authentication (single source of truth)
             const res = await signIn("credentials", {
-                email: state.email,
+                email: state.email.trim().toLowerCase(),
                 password: state.password,
                 redirect: false,
             })
 
             if (res?.error) {
-                dispatch({ type: "SUBMIT_ERROR", payload: "Incorrect email or password." })
-            } else {
+                dispatch({
+                    type: "SUBMIT_ERROR",
+                    payload: res.error === "CredentialsSignin"
+                        ? "Invalid email or password."
+                        : res.error
+                })
+            } else if (res?.ok) {
                 const session = await getSession()
                 const userId = session?.user?.id
 

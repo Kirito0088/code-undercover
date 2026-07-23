@@ -16,23 +16,23 @@ function assert(condition: boolean, message: string) {
 async function runTests() {
     console.log("=== Running Security & Authentication Hardening Tests ===\n")
 
-    // Test 1: SimpleRateLimiter - API Limiting (Limit: 5)
-    console.log("Test 1: Verifying checkUserLimiter (Limit: 5)...")
+    // Test 1: SimpleRateLimiter - API Limiting (Limit: 30)
+    console.log("Test 1: Verifying checkUserLimiter (Limit: 30)...")
     const ip = "192.168.1.1"
-    for (let i = 0; i < 5; i++) {
-        assert(checkUserLimiter.isRateLimited(ip) === false, `Request ${i + 1} should NOT be rate limited`)
+    for (let i = 0; i < 30; i++) {
+        assert(checkUserLimiter.check(ip).success === true, `Request ${i + 1} should NOT be rate limited`)
     }
-    assert(checkUserLimiter.isRateLimited(ip) === true, "Request 6 MUST be rate limited")
+    assert(checkUserLimiter.isRateLimited(ip) === true, "Request 31 MUST be rate limited")
     console.log("✅ API Rate Limiter test passed!")
 
     // Test 2: SimpleRateLimiter - Login Failures Limiting (Limit: 10)
     console.log("\nTest 2: Verifying loginFailedLimiter (Limit: 10)...")
     const key = "192.168.1.1:attacker@victim.com"
     for (let i = 0; i < 10; i++) {
-        assert(loginFailedLimiter.check(key) === false, `Login attempt ${i + 1} should NOT be blocked before increments`)
+        assert(loginFailedLimiter.isRateLimited(key) === false, `Login attempt ${i + 1} should NOT be blocked before 10 increments`)
         loginFailedLimiter.increment(key)
     }
-    assert(loginFailedLimiter.check(key) === true, "Login attempt 11 MUST be blocked")
+    assert(loginFailedLimiter.isRateLimited(key) === true, "Login attempt 11 MUST be blocked")
     console.log("✅ Login Failures Rate Limiter test passed!")
 
     // Test 3: IP Headers Parser
@@ -59,19 +59,14 @@ async function runTests() {
 
     // Test 5: NextAuth secret checking
     console.log("\nTest 5: Verifying NEXTAUTH_SECRET production startup check...")
-    // Save current values
     const originalNodeEnv = process.env.NODE_ENV;
     const originalSecret = process.env.NEXTAUTH_SECRET;
 
-    // Simulate production with missing secret
     (process.env as Record<string, string | undefined>).NODE_ENV = "production"
     delete process.env.NEXTAUTH_SECRET
 
     let threwError = false
     try {
-        // Dynamically load lib/auth to trigger check
-        // Note: auth.ts has already loaded once, so we check using a manual assertion or verify by clearing require cache
-        // However, we can also test it by triggering the conditional directly in a simulated check
         const checkSecret = (envNodeEnv: string, envSecret?: string) => {
             if (!envSecret) {
                 if (envNodeEnv === "production") {
@@ -86,7 +81,6 @@ async function runTests() {
 
     assert(threwError === true, "Missing NEXTAUTH_SECRET in production MUST throw an error");
 
-    // Restore environment
     (process.env as Record<string, string | undefined>).NODE_ENV = originalNodeEnv
     process.env.NEXTAUTH_SECRET = originalSecret
     console.log("✅ NEXTAUTH_SECRET production safety test passed!")
