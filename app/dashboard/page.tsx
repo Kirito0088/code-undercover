@@ -18,7 +18,7 @@ import {
     BookOpen,
     ArrowRight
 } from "lucide-react"
-import { DailyChallenge, type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
+import { type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { DailyChallengeModal } from "@/components/dashboard/DailyChallengeModal"
 import { MissionIntelStory } from "./MissionIntelStory"
 import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
@@ -287,6 +287,14 @@ export default async function DashboardPage() {
                             </div>
                             <span className="text-[8px] font-mono text-[#4A5D4A]">LOGS</span>
                         </Link>
+                        
+                        <Link href="/daily-tasks" className="flex items-center justify-between px-2.5 py-1.5 text-[#8F9F8F] hover:bg-[#181C18]/40 hover:text-emerald-400 rounded-sm font-medium text-xs transition-all duration-200 group border border-transparent hover:border-[#1F261F]">
+                            <div className="flex items-center gap-2">
+                                <Zap className="size-3.5 text-[#8F9F8F] group-hover:text-emerald-400 transition-colors" />
+                                <span className="font-mono text-[10px]">HUD_04_DAILY</span>
+                            </div>
+                            <span className="text-[8px] font-mono text-emerald-400 bg-emerald-500/10 px-1 py-0.25 rounded border border-emerald-500/20">NEW</span>
+                        </Link>
                     </nav>
 
                     {/* CARD 3: Intelligence Readout (lg:col-span-1) */}
@@ -434,11 +442,6 @@ export default async function DashboardPage() {
                                 </Link>
                             );
                         })}
-                    </div>
-
-                    {/* Bottom Bento Row: Daily Debrief Challenge spans full 4 columns */}
-                    <div id="challenge-section" className="col-span-1 md:col-span-2 lg:col-span-4 scroll-mt-20 animate-terminal-flicker animation-delay-600">
-                        <DailyChallenge initialQuestion={dailyChallengeQuestion} />
                     </div>
 
                 </div>

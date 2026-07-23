@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence, Variants } from "framer-motion"
 import { X, Zap, Loader2, CheckCircle, XCircle, Flame, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 export interface DailyChallengeQuestion {
     id: string
@@ -59,6 +60,18 @@ export function DailyChallengeModal({ initialQuestion }: DailyChallengeModalProp
             window.removeEventListener(DAILY_TRIGGER_EVENT, handleTrigger)
         }
     }, [])
+
+    // Prevent background scrolling when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = "hidden"
+        } else {
+            document.body.style.overflow = ""
+        }
+        return () => {
+            document.body.style.overflow = ""
+        }
+    }, [isOpen])
 
     const handleDismiss = () => {
         const today = getTodayKeyUTC()
@@ -324,14 +337,14 @@ export function DailyChallengeModal({ initialQuestion }: DailyChallengeModalProp
                                             </button>
                                         </>
                                     ) : (
-                                        <button
-                                            type="button"
+                                        <Link
+                                            href="/daily-tasks"
                                             onClick={() => setIsOpen(false)}
                                             className="w-full py-3 rounded-xl text-xs md:text-sm font-bold font-mono bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider"
                                         >
-                                            <span>Continue to Mission Control</span>
+                                            <span>Go to Daily Task (Quiz & Flashcards)</span>
                                             <ArrowRight className="w-4 h-4" />
-                                        </button>
+                                        </Link>
                                     )}
                                 </motion.div>
                             </motion.div>

@@ -58,6 +58,16 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
                   Dashboard
                 </Link>
                 <Link
+                  href="/daily-tasks"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                >
+                  <span>Daily Task</span>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
+                    NEW
+                  </span>
+                </Link>
+                <Link
                   href="/debug-lab"
                   onClick={() => setIsOpen(false)}
                   className="block px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"

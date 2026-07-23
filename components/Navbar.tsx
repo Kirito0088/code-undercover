@@ -66,6 +66,17 @@ export default async function Navbar() {
                                 </Link>
 
                                 <Link
+                                    href="/daily-tasks"
+                                    className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35] relative flex items-center gap-1.5"
+                                >
+                                    <span>Daily Task</span>
+                                    <span className="relative flex size-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+                                    </span>
+                                </Link>
+
+                                <Link
                                     href="/debug-lab"
                                     className="text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors px-3 py-1.5 rounded-md hover:bg-[#2A2A35]"
                                 >

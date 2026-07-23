@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useSyncExternalStore } from "react"
-import { CheckCircle, XCircle, Zap, Loader2, Flame, Maximize2 } from "lucide-react"
+import { CheckCircle, XCircle, Zap, Loader2, Flame, Maximize2, ExternalLink } from "lucide-react"
+import Link from "next/link"
 
 export interface DailyChallengeQuestion {
     id: string
@@ -156,15 +157,24 @@ export function DailyChallenge({ initialQuestion }: DailyChallengeProps) {
                     </span>
                 </div>
                 
-                <button
-                    type="button"
-                    onClick={openModal}
-                    title="Expand full modal view"
-                    className="text-xs font-mono text-slate-400 hover:text-emerald-400 flex items-center gap-1.5 transition-colors cursor-pointer bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 px-2.5 py-1 rounded-lg"
-                >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span>Expand Modal</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/daily-tasks"
+                        className="text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors cursor-pointer bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-lg"
+                    >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Daily Tasks Page</span>
+                    </Link>
+                    <button
+                        type="button"
+                        onClick={openModal}
+                        title="Expand full modal view"
+                        className="text-xs font-mono text-slate-400 hover:text-emerald-400 flex items-center gap-1.5 transition-colors cursor-pointer bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 px-2.5 py-1 rounded-lg"
+                    >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                        <span>Expand Modal</span>
+                    </button>
+                </div>
             </div>
 
             {/* Question & Options */}
