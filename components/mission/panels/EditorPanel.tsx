@@ -304,7 +304,7 @@ export function EditorPanel({
                         snippetSuggestions: "none",
                         parameterHints: { enabled: false },
                         suggest: { showWords: false },
-                        hover: { enabled: false },
+                        hover: { enabled: "off" },
                         // ────────────────────────────────────────────────────────
                     }}
                 />

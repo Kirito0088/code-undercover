@@ -7,10 +7,7 @@ export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
 
-        console.log("[API] Accept mission - session:", JSON.stringify(session?.user))
-
         if (!session?.user?.id) {
-            console.error("[API] No user ID in session")
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 401 }
@@ -19,8 +16,6 @@ export async function POST(req: Request) {
 
         const body = await req.json()
         const { missionId } = body
-
-        console.log("[API] Accept mission - userId:", session.user.id, "missionId:", missionId)
 
         if (!missionId || typeof missionId !== "string") {
             return NextResponse.json(

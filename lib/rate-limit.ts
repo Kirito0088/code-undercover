@@ -113,6 +113,10 @@ export const registerLimiter = new SimpleRateLimiter(20, 60000);
 export const forgotPasswordLimiter = new SimpleRateLimiter(10, 900000);
 export const resetPasswordLimiter = new SimpleRateLimiter(10, 900000);
 export const loginFailedLimiter = new SimpleRateLimiter(10, 900000);
+// Compiler/validate proxy to the public Piston API — throttled per-user to
+// prevent one account from hammering a shared third-party service.
+export const compilerRunLimiter = new SimpleRateLimiter(20, 60000);
+export const missionValidateLimiter = new SimpleRateLimiter(20, 60000);
 
 if (typeof setInterval !== "undefined") {
     setInterval(() => {
@@ -121,5 +125,7 @@ if (typeof setInterval !== "undefined") {
         forgotPasswordLimiter.sweep();
         resetPasswordLimiter.sweep();
         loginFailedLimiter.sweep();
+        compilerRunLimiter.sweep();
+        missionValidateLimiter.sweep();
     }, 5 * 60000);
 }

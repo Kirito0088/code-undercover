@@ -1,4 +1,18 @@
 import { NextAuthOptions } from "next-auth"
+
+// Sanitize env variables (strips literal quotes if passed by Docker --env-file)
+if (process.env.NEXTAUTH_URL) {
+    process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL.replace(/^["']|["']$/g, "").trim()
+}
+if (process.env.NEXTAUTH_SECRET) {
+    process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET.replace(/^["']|["']$/g, "").trim()
+}
+if (process.env.GOOGLE_CLIENT_ID) {
+    process.env.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID.replace(/^["']|["']$/g, "").trim()
+}
+if (process.env.GOOGLE_CLIENT_SECRET) {
+    process.env.GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET.replace(/^["']|["']$/g, "").trim()
+}
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
@@ -41,10 +55,12 @@ export const authOptions: NextAuthOptions = {
     secret: (() => {
         const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
         if (secret) return secret;
-        if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
-            throw new Error("NEXTAUTH_SECRET (or AUTH_SECRET) must be set in production.");
+        if (process.env.NEXT_PHASE === "phase-production-build") {
+            // `next build` imports this module for static analysis but never
+            // serves requests, so no real secret is needed at build time.
+            return "unused-build-time-placeholder";
         }
-        return "fallback_development_secret_key";
+        throw new Error("NEXTAUTH_SECRET (or AUTH_SECRET) must be set.");
     })(),
     pages: {
         signIn: "/login",
@@ -125,7 +141,9 @@ export const authOptions: NextAuthOptions = {
                 GoogleProvider({
                     clientId: process.env.GOOGLE_CLIENT_ID,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                    allowDangerousEmailAccountLinking: true,
+                    // Dangerous linking disabled: without it, a credentials account
+                    // registered with someone else's email (unverified at signup)
+                    // could silently absorb that person's future Google sign-in.
                 }),
             ]
             : []),
