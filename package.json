@@ -45,10 +45,6 @@
     "typescript": "^5",
     "vitest": "^3.2.4"
   },
-  "overrides": {
-    "@emnapi/wasi-threads": "1.2.2",
-    "@emnapi/core": "1.10.0"
-  },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
   }
