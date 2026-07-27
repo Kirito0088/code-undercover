@@ -90,7 +90,9 @@ export function getIpFromHeaders(headersObj: Headers | Record<string, string | s
         const record = headersObj as Record<string, string | string[] | undefined>;
         const rawFwd = record["x-forwarded-for"] || record["X-Forwarded-For"] || record["x-forwarded-for".toLowerCase()];
         if (rawFwd) {
-            xForwardedFor = Array.isArray(rawFwd) ? rawFwd[0] : rawFwd;
+            // Multiple header instances carry the same left-to-right hop
+            // order as a single comma-separated value — normalize to that.
+            xForwardedFor = Array.isArray(rawFwd) ? rawFwd.join(",") : rawFwd;
         }
         const rawReal = record["x-real-ip"] || record["X-Real-IP"] || record["x-real-ip".toLowerCase()];
         if (rawReal) {
@@ -99,7 +101,12 @@ export function getIpFromHeaders(headersObj: Headers | Record<string, string | s
     }
 
     if (xForwardedFor) {
-        return xForwardedFor.split(",")[0].trim();
+        // A single trusted reverse proxy (e.g. Render's edge) appends the IP
+        // it actually observed to the END of this header. Everything before
+        // that is whatever the client itself sent and must not be trusted —
+        // taking the first hop would let anyone spoof their rate-limit key.
+        const hops = xForwardedFor.split(",").map((h) => h.trim()).filter(Boolean);
+        if (hops.length > 0) return hops[hops.length - 1];
     }
     if (xRealIp) {
         return xRealIp.trim();

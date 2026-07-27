@@ -76,9 +76,17 @@ describe("getIpFromHeaders", () => {
         expect(getIpFromHeaders(undefined)).toBe("127.0.0.1")
     })
 
-    it("reads x-forwarded-for from a Headers instance, using the first hop", () => {
+    it("reads x-forwarded-for from a Headers instance, trusting only the last (proxy-appended) hop", () => {
+        // The rightmost entry is what the trusted reverse proxy actually
+        // observed; entries before it are client-supplied and spoofable.
         const headers = new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" })
-        expect(getIpFromHeaders(headers)).toBe("1.2.3.4")
+        expect(getIpFromHeaders(headers)).toBe("5.6.7.8")
+    })
+
+    it("ignores a spoofed x-forwarded-for prefix from the client", () => {
+        const headers = new Headers({ "x-forwarded-for": "9.9.9.9, 203.0.113.5" })
+        expect(getIpFromHeaders(headers)).not.toBe("9.9.9.9")
+        expect(getIpFromHeaders(headers)).toBe("203.0.113.5")
     })
 
     it("falls back to x-real-ip on a Headers instance", () => {
@@ -90,7 +98,7 @@ describe("getIpFromHeaders", () => {
         expect(getIpFromHeaders({ "x-forwarded-for": "10.0.0.1" })).toBe("10.0.0.1")
     })
 
-    it("handles array-valued headers from a plain record", () => {
-        expect(getIpFromHeaders({ "x-forwarded-for": ["10.0.0.2", "10.0.0.3"] })).toBe("10.0.0.2")
+    it("handles array-valued headers from a plain record, trusting only the last hop", () => {
+        expect(getIpFromHeaders({ "x-forwarded-for": ["10.0.0.2", "10.0.0.3"] })).toBe("10.0.0.3")
     })
 })
