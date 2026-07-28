@@ -11,7 +11,7 @@ export async function PATCH(req: Request) {
         }
 
         const body = await req.json().catch(() => ({}))
-        const { name, email } = body
+        const { name, email, username } = body
 
         // Validation
         if (name !== undefined) {
@@ -29,17 +29,27 @@ export async function PATCH(req: Request) {
             }
         }
 
+        // Same rules as registration (app/api/auth/register/route.ts)
+        if (username !== undefined) {
+            if (typeof username !== "string" || username.length < 3 || username.length > 20) {
+                return NextResponse.json({ error: "Codename must be between 3 and 20 characters." }, { status: 400 })
+            }
+            if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+                return NextResponse.json({ error: "Codename can only contain letters, numbers, underscores, and hyphens." }, { status: 400 })
+            }
+        }
+
         // Get current user to check for changes and collisions
         const currentUser = await db.user.findUnique({
             where: { id: session.user.id },
-            select: { email: true }
+            select: { email: true, username: true }
         })
 
         if (!currentUser) {
             return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        const updateData: { name?: string; email?: string } = {}
+        const updateData: { name?: string; email?: string; username?: string } = {}
         if (name !== undefined) updateData.name = name.trim()
         if (email !== undefined) {
             const normalizedEmail = email.trim().toLowerCase()
@@ -54,6 +64,15 @@ export async function PATCH(req: Request) {
                 updateData.email = normalizedEmail
             }
         }
+        if (username !== undefined && username !== currentUser.username) {
+            const existingUsername = await db.user.findUnique({
+                where: { username }
+            })
+            if (existingUsername) {
+                return NextResponse.json({ error: "Codename already taken. Choose another." }, { status: 409 })
+            }
+            updateData.username = username
+        }
 
         if (Object.keys(updateData).length === 0) {
             return NextResponse.json({ success: true, message: "No changes requested" })
@@ -62,7 +81,7 @@ export async function PATCH(req: Request) {
         const updatedUser = await db.user.update({
             where: { id: session.user.id },
             data: updateData,
-            select: { name: true, email: true }
+            select: { name: true, email: true, username: true }
         })
 
         return NextResponse.json({ success: true, user: updatedUser })
@@ -70,7 +89,7 @@ export async function PATCH(req: Request) {
         console.error("[Profile API Error]:", error)
         const err = error as { code?: string }
         if (err.code === 'P2002') {
-            return NextResponse.json({ error: "Email already in use" }, { status: 409 })
+            return NextResponse.json({ error: "Email or codename already in use" }, { status: 409 })
         }
         return NextResponse.json({ error: "Failed to update profile settings" }, { status: 500 })
     }

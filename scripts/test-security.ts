@@ -20,19 +20,19 @@ async function runTests() {
     console.log("Test 1: Verifying checkUserLimiter (Limit: 30)...")
     const ip = "192.168.1.1"
     for (let i = 0; i < 30; i++) {
-        assert(checkUserLimiter.check(ip).success === true, `Request ${i + 1} should NOT be rate limited`)
+        assert((await checkUserLimiter.check(ip)).success === true, `Request ${i + 1} should NOT be rate limited`)
     }
-    assert(checkUserLimiter.isRateLimited(ip) === true, "Request 31 MUST be rate limited")
+    assert((await checkUserLimiter.isRateLimited(ip)) === true, "Request 31 MUST be rate limited")
     console.log("✅ API Rate Limiter test passed!")
 
     // Test 2: SimpleRateLimiter - Login Failures Limiting (Limit: 10)
     console.log("\nTest 2: Verifying loginFailedLimiter (Limit: 10)...")
     const key = "192.168.1.1:attacker@victim.com"
     for (let i = 0; i < 10; i++) {
-        assert(loginFailedLimiter.isRateLimited(key) === false, `Login attempt ${i + 1} should NOT be blocked before 10 increments`)
-        loginFailedLimiter.increment(key)
+        assert((await loginFailedLimiter.isRateLimited(key)) === false, `Login attempt ${i + 1} should NOT be blocked before 10 increments`)
+        await loginFailedLimiter.increment(key)
     }
-    assert(loginFailedLimiter.isRateLimited(key) === true, "Login attempt 11 MUST be blocked")
+    assert((await loginFailedLimiter.isRateLimited(key)) === true, "Login attempt 11 MUST be blocked")
     console.log("✅ Login Failures Rate Limiter test passed!")
 
     // Test 3: IP Headers Parser

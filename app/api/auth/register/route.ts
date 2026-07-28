@@ -8,7 +8,7 @@ const VALID_LANGUAGES = ["C", "Java", "Python", "DBMS"]
 
 export async function POST(req: Request) {
     const ip = getIpFromHeaders(req.headers)
-    const rate = registerLimiter.check(ip)
+    const rate = await registerLimiter.check(ip)
 
     if (!rate.success) {
         return NextResponse.json(

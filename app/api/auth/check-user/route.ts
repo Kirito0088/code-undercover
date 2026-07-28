@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: Request) {
     try {
         const ip = getIpFromHeaders(req.headers)
-        if (checkUserLimiter.isRateLimited(ip)) {
+        if (await checkUserLimiter.isRateLimited(ip)) {
             return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
         }
 

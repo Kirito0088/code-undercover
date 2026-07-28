@@ -32,6 +32,16 @@ const nextConfig = (phase) => {
     env: {
       NEXT_PHASE: phase,
     },
+    // Strips console.log/debug/info from the production bundle; error/warn
+    // are kept so real error reporting still works. Next only applies this
+    // during production builds, so local `next dev` logging is unaffected.
+    compiler: {
+      removeConsole: { exclude: ["error", "warn"] },
+    },
+    experimental: {
+      // Improves tree-shaking for icon imports (`import { X } from "lucide-react"`).
+      optimizePackageImports: ["lucide-react"],
+    },
     async headers() {
       return [
         {

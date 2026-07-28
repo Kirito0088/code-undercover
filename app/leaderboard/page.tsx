@@ -35,7 +35,6 @@ interface LeaderboardPlayer {
 function mapUserToPlayer(user: {
     id: string
     name: string | null
-    email: string | null
     username?: string | null
     auraPoints: number
     auraLevel: number
@@ -54,8 +53,8 @@ function mapUserToPlayer(user: {
 
     return {
         id: user.id,
-        name: user.name || user.username || (user.email ? user.email.split('@')[0] : "Agent"),
-        username: user.username ? `@${user.username}` : (user.email ? `@${user.email.split('@')[0]}` : "@agent"),
+        name: user.name || user.username || "Agent",
+        username: user.username ? `@${user.username}` : "@agent",
         auraPoints: user.auraPoints,
         auraLevel: user.auraLevel,
         foxBadges: user.foxBadges,
@@ -121,7 +120,6 @@ export default async function LeaderboardPage({
                 select: {
                     id: true,
                     name: true,
-                    email: true,
                     username: true,
                     auraPoints: true,
                     auraLevel: true,

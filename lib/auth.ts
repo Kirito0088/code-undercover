@@ -86,7 +86,7 @@ export const authOptions: NextAuthOptions = {
                 const normalizedEmail = credentials.email.trim().toLowerCase()
                 const rateLimitKey = `${ip}:${normalizedEmail}`
 
-                if (loginFailedLimiter.isRateLimited(rateLimitKey)) {
+                if (await loginFailedLimiter.isRateLimited(rateLimitKey)) {
                     console.warn("[AUTH] Login attempt blocked by rate limit")
                     return null
                 }
@@ -100,13 +100,13 @@ export const authOptions: NextAuthOptions = {
 
                     if (!user) {
                         console.warn("[AUTH] No user record found")
-                        loginFailedLimiter.increment(rateLimitKey)
+                        await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
                     if (!user.password) {
                         console.warn("[AUTH] User exists but has no password (needs registration)")
-                        loginFailedLimiter.increment(rateLimitKey)
+                        await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
@@ -117,7 +117,7 @@ export const authOptions: NextAuthOptions = {
 
                     if (!isPasswordValid) {
                         console.warn("[AUTH] Invalid password")
-                        loginFailedLimiter.increment(rateLimitKey)
+                        await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
@@ -158,8 +158,10 @@ export const authOptions: NextAuthOptions = {
                     });
 
                     if (existingUser && !existingUser.username) {
+                        // Never seed from the email — this is just a starting
+                        // point until the user picks their own in Profile settings.
                         const username = await generateUniqueUsername(
-                            existingUser.name || emailStr
+                            existingUser.name || "agent"
                         );
                         await db.user.update({
                             where: { id: existingUser.id },

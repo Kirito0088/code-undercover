@@ -9,4 +9,70 @@ services:
       - .env
     environment:
       NEXTAUTH_URL: http://localhost:3000
+      # Internal Docker network address — only this container can reach
+      # Judge0, since its port is never published to the host (see below).
+      JUDGE0_API_URL: http://judge0-server:2358
+    depends_on:
+      judge0-server:
+        condition: service_started
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/ping', r => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Self-hosted code execution engine (replaces the public emkc.org Piston
+  # API, which went whitelist-only, and the earlier single-container Piston
+  # fix). Judge0 uses the same `isolate` sandbox that runs IOI/ACM-ICPC
+  # contests and is built for high-concurrency submission volume: requests
+  # land in a Redis-backed queue and are drained by worker processes, so
+  # throughput scales by adding workers (`docker compose up --scale
+  # judge0-worker=N`) instead of redesigning the app.
+  judge0-server:
+    image: judge0/judge0:1.13.1
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    restart: unless-stopped
+    depends_on:
+      judge0-db:
+        condition: service_started
+      judge0-redis:
+        condition: service_started
+    # Bound to loopback only, not "2358:2358" — Judge0's /submissions endpoint
+    # has no authentication configured, so exposing it to the LAN/internet
+    # would let anyone who can reach that port run arbitrary code. Binding to
+    # 127.0.0.1 lets `npm run dev` (running directly on this machine, outside
+    # the compose network) reach it via http://localhost:2358, while still
+    # blocking every other machine on the network from reaching it.
+    ports:
+      - "127.0.0.1:2358:2358"
+
+  judge0-worker:
+    image: judge0/judge0:1.13.1
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    restart: unless-stopped
+    depends_on:
+      - judge0-server
+
+  judge0-db:
+    image: postgres:16.2
+    env_file: judge0.conf
+    volumes:
+      - judge0_data:/var/lib/postgresql/data/
+    restart: unless-stopped
+
+  judge0-redis:
+    image: redis:7.2.4
+    command: >
+      bash -c "docker-entrypoint.sh --appendonly no --requirepass \"$$REDIS_PASSWORD\""
+    env_file: judge0.conf
+    restart: unless-stopped
+
+volumes:
+  judge0_data:

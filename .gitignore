@@ -29,6 +29,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# judge0 secrets (see judge0.conf.example for the template)
+judge0.conf
+
 # vercel
 .vercel
 

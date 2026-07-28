@@ -1,24 +1,23 @@
-import nodemailer from "nodemailer"
+import { Resend } from "resend"
 
-// Create a transporter using Gmail
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-    },
-})
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+
+// Resend's shared onboarding@resend.dev sender works without a verified
+// domain, but only delivers to the account owner's own inbox — fine for
+// getting started, but a verified domain + EMAIL_FROM is required to send
+// password resets to real users.
+const FROM_ADDRESS = process.env.EMAIL_FROM || "Code Undercover Agency <onboarding@resend.dev>"
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-        console.warn("[EMAIL] Email credentials missing. Cannot send reset link.")
+    if (!resend) {
+        console.warn("[EMAIL] RESEND_API_KEY missing. Cannot send reset link.")
         console.log(`[EMAIL] Reset URL would be: ${resetUrl}`)
         return false
     }
 
     try {
-        await transporter.sendMail({
-            from: `"Code Undercover Agency" <${process.env.EMAIL_USER}>`,
+        const { error } = await resend.emails.send({
+            from: FROM_ADDRESS,
             to,
             subject: "TERMINAL ACCESS: Passphrase Reset Signal",
             html: `
@@ -43,6 +42,12 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
                 </div>
             `,
         })
+
+        if (error) {
+            console.error("[EMAIL] Resend rejected the reset email:", error)
+            return false
+        }
+
         console.log(`[EMAIL] Password reset sent to ${to}`)
         return true
     } catch (error) {

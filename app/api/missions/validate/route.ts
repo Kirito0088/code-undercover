@@ -66,7 +66,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const rate = missionValidateLimiter.check(session.user.id)
+        const rate = await missionValidateLimiter.check(session.user.id)
         if (!rate.success) {
             return NextResponse.json(
                 { error: `Too many attempts. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },

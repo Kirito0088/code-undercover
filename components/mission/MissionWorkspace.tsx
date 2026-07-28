@@ -1,6 +1,7 @@
 "use client"
 
 import { useReducer } from "react"
+import dynamic from "next/dynamic"
 import type { MissionRecord, UserMissionRecord } from "@/types"
 import { LeftPanel } from "./panels/LeftPanel"
 import { EditorPanel } from "./panels/EditorPanel"
@@ -8,10 +9,16 @@ import { TerminalPanel } from "./panels/TerminalPanel"
 import { TeachingPhase } from "./phases/TeachingPhase"
 import { MCQPhase } from "./phases/MCQPhase"
 import { CharacterManager } from "./CharacterManager"
-import { LevelIntro } from "../LevelIntro"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, Zap } from "lucide-react"
 import Link from "next/link"
+
+// Code-split: only needed for mission #1's first-time intro and the
+// access-granted cinematic on mission clear, not on every workspace load.
+const LevelIntro = dynamic(() => import("../LevelIntro").then((mod) => mod.LevelIntro), {
+    ssr: false,
+    loading: () => null,
+})
 
 interface MissionWorkspaceProps {
     mission: MissionRecord

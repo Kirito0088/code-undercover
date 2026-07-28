@@ -11,7 +11,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
         }
 
-        const rate = compilerRunLimiter.check(session.user.id)
+        const rate = await compilerRunLimiter.check(session.user.id)
         if (!rate.success) {
             return NextResponse.json(
                 { success: false, error: `Too many runs. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },

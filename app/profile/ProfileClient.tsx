@@ -12,6 +12,7 @@ interface ProfileClientProps {
     id: string
     name: string | null
     email: string | null
+    username: string | null
     auraPoints: number
     auraLevel: number
   }
@@ -33,6 +34,7 @@ interface ProfileState {
   form: {
     name: string;
     email: string;
+    username: string;
     bio: string;
   };
   saving: boolean;
@@ -45,7 +47,7 @@ interface ProfileState {
 type ProfileAction =
   | { type: 'SET_TAB'; tab: 'profile' | 'subscription' }
   | { type: 'SET_THEME'; theme: 'dark' | 'light' }
-  | { type: 'SET_FIELD'; field: 'name' | 'email' | 'bio'; value: string }
+  | { type: 'SET_FIELD'; field: 'name' | 'email' | 'username' | 'bio'; value: string }
   | { type: 'SET_SAVING'; saving: boolean }
   | { type: 'SET_SAVE_STATUS'; status: 'idle' | 'success' | 'error'; errorMessage?: string }
   | { type: 'SET_DELETE_MODAL'; open: boolean }
@@ -284,12 +286,13 @@ interface ProfileInfoTabProps {
   form: {
     name: string
     email: string
+    username: string
     bio: string
   }
   saving: boolean
   saveStatus: 'idle' | 'success' | 'error'
   errorMessage: string
-  onFieldChange: (field: 'name' | 'email' | 'bio', value: string) => void
+  onFieldChange: (field: 'name' | 'email' | 'username' | 'bio', value: string) => void
   onSubmit: (e: React.FormEvent) => void
   onOpenDelete: () => void
 }
@@ -327,6 +330,29 @@ const ProfileInfoTab = ({
             value={form.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
           />
+        </div>
+
+        {/* Codename / username field */}
+        <div className="space-y-2">
+          <label id="username-label" htmlFor="username" className="text-xs font-semibold text-[#8B8BA7] uppercase tracking-wider">Codename</label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#5C5C7A] text-sm font-medium">@</span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              autoComplete="off"
+              aria-labelledby="username-label"
+              minLength={3}
+              maxLength={20}
+              pattern="[a-zA-Z0-9_-]+"
+              className="w-full pl-8 pr-4 py-3 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-sm focus:outline-none focus:border-indigo-500 transition-all font-medium"
+              placeholder="agent_foxtrot"
+              value={form.username}
+              onChange={(e) => onFieldChange('username', e.target.value)}
+            />
+          </div>
+          <p className="text-[11px] text-[#5C5C7A]">3–20 characters: letters, numbers, underscores, and hyphens. Shown publicly on the leaderboard.</p>
         </div>
 
         {/* Email address field */}
@@ -415,6 +441,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
     form: {
       name: user.name ?? '',
       email: user.email ?? '',
+      username: user.username ?? '',
       bio: getStoredBio(),
     },
     saving: false,
@@ -482,6 +509,9 @@ export function ProfileClient({ user }: ProfileClientProps) {
         body: JSON.stringify({
           name: state.form.name,
           email: state.form.email,
+          // Username is optional — omit when blank so the API doesn't treat
+          // "hasn't set one yet" as an invalid (too-short) value.
+          ...(state.form.username.trim() ? { username: state.form.username.trim() } : {}),
         }),
       })
 

@@ -8,7 +8,7 @@ import { validatePassword } from "@/lib/passwordPolicy"
 export async function POST(req: Request) {
     try {
         const ip = getIpFromHeaders(req.headers)
-        if (resetPasswordLimiter.isRateLimited(ip)) {
+        if (await resetPasswordLimiter.isRateLimited(ip)) {
             return NextResponse.json(
                 { message: "Too many requests. Please try again later." },
                 { status: 429 }
