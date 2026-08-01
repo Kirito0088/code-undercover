@@ -120,7 +120,6 @@ export const authOptions: NextAuthOptions = {
                         await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
-
                     console.log("[AUTH] User authenticated successfully")
 
                     return {

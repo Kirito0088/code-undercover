@@ -200,7 +200,7 @@ export function DailyChallengeModal({ initialQuestion }: DailyChallengeModalProp
                                 type="button"
                                 onClick={handleDismiss}
                                 title="Dismiss debrief modal"
-                                className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all border border-slate-700/60 cursor-pointer shadow-sm z-20"
+                                className="absolute -top-1 -right-1 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all border border-slate-700/60 cursor-pointer shadow-sm z-20"
                             >
                                 <X className="w-4 h-4" />
                             </button>
