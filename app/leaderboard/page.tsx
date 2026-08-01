@@ -224,7 +224,7 @@ export default async function LeaderboardPage({
                         href="/leaderboard"
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#F1F1F5] bg-[#181820] font-medium"
                     >
-                        <Users className="size-4 text-orange-500" />
+                        <Users className="size-4 text-emerald-400" />
                         Clubs
                     </Link>
 
@@ -301,7 +301,7 @@ export default async function LeaderboardPage({
                         {/* Club Meta Info */}
                         <div className="flex items-center gap-5">
                             {/* Orange Glowing Flame Logo */}
-                            <div className="size-16 rounded-3xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-600/20 shrink-0 border border-orange-400/20">
+                            <div className="size-16 rounded-3xl bg-gradient-to-br from-amber-500 via-amber-600 to-red-600 flex items-center justify-center shadow-lg shadow-amber-600/20 shrink-0 border border-amber-400/20">
                                 <Flame className="size-8 text-white fill-white/10" />
                             </div>
                             <div>
@@ -325,7 +325,7 @@ export default async function LeaderboardPage({
                                     <button type="button" className="bg-[#1C1C24] border border-[#323242] px-4 py-2 rounded-lg text-xs font-semibold text-[#F1F1F5] hover:bg-[#252530] transition-all">
                                         Edit club
                                     </button>
-                                    <button type="button" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md transition-all">
+                                    <button type="button" className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md transition-all">
                                         Invite friends
                                     </button>
                                 </div>
@@ -411,7 +411,7 @@ export default async function LeaderboardPage({
                                     <div 
                                         key={player.id} 
                                         className={`bg-[#1C1C24]/60 border border-[#252532] hover:border-[#323246] p-6 rounded-2xl relative overflow-hidden transition-all duration-300 group ${
-                                            isFirst ? "bg-gradient-to-b from-[#1C1C24]/80 to-[#22222B]/30 border-orange-500/10 hover:border-orange-500/20" : ""
+                                            isFirst ? "bg-gradient-to-b from-[#1C1C24]/80 to-[#22222B]/30 border-emerald-500/10 hover:border-emerald-500/20" : ""
                                         }`}
                                     >
                                         {/* Trophy Icon */}

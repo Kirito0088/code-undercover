@@ -3,29 +3,42 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
-import { 
-    AlertTriangle, 
-    Shield, 
-    Zap, 
-    LayoutDashboard, 
-    History, 
-    Target, 
-    CheckCircle, 
-    Flame, 
-    Medal, 
-    Bolt, 
-    Play, 
+import {
+    AlertTriangle,
+    Zap,
+    Play,
     BookOpen,
-    ArrowRight
+    Lock,
+    Bug,
 } from "lucide-react"
 import { type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { DailyChallengeModal } from "@/components/dashboard/DailyChallengeModal"
 import { MissionIntelStory } from "./MissionIntelStory"
 import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
+import { AppSidebar, default as MobileSidebarDrawer } from "./Sidebar"
+import MissionTable from "./MissionTable"
+import DailyResetCountdown from "./DailyResetCountdown"
 
 import { dailyQuestions } from "@/src/data/missionsData"
 
+// ─── StatCell: small label/value/underline-bar block used in the curriculum grid ───
+function StatCell({ label, value, barColor }: { label: string, value: string, barColor: string }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-[#5E6B65]">
+                {label}
+            </span>
+            <span className="font-mono font-bold text-sm text-[#E2E8F0]">
+                {value}
+            </span>
+            <div className={`h-1 w-full rounded-full ${barColor}`} />
+        </div>
+    )
+}
+
+// ─── RANK PROGRESSION HELPER ───
+// Maps current aura points to the next rank + point threshold (sidebar progress bar).
 function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThreshold: number } {
     if (auraPoints < 50) return { nextRank: "Owl", nextThreshold: 50 }
     if (auraPoints < 150) return { nextRank: "Raccoon", nextThreshold: 150 }
@@ -38,6 +51,7 @@ function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThres
     return { nextRank: "Max Rank", nextThreshold: 2500 }
 }
 
+// ─── DAILY CHALLENGE QUESTION (cached until midnight) ───
 const globalForDailyChallenge = globalThis as unknown as {
     dailyChallenge: { question: DailyChallengeQuestion | null; expiresAt: number } | undefined
 }
@@ -104,13 +118,18 @@ async function getDailyChallengeQuestion(): Promise<DailyChallengeQuestion | nul
     return question
 }
 
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD PAGE
+// ═══════════════════════════════════════════════════════════
 export default async function DashboardPage() {
+    // ─── Auth guard ───
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
         redirect("/login")
     }
 
+    // ─── Data fetching (missions, user profile, daily challenge) ───
     const [missions, user, dailyChallengeQuestion] = await Promise.all([
         safeDbQuery(
             () => getDashboardMissions(session.user.id),
@@ -134,337 +153,217 @@ export default async function DashboardPage() {
 
     const dbOffline = user === null && missions.length === 0
 
-    const completedCount = missions.filter((m) => m.status === "COMPLETED").length
-    const totalCount = missions.length
-    const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-
+    // ─── Rank / agent identity (feeds AppSidebar) ───
     const currentRank = calculateAgentRank(user?.auraPoints ?? 0)
-    const { nextRank, nextThreshold } = getNextRankThreshold(user?.auraPoints ?? 0)
-    const nextThresholdText = nextRank === "Max Rank" 
-        ? "Max Rank Achieved" 
-        : `${user?.auraPoints ?? 0} / ${nextThreshold} AP to ${nextRank}`
-    const apToNextRank = nextRank === "Max Rank" ? 0 : nextThreshold - (user?.auraPoints ?? 0)
+    const { nextThreshold } = getNextRankThreshold(user?.auraPoints ?? 0)
 
     const rankStyles = getRankBadgeStyles(currentRank)
+    const agentName = user?.name || session.user.name || "Anonymous"
+    const agentIdShort = session.user.id.substring(0, 8).toUpperCase()
 
+    // ─── Sidebar "Active Sectors" status list ───
+    const sectors = [
+        { name: "Sector Alpha", status: "active" as const },
+        { name: "Sector Beta", status: "locked" as const },
+        { name: "Sector Gamma", status: "locked" as const },
+    ]
+
+    // ─── Curriculum grid card data (Beginner/Intermediate/Expert) ───
+    const curriculumSectors = [
+        {
+            path: "Beginner",
+            name: "Sector Alpha",
+            title: "Beginner Curriculum",
+            tier: "LEVEL 1 (UNRESTRICTED)",
+            icon: BookOpen,
+            locked: false,
+        },
+        {
+            path: "Intermediate",
+            name: "Sector Beta",
+            title: "Intermediate Curriculum",
+            tier: "LEVEL 2 (RESTRICTED)",
+            icon: Play,
+            locked: true,
+        },
+        {
+            path: "Expert",
+            name: "Sector Gamma",
+            title: "Expert Curriculum",
+            tier: "LEVEL 3 (CLASSIFIED)",
+            icon: Zap,
+            locked: true,
+        },
+    ]
+
+    // ─── Shared props passed to both the desktop sidebar and the mobile drawer ───
+    const sidebarProps = {
+        agentName,
+        agentIdShort,
+        rank: currentRank,
+        rankColorClass: rankStyles.colorText,
+        rankShadowClass: rankStyles.shadow,
+        auraPoints: user?.auraPoints ?? 0,
+        nextThreshold,
+        sectors,
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════
     return (
-        <div className="flex-1 min-h-[calc(100dvh-64px)] bg-[#07080A] text-[#E2E8F0] p-3 sm:p-4 flex flex-col gap-3 font-mono selection:bg-emerald-500/20 overflow-x-hidden">
-            {/* Ambient Background Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#00ff4105_1px,transparent_1px),linear-gradient(to_bottom,#00ff4105_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0"></div>
-
+        <div className="flex min-h-[calc(100dvh-64px)] bg-[#0A0C0B] text-[#E2E8F0] font-mono selection:bg-emerald-500/20 overflow-x-hidden">
+            {/* First-run intro modal + daily challenge popup (render nothing until triggered) */}
             <MissionIntelStory />
             <DailyChallengeModal initialQuestion={dailyChallengeQuestion} />
-            
-            {/* Header Strip */}
-            <header className="relative bg-[#0D0E12] border border-emerald-500/20 rounded-none p-4 shrink-0 overflow-hidden z-10">
-                {/* 4 Corner Brackets */}
-                <span className="absolute top-0 left-0 size-4 border-t border-l border-emerald-500/60 pointer-events-none"></span>
-                <span className="absolute top-0 right-0 size-4 border-t border-r border-emerald-500/60 pointer-events-none"></span>
-                <span className="absolute bottom-0 left-0 size-4 border-b border-l border-emerald-500/60 pointer-events-none"></span>
-                <span className="absolute bottom-0 right-0 size-4 border-b border-r border-emerald-500/60 pointer-events-none"></span>
 
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="text-left">
-                        <div className="flex items-center gap-2 mb-0.5">
-                            <span className="inline-block size-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span className="text-[10px] tracking-widest text-[#4A5D4A] uppercase select-none">MISSION_DECK // OPERATIVE_HUD</span>
-                        </div>
-                        <h1 className="text-2xl md:text-4xl font-bold font-sans text-emerald-400 tracking-tight leading-none drop-shadow-[0_0_6px_rgba(16,185,129,0.3)]">
-                            Mission Control
-                        </h1>
-                        <p className="text-xs text-[#8F9F8F] font-sans mt-1">
-                            Select active module and decrypt sectors to progress through the curriculum.
-                        </p>
-                    </div>
+            {/* ─── Desktop sidebar (hidden below `lg`, see components/AppSidebar.tsx) ─── */}
+            <AppSidebar {...sidebarProps} />
 
-                    <div className="flex items-center gap-2 bg-[#07080A] border border-[#1F261F] px-3 py-2 rounded-lg text-xs self-start sm:self-auto select-none min-h-11">
-                        <span className="relative flex size-2.5">
+            <div className="flex-1 min-w-0 flex flex-col gap-4 p-3 sm:p-4 lg:p-6">
+                {/* ─── Mobile top bar: hamburger drawer + network status pill (hidden at `lg`+) ─── */}
+                <div className="flex lg:hidden items-center justify-between">
+                    <MobileSidebarDrawer {...sidebarProps} />
+                    <div className="flex items-center gap-2 bg-[#111413] border border-white/[.06] px-3 py-1.5 rounded-lg text-xs select-none">
+                        <span className="relative flex size-2">
                             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dbOffline ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
-                            <span className={`relative inline-flex rounded-full size-2.5 ${dbOffline ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+                            <span className={`relative inline-flex rounded-full size-2 ${dbOffline ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
                         </span>
                         <span className={`text-[10px] tracking-wider ${dbOffline ? 'text-amber-400' : 'text-emerald-400'} font-bold`}>
                             {dbOffline ? 'DB_DISCONNECTED' : 'NETWORK_SECURE'}
                         </span>
                     </div>
                 </div>
-            </header>
 
-            {dbOffline && (
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-md p-3 flex items-start gap-3 shrink-0 z-10">
-                    <AlertTriangle className="size-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div className="text-left">
-                        <p className="text-amber-500 font-mono text-xs font-bold">DATABASE CONNECTION OFFLINE</p>
-                        <p className="text-amber-500/70 font-mono text-[11px] mt-0.5 leading-tight">
-                            Systems are running in sandboxed demo state. Unable to reach active database. Verify network environment settings and DATABASE_URL connection status.
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* Main Content Grid Filling 100dvh */}
-            <main className="flex-1 grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-3 min-h-0 z-10">
-                
-                {/* CARD 1: Operative Dossier */}
-                <section className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 flex flex-col justify-between relative overflow-hidden group lg:col-span-5 md:col-span-6 min-h-0">
-                    <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-                    
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                        {/* 96px Avatar Square with 4 Corner Brackets */}
-                        <div className="relative group/avatar shrink-0">
-                            <span className="absolute -top-1 -left-1 size-3 border-t border-l border-emerald-500/60 pointer-events-none"></span>
-                            <span className="absolute -top-1 -right-1 size-3 border-t border-r border-emerald-500/60 pointer-events-none"></span>
-                            <span className="absolute -bottom-1 -left-1 size-3 border-b border-l border-emerald-500/60 pointer-events-none"></span>
-                            <span className="absolute -bottom-1 -right-1 size-3 border-b border-r border-emerald-500/60 pointer-events-none"></span>
-
-                            <div className="size-24 bg-emerald-950/40 rounded-md border border-emerald-500/40 flex items-center justify-center text-4xl font-mono font-bold text-emerald-400 select-none shadow-inner">
-                                {(user?.name || session.user.name || "U")[0].toUpperCase()}
-                            </div>
+                {/* ─── DB offline banner: only shown when both queries came back empty ─── */}
+                {dbOffline && (
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex items-start gap-3 shrink-0">
+                        <AlertTriangle className="size-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <div className="text-left">
+                            <p className="text-amber-500 font-mono text-xs font-bold">DATABASE CONNECTION OFFLINE</p>
+                            <p className="text-amber-500/70 font-mono text-[11px] mt-0.5 leading-tight">
+                                Systems are running in sandboxed demo state. Unable to reach active database. Verify network environment settings and DATABASE_URL connection status.
+                            </p>
                         </div>
+                    </div>
+                )}
 
-                        <div className="flex-grow w-full text-left flex flex-col justify-between min-w-0">
+                {/* ─── Hero Band: title, CTA buttons (Resume/Daily Task/Debug Lab), daily-reset countdown ─── */}
+                <section className="bg-[#111413] border border-white/[.06] rounded-xl p-6 shrink-0">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div className="flex items-start gap-4">
+                            <div className="hidden sm:flex size-14 rounded-xl bg-emerald-950/40 border border-emerald-500/40 items-center justify-center shadow-[0_0_24px_rgba(52,211,153,.25)] shrink-0">
+                                <Zap className="size-6 text-emerald-400" />
+                            </div>
                             <div>
-                                <div className="flex justify-between items-center border-b border-[#1F261F] pb-1 font-mono text-[9px] text-[#4A5D4A] mb-1.5">
-                                    <span>SYS.OP // CODE</span>
-                                    <span>ID: {session.user.id.substring(0, 8).toUpperCase()}</span>
-                                </div>
-                                <span className="text-[9px] font-mono tracking-widest text-[#4A5D4A] uppercase block">AGENT CODENAME</span>
-                                <h2 className="text-base font-mono font-bold text-[#E2E8F0] truncate tracking-wide">
-                                    {user?.name || session.user.name || "Anonymous"}
-                                </h2>
-                                
-                                <div className="inline-flex items-center gap-1.5 mt-1 bg-[#161820]/50 border border-[#1F261F] px-2 py-0.5 rounded-sm">
-                                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span className="text-[10px] font-mono text-[#8F9F8F]">
-                                        Clearance: <span className={`${rankStyles.colorText} ${rankStyles.shadow}`}>{currentRank}</span>
-                                    </span>
+                                <h1 className="text-2xl md:text-3xl font-bold font-sans text-emerald-400 tracking-tight leading-none drop-shadow-[0_0_6px_rgba(52,211,153,0.3)]">
+                                    Mission Control
+                                </h1>
+                                <p className="text-xs text-[#8F9F8F] font-sans mt-2 max-w-md">
+                                    Select active module and decrypt sectors to progress through the curriculum.
+                                </p>
+
+                                <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                                    <Link
+                                        href="/levels"
+                                        className="inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-black px-4 py-2 rounded-lg text-xs font-bold shadow-[0_0_24px_rgba(52,211,153,.25)] transition-colors"
+                                    >
+                                        <Play className="size-3.5" /> Resume Mission
+                                    </Link>
+                                    <Link
+                                        href="/daily-tasks"
+                                        className="inline-flex items-center justify-center gap-1.5 bg-[#181C18] hover:bg-[#20241F] border border-white/[.06] text-[#E2E8F0] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                        <Zap className="size-3.5 text-emerald-400" /> Daily Task
+                                    </Link>
+                                    <Link
+                                        href="/debug-lab"
+                                        className="inline-flex items-center justify-center gap-1.5 bg-[#181C18] hover:bg-[#20241F] border border-white/[.06] text-[#E2E8F0] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                        <Bug className="size-3.5 text-emerald-400" /> Debug Lab
+                                    </Link>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Segmented Rank Progress Bar (20 blocks) */}
-                    <div className="mt-3 w-full">
-                        <div className="flex justify-between text-[9px] font-mono text-[#8F9F8F] mb-1">
-                            <span>RANK PROGRESS</span>
-                            <span className="text-emerald-400">{Math.round(Math.min(100, ((user?.auraPoints ?? 0) / nextThreshold) * 100))}%</span>
-                        </div>
-                        
-                        <div className="flex gap-1 h-1.5 w-full">
-                            {Array.from({ length: 20 }).map((_, i) => {
-                                const isFilled = i < Math.min(20, Math.floor(((user?.auraPoints ?? 0) / nextThreshold) * 20));
-                                return (
-                                    <div 
-                                        key={i} 
-                                        className={`h-full flex-1 rounded-none transition-all duration-300 ${
-                                            isFilled ? 'bg-emerald-400' : 'bg-emerald-950'
-                                        }`}
-                                    />
-                                );
-                            })}
-                        </div>
+                        <DailyResetCountdown />
                     </div>
                 </section>
 
-                {/* CARD 2: Console Navigation channels */}
-                <nav className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 flex flex-col justify-between gap-1.5 relative lg:col-span-4 md:col-span-3 min-h-0">
-                    <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-                    
-                    <div className="text-[10px] font-mono tracking-widest text-[#4A5D4A] uppercase select-none border-b border-[#1F261F] pb-1 text-left">Console Channels</div>
-                    
-                    <Link href="/dashboard" className="flex items-center justify-between px-2.5 py-2 bg-[#181C18] text-emerald-400 rounded-sm font-medium text-xs border border-[#1F261F] hover:border-emerald-500/30 min-h-11 sm:min-h-0">
-                        <div className="flex items-center gap-2">
-                            <LayoutDashboard className="size-3.5 text-emerald-400" />
-                            <span className="font-mono text-[10px]">HUD_01_CONTROL</span>
-                        </div>
-                        <span className="text-[8px] font-mono text-emerald-400 bg-emerald-500/10 px-1 py-0.25 rounded border border-emerald-500/20">LIVE</span>
-                    </Link>
-                    
-                    <Link href="/levels" className="flex items-center justify-between px-2.5 py-2 text-[#8F9F8F] hover:bg-[#181C18]/40 hover:text-emerald-400 rounded-sm font-medium text-xs transition-all duration-200 group border border-transparent hover:border-[#1F261F] min-h-11 sm:min-h-0">
-                        <div className="flex items-center gap-2">
-                            <BookOpen className="size-3.5 text-[#8F9F8F] group-hover:text-emerald-400 transition-colors" />
-                            <span className="font-mono text-[10px]">HUD_02_SECTORS</span>
-                        </div>
-                        <span className="text-[8px] font-mono text-[#4A5D4A]">OPEN</span>
-                    </Link>
-                    
-                    <Link href="/history" className="flex items-center justify-between px-2.5 py-2 text-[#8F9F8F] hover:bg-[#181C18]/40 hover:text-emerald-400 rounded-sm font-medium text-xs transition-all duration-200 group border border-transparent hover:border-[#1F261F] min-h-11 sm:min-h-0">
-                        <div className="flex items-center gap-2">
-                            <History className="size-3.5 text-[#8F9F8F] group-hover:text-emerald-400 transition-colors" />
-                            <span className="font-mono text-[10px]">HUD_03_CHRONO</span>
-                        </div>
-                        <span className="text-[8px] font-mono text-[#4A5D4A]">LOGS</span>
-                    </Link>
-                    
-                    <Link href="/daily-tasks" className="flex items-center justify-between px-2.5 py-2 text-[#8F9F8F] hover:bg-[#181C18]/40 hover:text-emerald-400 rounded-sm font-medium text-xs transition-all duration-200 group border border-transparent hover:border-[#1F261F] min-h-11 sm:min-h-0">
-                        <div className="flex items-center gap-2">
-                            <Zap className="size-3.5 text-[#8F9F8F] group-hover:text-emerald-400 transition-colors" />
-                            <span className="font-mono text-[10px]">HUD_04_DAILY</span>
-                        </div>
-                        <span className="text-[8px] font-mono text-emerald-400 bg-emerald-500/10 px-1 py-0.25 rounded border border-emerald-500/20">NEW</span>
-                    </Link>
-                </nav>
+                {/* ─── Control Row: view-mode pills (Overview/Progress/Stats) + time-range filter (decorative, not wired to data) ─── */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-1 bg-[#111413] p-1 rounded-lg border border-white/[.06]">
+                        <button type="button" className="bg-[#181C18] text-emerald-400 px-4 py-1.5 rounded-md text-xs font-semibold transition-all">
+                            Overview
+                        </button>
+                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
+                            Progress
+                        </button>
+                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
+                            Stats
+                        </button>
+                    </div>
 
-                {/* CARD 3: Intelligence Readout */}
-                <div className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 flex flex-col justify-between gap-2 lg:col-span-3 md:col-span-3 text-left min-h-0">
-                    <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-                    
-                    <h3 className="text-[10px] font-mono font-bold text-[#4A5D4A] uppercase tracking-wider border-b border-[#1F261F] pb-1 select-none">INTELLIGENCE READOUT</h3>
-                    <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="text-[#8F9F8F]">RESOLVED</span>
-                        <span className="font-bold text-[#E2E8F0]">{completedCount}/{totalCount}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="text-[#8F9F8F]">COMBO</span>
-                        <span className="font-bold text-amber-500">x{user?.comboStreak ?? 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="text-[#8F9F8F]">INSIGNIAS</span>
-                        <span className="font-bold text-emerald-400">{user?.foxBadges ?? 0}</span>
+                    <div className="flex items-center gap-1 bg-[#111413] p-1 rounded-lg border border-white/[.06]">
+                        <button type="button" className="bg-[#181C18] text-emerald-400 px-3 py-1 rounded text-[11px] font-semibold transition-all">
+                            24h
+                        </button>
+                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-3 py-1 rounded text-[11px] font-medium transition-all">
+                            7D
+                        </button>
+                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-3 py-1 rounded text-[11px] font-medium transition-all">
+                            30D
+                        </button>
+                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-3 py-1 rounded text-[11px] font-medium transition-all">
+                            All
+                        </button>
                     </div>
                 </div>
 
-                {/* CARD 4: Campaign Decryption Rate Gauge */}
-                <div className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 relative overflow-hidden lg:col-span-5 md:col-span-6 flex flex-col justify-between min-h-0">
-                    <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-                    
-                    <div className="flex justify-between items-end mb-2 relative z-10 text-left">
-                        <div>
-                            <span className="text-[9px] font-mono tracking-widest text-[#4A5D4A] uppercase block select-none">Campaign Rate</span>
-                            <h3 className="text-xs font-bold font-mono text-[#E2E8F0] mt-0.5">SYSTEM DECRYPTION STATUS</h3>
-                        </div>
-                        <span className="text-sm font-mono font-bold text-emerald-400 drop-shadow-[0_0_4px_rgba(16,185,129,0.3)]">{progressPercent}%</span>
-                    </div>
-
-                    {/* Segmented Ticks (24 blocks) */}
-                    <div className="flex gap-1 h-1.5 w-full relative z-10 my-1">
-                        {Array.from({ length: 24 }).map((_, i) => {
-                            const isFilled = i < Math.round((progressPercent / 100) * 24);
-                            return (
-                                <div 
-                                    key={i} 
-                                    className={`h-full flex-1 rounded-none transition-all duration-300 ${
-                                        isFilled ? 'bg-emerald-400' : 'bg-neutral-800'
-                                    }`}
-                                />
-                            );
-                        })}
-                    </div>
-
-                    <div className="flex justify-between font-mono text-[8px] text-[#4A5D4A] relative z-10 select-none">
-                        <span>SECTOR: GENERAL</span>
-                        <span>{completedCount} OF {totalCount} DECRYPTED</span>
-                    </div>
-                </div>
-
-                {/* CARDS 5-6: Operational AP & Field Classif */}
-                <div className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 flex flex-col justify-between hover:border-emerald-500/30 transition-all duration-200 group relative overflow-hidden lg:col-span-4 md:col-span-3 text-left min-h-0">
-                    <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-                    
-                    <div className="flex justify-between items-start mb-1">
-                        <span className="text-[#8F9F8F] text-[9px] font-mono tracking-wider flex items-center gap-1 uppercase select-none">
-                            <Bolt className="size-3.5 text-emerald-400" />
-                            OPERATIONAL AP
-                        </span>
-                        <span className="text-[8px] font-mono text-[#4A5D4A] select-none">HUD_AURA</span>
-                    </div>
-                    <div>
-                        <span className="text-base font-bold font-mono text-[#E2E8F0] tracking-tight block">
-                            {user?.auraPoints ?? 0} AP
-                        </span>
-                        <span className="text-[9px] text-[#4A5D4A] mt-0.5 block">Total Aura Points</span>
-                    </div>
-                </div>
-
-                <div className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 flex flex-col justify-between hover:border-emerald-500/30 transition-all duration-200 group relative overflow-hidden lg:col-span-3 md:col-span-3 text-left min-h-0">
-                    <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-                    
-                    <div className="flex justify-between items-start mb-1">
-                        <span className="text-[#8F9F8F] text-[9px] font-mono tracking-wider flex items-center gap-1 uppercase select-none">
-                            <Shield className={`size-3.5 ${rankStyles.colorText}`} />
-                            FIELD CLASSIF
-                        </span>
-                        <span className="text-[8px] font-mono text-[#4A5D4A] select-none">HUD_RANK</span>
-                    </div>
-                    <div>
-                        <span className="text-base font-bold font-mono text-[#E2E8F0] tracking-tight block">
-                            {currentRank}
-                        </span>
-                        <span className="text-[9px] text-[#4A5D4A] mt-0.5 block">Operative Rating</span>
-                    </div>
-                </div>
-
-                {/* Operational Sectors / Curriculum Cards */}
-                <div className="lg:col-span-12 md:col-span-6 grid grid-cols-1 md:grid-cols-3 gap-3 min-h-0">
-                    {[
-                        { 
-                            path: "Beginner", 
-                            name: "Sector Alpha", 
-                            title: "Beginner Curriculum",
-                            desc: "Sequential C fundamentals and logic structures. Master basic syntax, variable declarations, and fundamental operators.",
-                            clearance: "LEVEL 1 (UNRESTRICTED)",
-                            color: "text-emerald-400",
-                            bg: "bg-emerald-950/10 border-emerald-500/20",
-                            icon: BookOpen
-                        },
-                        { 
-                            path: "Intermediate", 
-                            name: "Sector Beta", 
-                            title: "Intermediate Curriculum",
-                            desc: "Solve complex C challenges with loops, control flow, pointers, memory addresses, and data structures.",
-                            clearance: "LEVEL 2 (RESTRICTED)",
-                            color: "text-emerald-400",
-                            bg: "bg-emerald-950/10 border-emerald-500/20",
-                            icon: Play
-                        },
-                        { 
-                            path: "Expert", 
-                            name: "Sector Gamma", 
-                            title: "Expert Curriculum",
-                            desc: "Conquer advanced algorithm design, memory security audits, recursive compiler optimizations, and low-level performance.",
-                            clearance: "LEVEL 3 (CLASSIFIED)",
-                            color: "text-amber-500",
-                            bg: "bg-amber-950/10 border-amber-500/20",
-                            icon: Zap
-                        }
-                    ].map((sector) => {
-                        const IconComp = sector.icon;
+                {/* ─── Curriculum Grid: Beginner/Intermediate/Expert sector cards, links to /levels?path=... ─── */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
+                    {curriculumSectors.map((sector) => {
+                        const IconComp = sector.icon
                         return (
-                            <Link 
+                            <Link
                                 key={sector.path}
-                                href={`/levels?path=${sector.path}`} 
-                                className="bg-[#0D0E12] border border-emerald-500/20 rounded-md p-4 hover:border-emerald-500/30 transition-all duration-200 group flex flex-col cursor-pointer relative overflow-hidden min-h-0 justify-between"
+                                href={`/levels?path=${sector.path}`}
+                                className="bg-[#111413] border border-white/[.06] rounded-xl p-6 hover:border-emerald-500/30 transition-all duration-200 group flex flex-col gap-4"
                             >
-                                <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.06),transparent_70%)] pointer-events-none"></div>
-
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="size-9 bg-[#161820] rounded-sm flex items-center justify-center border border-[#1F261F] group-hover:border-emerald-500/30 shadow-inner">
-                                        <IconComp className="size-4 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+                                <div className="flex justify-between items-start">
+                                    <div className="size-10 bg-[#181C18] rounded-lg flex items-center justify-center border border-white/[.06] group-hover:border-emerald-500/30 shadow-inner">
+                                        <IconComp className="size-4.5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
                                     </div>
-                                    <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${sector.bg} ${sector.color} tracking-wider`}>
-                                        {sector.clearance}
-                                    </span>
+                                    <div className="size-8 flex items-center justify-center rounded-lg border border-white/[.06] bg-[#181C18]">
+                                        <Lock className={`size-3.5 ${sector.locked ? "text-[#5E6B65]" : "text-emerald-400"}`} />
+                                    </div>
                                 </div>
-                                
+
                                 <div className="text-left">
-                                    <span className="text-[9px] font-mono text-[#4A5D4A] uppercase block select-none">{sector.name}</span>
-                                    <h3 className="text-sm font-bold font-mono text-[#E2E8F0] mt-0.5 mb-1 group-hover:text-emerald-400 transition-colors tracking-tight">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-mono text-[#5E6B65] uppercase">{sector.name}</span>
+                                        <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border bg-emerald-950/10 border-emerald-500/20 text-emerald-400 tracking-wider">
+                                            {sector.tier}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-sm font-bold font-mono text-[#E2E8F0] mt-1 group-hover:text-emerald-400 transition-colors tracking-tight">
                                         {sector.title}
                                     </h3>
-                                    <p className="text-[11px] text-[#8F9F8F] leading-snug font-sans line-clamp-2">
-                                        {sector.desc}
-                                    </p>
                                 </div>
-                                
-                                <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#4A5D4A] group-hover:text-emerald-400 transition-colors border-t border-[#1F261F] pt-2.5 mt-3">
-                                    <span>LAUNCH OPERATIVE DECK</span>
-                                    <ArrowRight className="size-3.5 transform translate-x-0 group-hover:translate-x-1 transition-transform duration-200" />
+
+                                <div className="grid grid-cols-3 gap-3 border-t border-white/[.06] pt-4 mt-auto">
+                                    <StatCell label="Sectors" value="0/5" barColor="bg-emerald-500" />
+                                    <StatCell label="Decrypted" value="0%" barColor="bg-emerald-500" />
+                                    <StatCell label="AP" value="0" barColor="bg-amber-500" />
                                 </div>
                             </Link>
-                        );
+                        )
                     })}
                 </div>
 
-            </main>
+                {/* ─── Mission Table: full mission list, accept/review actions (see ./MissionTable.tsx) ─── */}
+                <MissionTable missions={missions} />
+            </div>
         </div>
     )
 }
