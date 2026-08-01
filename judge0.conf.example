@@ -1,0 +1,43 @@
+################################################################################
+# Judge0 Configuration (example — copy to judge0.conf and fill in real secrets)
+################################################################################
+# judge0.conf is gitignored (like .env) because it holds real database and
+# Redis passwords. This file just documents the keys this project relies on.
+
+################################################################################
+# PostgreSQL
+################################################################################
+# Must match the judge0-db service name in docker-compose.yml — Judge0
+# defaults to "localhost" if this is left blank, which fails under Compose.
+POSTGRES_HOST=judge0-db
+POSTGRES_DB=judge0
+POSTGRES_USER=judge0
+POSTGRES_PASSWORD=
+
+################################################################################
+# Redis
+################################################################################
+# Must match the judge0-redis service name in docker-compose.yml — same
+# "defaults to localhost" caveat as POSTGRES_HOST above.
+REDIS_HOST=judge0-redis
+REDIS_PASSWORD=
+
+################################################################################
+# Submission limits (isolate sandbox) — mirrors COMPILATION_TIMEOUT_MS /
+# EXECUTION_TIMEOUT_MS in lib/compiler.ts, converted to seconds.
+################################################################################
+CPU_TIME_LIMIT=3
+WALL_TIME_LIMIT=6
+MEMORY_LIMIT=128000
+MAX_PROCESSES_AND_OR_THREADS=60
+
+################################################################################
+# Queueing — cap on in-flight submissions before new ones are rejected.
+# Revisit this under real load.
+################################################################################
+MAX_QUEUE_SIZE=200
+
+################################################################################
+# Security — submissions must not be able to reach the network.
+################################################################################
+ENABLE_NETWORK=false

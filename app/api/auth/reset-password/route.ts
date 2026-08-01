@@ -3,11 +3,12 @@ import { db } from "@/lib/db"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
 import { resetPasswordLimiter, getIpFromHeaders } from "@/lib/rate-limit"
+import { validatePassword } from "@/lib/passwordPolicy"
 
 export async function POST(req: Request) {
     try {
         const ip = getIpFromHeaders(req.headers)
-        if (resetPasswordLimiter.isRateLimited(ip)) {
+        if (await resetPasswordLimiter.isRateLimited(ip)) {
             return NextResponse.json(
                 { message: "Too many requests. Please try again later." },
                 { status: 429 }
@@ -22,6 +23,11 @@ export async function POST(req: Request) {
                 { message: "Missing required fields" },
                 { status: 400 }
             )
+        }
+
+        const passwordError = validatePassword(password)
+        if (passwordError) {
+            return NextResponse.json({ message: passwordError }, { status: 400 })
         }
 
         const normalizedEmail = email.trim().toLowerCase()

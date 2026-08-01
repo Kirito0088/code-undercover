@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { executeCode } from '@/lib/compiler'
 import { detectInnovation, validateMissionOutput } from '@/lib/validation/missionValidator'
 import { canAccessMission } from '@/services/mission.service'
+import { missionValidateLimiter } from '@/lib/rate-limit'
 import {
     AURA_MISSION_COMPLETE,
     AURA_FIRST_ATTEMPT,
@@ -65,9 +66,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        const rate = await missionValidateLimiter.check(session.user.id)
+        if (!rate.success) {
+            return NextResponse.json(
+                { error: `Too many attempts. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
+            )
+        }
+
         const { missionId, code, input = "" } = body
         if (!missionId || typeof missionId !== 'string' || !code || typeof code !== 'string' || code.length > 10000) {
             return NextResponse.json({ error: 'Missing or invalid parameters' }, { status: 400 })
+        }
+        if (typeof input !== 'string' || input.length > 5000) {
+            return NextResponse.json({ error: 'Input exceeds length limits' }, { status: 400 })
         }
 
         // 🔒 Access check — must happen before any DB writes or validation logic

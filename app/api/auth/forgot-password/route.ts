@@ -7,7 +7,7 @@ import { forgotPasswordLimiter, getIpFromHeaders } from "@/lib/rate-limit"
 export async function POST(req: Request) {
     try {
         const ip = getIpFromHeaders(req.headers)
-        if (forgotPasswordLimiter.isRateLimited(ip)) {
+        if (await forgotPasswordLimiter.isRateLimited(ip)) {
             return NextResponse.json(
                 { message: "Too many requests. Please try again later." },
                 { status: 429 }

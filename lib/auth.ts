@@ -1,4 +1,18 @@
 import { NextAuthOptions } from "next-auth"
+
+// Sanitize env variables (strips literal quotes if passed by Docker --env-file)
+if (process.env.NEXTAUTH_URL) {
+    process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL.replace(/^["']|["']$/g, "").trim()
+}
+if (process.env.NEXTAUTH_SECRET) {
+    process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET.replace(/^["']|["']$/g, "").trim()
+}
+if (process.env.GOOGLE_CLIENT_ID) {
+    process.env.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID.replace(/^["']|["']$/g, "").trim()
+}
+if (process.env.GOOGLE_CLIENT_SECRET) {
+    process.env.GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET.replace(/^["']|["']$/g, "").trim()
+}
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
@@ -41,10 +55,12 @@ export const authOptions: NextAuthOptions = {
     secret: (() => {
         const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
         if (secret) return secret;
-        if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
-            throw new Error("NEXTAUTH_SECRET (or AUTH_SECRET) must be set in production.");
+        if (process.env.NEXT_PHASE === "phase-production-build") {
+            // `next build` imports this module for static analysis but never
+            // serves requests, so no real secret is needed at build time.
+            return "unused-build-time-placeholder";
         }
-        return "fallback_development_secret_key";
+        throw new Error("NEXTAUTH_SECRET (or AUTH_SECRET) must be set.");
     })(),
     pages: {
         signIn: "/login",
@@ -70,7 +86,7 @@ export const authOptions: NextAuthOptions = {
                 const normalizedEmail = credentials.email.trim().toLowerCase()
                 const rateLimitKey = `${ip}:${normalizedEmail}`
 
-                if (loginFailedLimiter.isRateLimited(rateLimitKey)) {
+                if (await loginFailedLimiter.isRateLimited(rateLimitKey)) {
                     console.warn("[AUTH] Login attempt blocked by rate limit")
                     return null
                 }
@@ -84,13 +100,13 @@ export const authOptions: NextAuthOptions = {
 
                     if (!user) {
                         console.warn("[AUTH] No user record found")
-                        loginFailedLimiter.increment(rateLimitKey)
+                        await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
                     if (!user.password) {
                         console.warn("[AUTH] User exists but has no password (needs registration)")
-                        loginFailedLimiter.increment(rateLimitKey)
+                        await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
 
@@ -101,10 +117,9 @@ export const authOptions: NextAuthOptions = {
 
                     if (!isPasswordValid) {
                         console.warn("[AUTH] Invalid password")
-                        loginFailedLimiter.increment(rateLimitKey)
+                        await loginFailedLimiter.increment(rateLimitKey)
                         return null
                     }
-
                     console.log("[AUTH] User authenticated successfully")
 
                     return {
@@ -125,7 +140,9 @@ export const authOptions: NextAuthOptions = {
                 GoogleProvider({
                     clientId: process.env.GOOGLE_CLIENT_ID,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                    allowDangerousEmailAccountLinking: true,
+                    // Dangerous linking disabled: without it, a credentials account
+                    // registered with someone else's email (unverified at signup)
+                    // could silently absorb that person's future Google sign-in.
                 }),
             ]
             : []),
@@ -140,8 +157,10 @@ export const authOptions: NextAuthOptions = {
                     });
 
                     if (existingUser && !existingUser.username) {
+                        // Never seed from the email — this is just a starting
+                        // point until the user picks their own in Profile settings.
                         const username = await generateUniqueUsername(
-                            existingUser.name || emailStr
+                            existingUser.name || "agent"
                         );
                         await db.user.update({
                             where: { id: existingUser.id },

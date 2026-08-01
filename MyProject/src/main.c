@@ -27,7 +27,6 @@ void test_cjson() {
     cJSON_Delete(json);
   }
 }
-
 // --- uthash Example ---
 typedef struct {
   int id;

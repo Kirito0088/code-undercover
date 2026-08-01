@@ -2,12 +2,13 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { hash } from "bcryptjs"
 import { registerLimiter, getIpFromHeaders } from "@/lib/rate-limit"
+import { validatePassword } from "@/lib/passwordPolicy"
 
 const VALID_LANGUAGES = ["C", "Java", "Python", "DBMS"]
 
 export async function POST(req: Request) {
     const ip = getIpFromHeaders(req.headers)
-    const rate = registerLimiter.check(ip)
+    const rate = await registerLimiter.check(ip)
 
     if (!rate.success) {
         return NextResponse.json(
@@ -52,9 +53,8 @@ export async function POST(req: Request) {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errors.push("A valid email format is required.")
     }
-    if (!password || password.length < 6) {
-        errors.push("Password must be at least 6 characters.")
-    }
+    const passwordError = validatePassword(password)
+    if (passwordError) errors.push(passwordError)
 
     if (errors.length > 0) {
         const errorMsg = errors.join(" ")

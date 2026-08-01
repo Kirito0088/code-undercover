@@ -22,7 +22,6 @@ RUN npm run build
 # Stage 3: runner
 FROM node:20-alpine AS runner
 # openssl required by Prisma's linux-musl-openssl-3.0.x query engine at runtime
-RUN apk add --no-cache build-base
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 

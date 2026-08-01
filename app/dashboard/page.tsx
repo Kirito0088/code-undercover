@@ -12,7 +12,7 @@ import {
     Bug,
 } from "lucide-react"
 import { type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
-import { DailyChallengeModal } from "@/components/dashboard/DailyChallengeModal"
+import { DailyChallengeModal } from "@/components/dashboard/DailyChallengeModalLazy"
 import { MissionIntelStory } from "./MissionIntelStory"
 import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"

@@ -38,7 +38,7 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors flex items-center justify-center"
+        className="p-2.5 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors flex items-center justify-center"
         aria-label="Toggle menu"
       >
         {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "opencode-daytona",
+    "opencode-helicone-session",
+    "opencode-type-inject",
+    "opencode-openai-codex-auth",
+    "opencode-gemini-auth",
+    "opencode-antigravity-auth",
+    "opencode-devcontainers",
+    "opencode-google-antigravity-auth",
+    "opencode-dynamic-context-pruning",
+    "opencode-vibeguard",
+    "opencode-websearch-cited",
+    "opencode-pty",
+    "opencode-shell-strategy",
+    "opencode-wakatime",
+    "opencode-md-table-formatter",
+    "opencode-morph-fast-apply",
+    "opencode-morph-plugin",
+    "oh-my-opencode",
+    "opencode-notificator",
+    "opencode-notifier",
+    "opencode-zellij-namer",
+    "opencode-skillful",
+    "opencode-supermemory",
+    "@plannotator/opencode",
+    "@openspoon/subtask2",
+    "opencode-scheduler",
+    "opencode-conductor",
+    "micode",
+    "octto",
+    "opencode-background-agents",
+    "opencode-notify",
+    "opencode-workspace",
+    "opencode-worktree",
+    "opencode-sentry-monitor",
+    "opencode-firecrawl",
+    "opencode-jfrog-plugin",
+    "opencode-goal-plugin"
+  ],
+  "agent": {
+    "agentic": {
+      "description": "Modular AI agents and commands for structured development",
+      "prompt": "You are Agentic. You provide modular AI agents and commands for structured development workflows.",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "grep": true,
+        "glob": true,
+        "read": true
+      }
+    },
+    "opencode-agents": {
+      "description": "Configs, prompts, agents, and plugins for enhanced workflows",
+      "prompt": "You are an agent equipped with configs, prompts, agents, and plugins for enhanced OpenCode workflows.",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "grep": true,
+        "glob": true,
+        "read": true
+      }
+    },
+    "plan": {
+      "description": "Structured brainstorm to plan to implement workflow",
+      "prompt": "You are a planning agent. Follow a structured workflow: Context -> Spec -> Plan -> Implement.",
+      "model": "anthropic/claude-sonnet-4-5"
+    },
+    "build": {
+      "description": "Build agent for implementing features and fixes",
+      "model": "anthropic/claude-sonnet-4-5"
+    }
+  },
+  "command": {
+    "test": {
+      "template": "Run the full test suite with vitest and show results. Focus on failures and suggest fixes.",
+      "description": "Run tests with vitest"
+    },
+    "build": {
+      "template": "Build the project with next build and report any errors.",
+      "description": "Build the Next.js project"
+    },
+    "lint": {
+      "template": "Run next lint and fix any issues found.",
+      "description": "Run the linter"
+    },
+    "dev": {
+      "template": "Start the development server with turbopack.",
+      "description": "Start dev server"
+    }
+  },
+  "model": "anthropic/claude-sonnet-4-5",
+  "small_model": "anthropic/claude-haiku-4-5",
+  "formatter": true,
+  "lsp": true,
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 10000
+  },
+  "autoupdate": true,
+  "snapshot": true,
+  "server": {
+    "port": 4096,
+    "hostname": "127.0.0.1",
+    "mdns": true
+  },
+  "instructions": [
+    "DESIGN.md",
+    ".github/*.md"
+  ],
+  "references": {
+    "nextjs-docs": {
+      "repository": "vercel/next.js",
+      "description": "Next.js documentation",
+      "hidden": true
+    }
+  }
+}
