@@ -3,53 +3,49 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getDashboardMissions } from "@/services/mission.service"
 import { db, safeDbQuery } from "@/lib/db"
-import {
-    AlertTriangle,
-    Zap,
-    Play,
-    BookOpen,
-    Lock,
-    Bug,
-} from "lucide-react"
+import { AlertTriangle, ArrowRight } from "lucide-react"
 import { type DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { DailyChallengeModal } from "@/components/dashboard/DailyChallengeModalLazy"
 import { MissionIntelStory } from "./MissionIntelStory"
 import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
-import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
-import { AppSidebar, default as MobileSidebarDrawer } from "./Sidebar"
-import MissionTable from "./MissionTable"
-import DailyResetCountdown from "./DailyResetCountdown"
-
+import { calculateAuraLevel } from "@/lib/aura"
 import { dailyQuestions } from "@/src/data/missionsData"
 
-// ─── StatCell: small label/value/underline-bar block used in the curriculum grid ───
-function StatCell({ label, value, barColor }: { label: string, value: string, barColor: string }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-[#5E6B65]">
-                {label}
-            </span>
-            <span className="font-mono font-bold text-sm text-[#E2E8F0]">
-                {value}
-            </span>
-            <div className={`h-1 w-full rounded-full ${barColor}`} />
-        </div>
-    )
+import Sidebar from "./Sidebar"
+import Topbar from "./Topbar"
+import HeroBriefing from "./HeroBriefing"
+import SectorCard from "./SectorCard"
+import MissionTable from "./MissionTable"
+import CommandPalette from "./CommandPalette"
+import { ToastProvider } from "./ToastProvider"
+import { LOCKED_SECTOR_PLACEHOLDER } from "./mock"
+import type { AgentSummary, Difficulty, Mission, Sector } from "./types"
+
+// ─── Aura-level bracket bounds (mirrors lib/aura.ts calculateAuraLevel exactly,
+// just also returning the floor/ceiling so the sidebar's XP bar has real numbers). ───
+function getLevelBounds(auraPoints: number): { floor: number; ceiling: number } {
+    const brackets = [0, 200, 500, 1000, 2000, 3500]
+    for (let i = 0; i < brackets.length - 1; i++) {
+        if (auraPoints < brackets[i + 1]) return { floor: brackets[i], ceiling: brackets[i + 1] }
+    }
+    let floor = 3500
+    let increment = 2000
+    while (auraPoints >= floor + increment) {
+        floor += increment
+        increment += 500
+    }
+    return { floor, ceiling: floor + increment }
 }
 
-// ─── RANK PROGRESSION HELPER ───
-// Maps current aura points to the next rank + point threshold (sidebar progress bar).
-function getNextRankThreshold(auraPoints: number): { nextRank: string, nextThreshold: number } {
-    if (auraPoints < 50) return { nextRank: "Owl", nextThreshold: 50 }
-    if (auraPoints < 150) return { nextRank: "Raccoon", nextThreshold: 150 }
-    if (auraPoints < 300) return { nextRank: "Octopus", nextThreshold: 300 }
-    if (auraPoints < 500) return { nextRank: "Eagle", nextThreshold: 500 }
-    if (auraPoints < 800) return { nextRank: "Chameleon", nextThreshold: 800 }
-    if (auraPoints < 1200) return { nextRank: "Wolf", nextThreshold: 1200 }
-    if (auraPoints < 1700) return { nextRank: "Fox", nextThreshold: 1700 }
-    if (auraPoints < 2500) return { nextRank: "Platypus", nextThreshold: 2500 }
-    return { nextRank: "Max Rank", nextThreshold: 2500 }
+const DIFFICULTY_LABEL: Record<string, Difficulty> = { EASY: "Easy", MEDIUM: "Medium", HARD: "Hard" }
+
+function truncateHint(text: string, max = 56): string {
+    if (!text) return ""
+    if (text.length <= max) return text
+    return text.slice(0, text.slice(0, max).lastIndexOf(" ")) + "…"
 }
+
+const SECTOR_PATHS = ["Beginner", "Intermediate", "Expert"] as const
 
 // ─── DAILY CHALLENGE QUESTION (cached until midnight) ───
 const globalForDailyChallenge = globalThis as unknown as {
@@ -95,7 +91,6 @@ async function getDailyChallengeQuestion(): Promise<DailyChallengeQuestion | nul
         console.error("Failed to fetch daily question from DB, using static fallback:", error)
     }
 
-    // Fallback to static daily questions if DB is offline or unseeded
     if (!question && dailyQuestions.length > 0) {
         const index = Math.floor(now / 86400000) % dailyQuestions.length
         const fallbackQ = dailyQuestions[index]
@@ -118,19 +113,35 @@ async function getDailyChallengeQuestion(): Promise<DailyChallengeQuestion | nul
     return question
 }
 
+function SectionHead({ title, count, viewHref }: { title: string; count: string; viewHref?: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <h2 className="font-dash-display text-[14.5px] font-semibold tracking-[-.015em] m-0">{title}</h2>
+            <span className="font-dash-mono text-[11px] text-dash-text-faint">{count}</span>
+            {viewHref && (
+                <Link
+                    href={viewHref}
+                    className="ml-auto -mr-1.5 inline-flex items-center gap-1 text-[12.5px] text-dash-text-dim hover:text-dash-accent px-1.5 py-1 rounded-[6px] hover:bg-dash-surface-2 transition-colors"
+                >
+                    View curriculum
+                    <ArrowRight className="size-3 stroke-2" />
+                </Link>
+            )}
+        </div>
+    )
+}
+
 // ═══════════════════════════════════════════════════════════
 // DASHBOARD PAGE
 // ═══════════════════════════════════════════════════════════
 export default async function DashboardPage() {
-    // ─── Auth guard ───
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
         redirect("/login")
     }
 
-    // ─── Data fetching (missions, user profile, daily challenge) ───
-    const [missions, user, dailyChallengeQuestion] = await Promise.all([
+    const [dashboardMissions, user, dailyChallengeQuestion] = await Promise.all([
         safeDbQuery(
             () => getDashboardMissions(session.user.id),
             [],
@@ -151,221 +162,127 @@ export default async function DashboardPage() {
         ),
     ])
 
-    const dbOffline = user === null && missions.length === 0
+    const dbOffline = user === null && dashboardMissions.length === 0
+    const auraPoints = user?.auraPoints ?? 0
 
-    // ─── Rank / agent identity (feeds AppSidebar) ───
-    const currentRank = calculateAgentRank(user?.auraPoints ?? 0)
-    const { nextThreshold } = getNextRankThreshold(user?.auraPoints ?? 0)
-
-    const rankStyles = getRankBadgeStyles(currentRank)
-    const agentName = user?.name || session.user.name || "Anonymous"
-    const agentIdShort = session.user.id.substring(0, 8).toUpperCase()
-
-    // ─── Sidebar "Active Sectors" status list ───
-    const sectors = [
-        { name: "Sector Alpha", status: "active" as const },
-        { name: "Sector Beta", status: "locked" as const },
-        { name: "Sector Gamma", status: "locked" as const },
-    ]
-
-    // ─── Curriculum grid card data (Beginner/Intermediate/Expert) ───
-    const curriculumSectors = [
-        {
-            path: "Beginner",
-            name: "Sector Alpha",
-            title: "Beginner Curriculum",
-            tier: "LEVEL 1 (UNRESTRICTED)",
-            icon: BookOpen,
-            locked: false,
-        },
-        {
-            path: "Intermediate",
-            name: "Sector Beta",
-            title: "Intermediate Curriculum",
-            tier: "LEVEL 2 (RESTRICTED)",
-            icon: Play,
-            locked: true,
-        },
-        {
-            path: "Expert",
-            name: "Sector Gamma",
-            title: "Expert Curriculum",
-            tier: "LEVEL 3 (CLASSIFIED)",
-            icon: Zap,
-            locked: true,
-        },
-    ]
-
-    // ─── Shared props passed to both the desktop sidebar and the mobile drawer ───
-    const sidebarProps = {
-        agentName,
-        agentIdShort,
-        rank: currentRank,
-        rankColorClass: rankStyles.colorText,
-        rankShadowClass: rankStyles.shadow,
-        auraPoints: user?.auraPoints ?? 0,
-        nextThreshold,
-        sectors,
+    // ─── Agent summary (real) ───
+    const { floor, ceiling } = getLevelBounds(auraPoints)
+    const agent: AgentSummary = {
+        displayName: user?.name || session.user.name || "Anonymous",
+        agentId: `CU-${session.user.id.substring(0, 7).toUpperCase()}`,
+        rank: calculateAuraLevel(auraPoints),
+        xpToNextRank: Math.max(0, ceiling - auraPoints),
+        xpProgress: ceiling > floor ? (auraPoints - floor) / (ceiling - floor) : 1,
+        auraPoints,
+        streakDays: user?.comboStreak ?? 0,
     }
 
-    // ═══════════════════════════════════════════════════════
-    // RENDER
-    // ═══════════════════════════════════════════════════════
+    // ─── Missions → clean Mission[] (real). See types.ts for why there's no
+    // "running" state: accepting a mission redirects to /mission/[id] for the
+    // actual gameplay, so there's no same-page in-progress state to model. ───
+    const missions: Mission[] = dashboardMissions.map((m) => ({
+        id: m.id,
+        index: m.order,
+        name: m.title,
+        hint: truncateHint(m.description),
+        ap: m.auraReward,
+        difficulty: DIFFICULTY_LABEL[m.difficulty] ?? "Easy",
+        state: m.status === "COMPLETED" ? "done" : m.status === "ACTIVE" ? "active" : "locked",
+    }))
+
+    const completedCount = missions.filter((m) => m.state === "done").length
+    const apEarned = missions.filter((m) => m.state === "done").reduce((sum, m) => sum + m.ap, 0)
+    const apAvailable = missions.filter((m) => m.state !== "done").reduce((sum, m) => sum + m.ap, 0)
+    const nextMission = missions.find((m) => m.state === "active") ?? null
+
+    // ─── Sectors. Only Alpha (the "standard" mission type queried above) has
+    // real per-user progress on this page — Intermediate/Expert live under a
+    // separate curriculum data source this page doesn't fetch. See mock.ts. ───
+    const sectors: Sector[] = [
+        {
+            id: "alpha",
+            codename: "Sector Alpha",
+            title: "Beginner Curriculum",
+            subtitle: "Level 1 · Output, variables, control flow",
+            level: 1,
+            locked: false,
+            missionsTotal: missions.length,
+            missionsDone: completedCount,
+            apEarned,
+        },
+        {
+            id: "beta",
+            codename: "Sector Beta",
+            title: "Intermediate Curriculum",
+            subtitle: "Level 2 · Pointers, arrays, structs",
+            level: 2,
+            locked: true,
+            unlockHint: `Complete all ${missions.length || 5} Alpha missions to unlock`,
+            ...LOCKED_SECTOR_PLACEHOLDER,
+        },
+        {
+            id: "gamma",
+            codename: "Sector Gamma",
+            title: "Expert Curriculum",
+            subtitle: "Level 3 · Memory, files, recursion",
+            level: 3,
+            locked: true,
+            unlockHint: "Complete all Beta missions to unlock",
+            ...LOCKED_SECTOR_PLACEHOLDER,
+        },
+    ]
+    const unlockedCount = sectors.filter((s) => !s.locked).length
+
     return (
-        <div className="flex min-h-[calc(100dvh-64px)] bg-[#0A0C0B] text-[#E2E8F0] font-mono selection:bg-emerald-500/20 overflow-x-hidden">
-            {/* First-run intro modal + daily challenge popup (render nothing until triggered) */}
+        <div className="dash-theme flex min-h-[calc(100dvh-56px)] bg-dash-bg text-dash-text">
+            {/* First-run intro modal + daily challenge popup — untouched, unrelated to this theme */}
             <MissionIntelStory />
             <DailyChallengeModal initialQuestion={dailyChallengeQuestion} />
 
-            {/* ─── Desktop sidebar (hidden below `lg`, see components/AppSidebar.tsx) ─── */}
-            <AppSidebar {...sidebarProps} />
+            <ToastProvider>
+                <Sidebar agent={agent} sectors={sectors} />
 
-            <div className="flex-1 min-w-0 flex flex-col gap-4 p-3 sm:p-4 lg:p-6">
-                {/* ─── Mobile top bar: hamburger drawer + network status pill (hidden at `lg`+) ─── */}
-                <div className="flex lg:hidden items-center justify-between">
-                    <MobileSidebarDrawer {...sidebarProps} />
-                    <div className="flex items-center gap-2 bg-[#111413] border border-white/[.06] px-3 py-1.5 rounded-lg text-xs select-none">
-                        <span className="relative flex size-2">
-                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dbOffline ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
-                            <span className={`relative inline-flex rounded-full size-2 ${dbOffline ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
-                        </span>
-                        <span className={`text-[10px] tracking-wider ${dbOffline ? 'text-amber-400' : 'text-emerald-400'} font-bold`}>
-                            {dbOffline ? 'DB_DISCONNECTED' : 'NETWORK_SECURE'}
-                        </span>
-                    </div>
-                </div>
+                <div className="flex-1 min-w-0 flex flex-col">
+                    <Topbar agent={agent} />
 
-                {/* ─── DB offline banner: only shown when both queries came back empty ─── */}
-                {dbOffline && (
-                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex items-start gap-3 shrink-0">
-                        <AlertTriangle className="size-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                        <div className="text-left">
-                            <p className="text-amber-500 font-mono text-xs font-bold">DATABASE CONNECTION OFFLINE</p>
-                            <p className="text-amber-500/70 font-mono text-[11px] mt-0.5 leading-tight">
-                                Systems are running in sandboxed demo state. Unable to reach active database. Verify network environment settings and DATABASE_URL connection status.
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* ─── Hero Band: title, CTA buttons (Resume/Daily Task/Debug Lab), daily-reset countdown ─── */}
-                <section className="bg-[#111413] border border-white/[.06] rounded-xl p-6 shrink-0">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div className="flex items-start gap-4">
-                            <div className="hidden sm:flex size-14 rounded-xl bg-emerald-950/40 border border-emerald-500/40 items-center justify-center shadow-[0_0_24px_rgba(52,211,153,.25)] shrink-0">
-                                <Zap className="size-6 text-emerald-400" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl md:text-3xl font-bold font-sans text-emerald-400 tracking-tight leading-none drop-shadow-[0_0_6px_rgba(52,211,153,0.3)]">
-                                    Mission Control
-                                </h1>
-                                <p className="text-xs text-[#8F9F8F] font-sans mt-2 max-w-md">
-                                    Select active module and decrypt sectors to progress through the curriculum.
-                                </p>
-
-                                <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                                    <Link
-                                        href="/levels"
-                                        className="inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-black px-4 py-2 rounded-lg text-xs font-bold shadow-[0_0_24px_rgba(52,211,153,.25)] transition-colors"
-                                    >
-                                        <Play className="size-3.5" /> Resume Mission
-                                    </Link>
-                                    <Link
-                                        href="/daily-tasks"
-                                        className="inline-flex items-center justify-center gap-1.5 bg-[#181C18] hover:bg-[#20241F] border border-white/[.06] text-[#E2E8F0] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
-                                    >
-                                        <Zap className="size-3.5 text-emerald-400" /> Daily Task
-                                    </Link>
-                                    <Link
-                                        href="/debug-lab"
-                                        className="inline-flex items-center justify-center gap-1.5 bg-[#181C18] hover:bg-[#20241F] border border-white/[.06] text-[#E2E8F0] px-4 py-2 rounded-lg text-xs font-bold transition-colors"
-                                    >
-                                        <Bug className="size-3.5 text-emerald-400" /> Debug Lab
-                                    </Link>
+                    <main className="max-w-[1320px] w-full mx-auto px-4 sm:px-5 py-6 flex flex-col gap-8">
+                        {dbOffline && (
+                            <div className="flex items-start gap-3 p-3 rounded-[10px] border border-dash-line-strong bg-dash-surface-2 shrink-0">
+                                <AlertTriangle className="size-4 text-dash-text-dim shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-dash-text text-xs font-semibold m-0">Database connection offline</p>
+                                    <p className="text-dash-text-faint text-[11px] mt-0.5 leading-tight m-0">
+                                        Running in sandboxed demo state. Verify DATABASE_URL and network settings.
+                                    </p>
                                 </div>
+                            </div>
+                        )}
+
+                        <div className="dash-rise">
+                            <HeroBriefing agent={agent} activeSector={sectors[0]} nextMission={nextMission} />
+                        </div>
+
+                        <div className="dash-rise flex flex-col gap-4" style={{ animationDelay: "60ms" }}>
+                            <SectionHead title="Sectors" count={`${unlockedCount} of ${sectors.length} unlocked`} viewHref="/levels" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {sectors.map((sector, i) => (
+                                    <SectorCard key={sector.id} sector={sector} href={`/levels?path=${SECTOR_PATHS[i]}`} />
+                                ))}
                             </div>
                         </div>
 
-                        <DailyResetCountdown />
-                    </div>
-                </section>
-
-                {/* ─── Control Row: view-mode pills (Overview/Progress/Stats) + time-range filter (decorative, not wired to data) ─── */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
-                    <div className="flex items-center gap-1 bg-[#111413] p-1 rounded-lg border border-white/[.06]">
-                        <button type="button" className="bg-[#181C18] text-emerald-400 px-4 py-1.5 rounded-md text-xs font-semibold transition-all">
-                            Overview
-                        </button>
-                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
-                            Progress
-                        </button>
-                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-4 py-1.5 rounded-md text-xs font-medium transition-all">
-                            Stats
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-[#111413] p-1 rounded-lg border border-white/[.06]">
-                        <button type="button" className="bg-[#181C18] text-emerald-400 px-3 py-1 rounded text-[11px] font-semibold transition-all">
-                            24h
-                        </button>
-                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-3 py-1 rounded text-[11px] font-medium transition-all">
-                            7D
-                        </button>
-                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-3 py-1 rounded text-[11px] font-medium transition-all">
-                            30D
-                        </button>
-                        <button type="button" className="text-[#8F9F8F] hover:text-[#E2E8F0] px-3 py-1 rounded text-[11px] font-medium transition-all">
-                            All
-                        </button>
-                    </div>
+                        <div className="dash-rise flex flex-col gap-4" style={{ animationDelay: "120ms" }}>
+                            <SectionHead
+                                title={`${sectors[0].codename} missions`}
+                                count={`${completedCount} of ${missions.length} complete · ${apAvailable} AP available`}
+                            />
+                            <MissionTable missions={missions} />
+                        </div>
+                    </main>
                 </div>
 
-                {/* ─── Curriculum Grid: Beginner/Intermediate/Expert sector cards, links to /levels?path=... ─── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
-                    {curriculumSectors.map((sector) => {
-                        const IconComp = sector.icon
-                        return (
-                            <Link
-                                key={sector.path}
-                                href={`/levels?path=${sector.path}`}
-                                className="bg-[#111413] border border-white/[.06] rounded-xl p-6 hover:border-emerald-500/30 transition-all duration-200 group flex flex-col gap-4"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="size-10 bg-[#181C18] rounded-lg flex items-center justify-center border border-white/[.06] group-hover:border-emerald-500/30 shadow-inner">
-                                        <IconComp className="size-4.5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
-                                    </div>
-                                    <div className="size-8 flex items-center justify-center rounded-lg border border-white/[.06] bg-[#181C18]">
-                                        <Lock className={`size-3.5 ${sector.locked ? "text-[#5E6B65]" : "text-emerald-400"}`} />
-                                    </div>
-                                </div>
-
-                                <div className="text-left">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-mono text-[#5E6B65] uppercase">{sector.name}</span>
-                                        <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border bg-emerald-950/10 border-emerald-500/20 text-emerald-400 tracking-wider">
-                                            {sector.tier}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-sm font-bold font-mono text-[#E2E8F0] mt-1 group-hover:text-emerald-400 transition-colors tracking-tight">
-                                        {sector.title}
-                                    </h3>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-3 border-t border-white/[.06] pt-4 mt-auto">
-                                    <StatCell label="Sectors" value="0/5" barColor="bg-emerald-500" />
-                                    <StatCell label="Decrypted" value="0%" barColor="bg-emerald-500" />
-                                    <StatCell label="AP" value="0" barColor="bg-amber-500" />
-                                </div>
-                            </Link>
-                        )
-                    })}
-                </div>
-
-                {/* ─── Mission Table: full mission list, accept/review actions (see ./MissionTable.tsx) ─── */}
-                <MissionTable missions={missions} />
-            </div>
+                <CommandPalette missions={missions} />
+            </ToastProvider>
         </div>
     )
 }
-
-

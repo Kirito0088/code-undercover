@@ -2,45 +2,53 @@
 
 import { useEffect, useState } from "react"
 
-function getTimeUntilMidnight() {
-    const now = new Date()
-    const midnight = new Date(now)
-    midnight.setHours(24, 0, 0, 0)
-    const diff = midnight.getTime() - now.getTime()
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000
 
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor((diff / 1000 / 60) % 60)
+// Daily tasks reset at 00:00 IST specifically, not the visitor's local midnight.
+function getTimeUntilISTMidnight() {
+    const now = new Date()
+    const istNow = new Date(now.getTime() + IST_OFFSET_MS)
+    const istMidnightUTC = Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate() + 1, 0, 0, 0)
+    const nextMidnightUTC = istMidnightUTC - IST_OFFSET_MS
+    const diff = Math.max(0, nextMidnightUTC - now.getTime())
+
+    const hours = Math.floor(diff / 3600000)
+    const minutes = Math.floor((diff / 60000) % 60)
     const seconds = Math.floor((diff / 1000) % 60)
 
     return {
         h: hours.toString().padStart(2, "0"),
         m: minutes.toString().padStart(2, "0"),
         s: seconds.toString().padStart(2, "0"),
+        underAnHour: diff < 3600000,
     }
 }
 
-const INITIAL_TIME = { h: "00", m: "00", s: "00" }
-
 export default function DailyResetCountdown() {
-    const [time, setTime] = useState(INITIAL_TIME)
+    const [time, setTime] = useState<ReturnType<typeof getTimeUntilISTMidnight> | null>(null)
 
     useEffect(() => {
-        setTime(getTimeUntilMidnight())
-        const timer = setInterval(() => setTime(getTimeUntilMidnight()), 1000)
+        setTime(getTimeUntilISTMidnight())
+        const timer = setInterval(() => setTime(getTimeUntilISTMidnight()), 1000)
         return () => clearInterval(timer)
     }, [])
 
+    const digitClass = `font-dash-mono text-[23px] font-medium tabular-nums ${time?.underAnHour ? "text-dash-orange" : "text-dash-text"}`
+
     return (
-        <div className="flex flex-col items-start sm:items-end gap-1.5 select-none">
-            <span className="text-[9px] font-mono tracking-widest text-[#5E6B65] uppercase">
-                Daily Task Resets In
-            </span>
-            <div className="flex items-center gap-1">
-                <span className="bg-[#0A0C0B] border border-white/[.06] px-2 py-1 rounded text-xs font-mono font-bold text-emerald-400 shadow-inner">{time.h}</span>
-                <span className="text-[#5E6B65] font-bold mx-0.5">:</span>
-                <span className="bg-[#0A0C0B] border border-white/[.06] px-2 py-1 rounded text-xs font-mono font-bold text-emerald-400 shadow-inner">{time.m}</span>
-                <span className="text-[#5E6B65] font-bold mx-0.5">:</span>
-                <span className="bg-[#0A0C0B] border border-white/[.06] px-2 py-1 rounded text-xs font-mono font-bold text-emerald-400 shadow-inner animate-pulse">{time.s}</span>
+        <div className="border-l border-dash-line pl-6 min-w-[158px]">
+            <div className="font-dash-mono text-[9.5px] font-medium tracking-[.16em] uppercase text-dash-text-faint">
+                Daily task resets in
+            </div>
+            <div className="mt-2">
+                <span className={digitClass}>{time?.h ?? "--"}</span>
+                <span className="text-dash-text-faint">:</span>
+                <span className={digitClass}>{time?.m ?? "--"}</span>
+                <span className="text-dash-text-faint">:</span>
+                <span className={digitClass}>{time?.s ?? "--"}</span>
+            </div>
+            <div className="text-[11px] text-dash-text-faint mt-1 leading-tight">
+                Resets 00:00 IST
             </div>
         </div>
     )

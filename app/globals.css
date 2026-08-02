@@ -109,6 +109,118 @@ html.light textarea::placeholder {
 }
 
 
+/* ─── Dashboard ("Mission Control") design tokens ───
+   Scoped to .dash-theme (applied once, on the dashboard route's root wrapper).
+   RGB-triplet vars support Tailwind's `/opacity` modifier; the *-wash/-glow/-ink
+   tokens are pre-composed with their own alpha and used via arbitrary-value
+   classes (e.g. bg-[var(--accent-wash)]) instead. */
+.dash-theme {
+  --dash-bg: 8 11 9;             /* #080B09 */
+  --dash-surface: 13 18 15;      /* #0D120F */
+  --dash-surface-2: 18 26 21;    /* #121A15 */
+  --dash-surface-3: 24 35 28;    /* #18231C */
+  --dash-surface-4: 30 43 36;    /* #1E2B24 */
+
+  --dash-line: 28 42 34;         /* #1C2A22 */
+  --dash-line-strong: 41 64 54;  /* #294036 */
+
+  --dash-text: 232 242 236;      /* #E8F2EC */
+  --dash-text-dim: 141 163 150;  /* #8DA396 */
+  --dash-text-faint: 86 107 95;  /* #566B5F */
+
+  --dash-accent: 46 230 138;         /* #2EE68A */
+  --dash-accent-hover: 82 255 166;   /* #52FFA6 */
+  --dash-accent-mid: 31 164 99;      /* #1FA463 */
+  --dash-accent-wash: rgba(46,230,138,.12);
+  --dash-accent-ink: 2 37 26;        /* #02251A */
+  --dash-accent-glow: rgba(46,230,138,.055);
+
+  --dash-orange: 245 153 66;     /* #F59942 */
+  --dash-orange-mid: 169 97 31;  /* #A9611F */
+  --dash-orange-wash: rgba(245,153,66,.12);
+}
+
+/* Dashboard tooltip — CSS-only, ported from the reference's [data-tip] pattern */
+.dash-theme [data-tip] { position: relative; }
+.dash-theme [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; left: 50%; bottom: calc(100% + 7px);
+  transform: translateX(-50%) translateY(3px);
+  padding: 5px 9px; border-radius: 8px;
+  background: rgb(var(--dash-surface-4));
+  border: 1px solid rgb(var(--dash-line-strong));
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
+  font-size: 11.5px; font-weight: 450; color: rgb(var(--dash-text));
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity .13s, transform .13s;
+  z-index: 200;
+}
+.dash-theme [data-tip]:hover::after,
+.dash-theme [data-tip]:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+.dash-theme [data-tip-side="right"]::after {
+  left: calc(100% + 9px); bottom: auto; top: 50%;
+  transform: translateY(-50%) translateX(-3px);
+}
+.dash-theme [data-tip-side="right"]:hover::after { transform: translateY(-50%) translateX(0); }
+
+.dash-theme .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.dash-theme .no-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes dash-shimmer {
+  0%, 100% { background-color: rgb(var(--dash-surface-2)); }
+  50% { background-color: rgb(var(--dash-surface-3)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dash-theme .dash-shimmer { animation: dash-shimmer 1.8s ease-in-out infinite; }
+}
+
+/* ─── Dashboard animation layer (step 7) ───
+   All decorative/looping effects are gated behind prefers-reduced-motion: with
+   reduced motion the layout must render complete and static — no glitch, no
+   typewriter delay, no scanline/border-trace, counts show final values. */
+@keyframes dash-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dash-glitch {
+  0% { opacity: 0; transform: translate(0,0); text-shadow: none; }
+  20% { opacity: 1; transform: translate(-2px,1px); text-shadow: 2px 0 rgb(var(--dash-accent)), -2px 0 rgb(var(--dash-orange)); }
+  40% { transform: translate(2px,-1px); text-shadow: -2px 0 rgb(var(--dash-accent)), 2px 0 rgb(var(--dash-orange)); }
+  100% { opacity: 1; transform: translate(0,0); text-shadow: none; }
+}
+@keyframes dash-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes dash-cursor-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes dash-scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+@keyframes dash-border-trace { to { --dash-trace-angle: 360deg; } }
+@keyframes dash-sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes dash-cmdk-in { from { opacity: 0; transform: scale(.985) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes dash-toast-in { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes dash-flash { 0% { background-color: var(--dash-accent-wash); } 100% { background-color: transparent; } }
+
+.dash-theme .dash-active-trace {
+  position: relative;
+}
+.dash-theme .dash-active-trace::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
+  background: conic-gradient(from var(--dash-trace-angle, 0deg), rgb(var(--dash-accent)), transparent 30%, transparent 70%, rgb(var(--dash-accent)));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: .35; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dash-theme .dash-rise { animation: dash-rise .32s cubic-bezier(.22,.61,.36,1) both; }
+  .dash-theme .dash-glitch-once { animation: dash-glitch .18s steps(2) 1; }
+  .dash-theme .dash-pulse { animation: dash-pulse 2.2s ease-in-out infinite; }
+  .dash-theme .dash-cursor { animation: dash-cursor-blink 1s steps(2) infinite; }
+  .dash-theme .dash-scanline { animation: dash-scanline 8s linear infinite; opacity: .04; }
+  .dash-theme .dash-active-trace::before { animation: dash-border-trace 6s linear infinite; }
+  .dash-theme .dash-sweep { animation: dash-sweep .4s cubic-bezier(.22,.61,.36,1) both; transform-origin: left; }
+  .dash-theme .dash-cmdk-in { animation: dash-cmdk-in .18s cubic-bezier(.22,.61,.36,1) both; }
+  .dash-theme .dash-toast-in { animation: dash-toast-in .22s cubic-bezier(.22,.61,.36,1) both; }
+  .dash-theme .dash-row-in { animation: dash-rise .26s cubic-bezier(.22,.61,.36,1) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-theme .dash-cursor { display: none; }
+}
+
 /* ─── Character Animations ─── */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }

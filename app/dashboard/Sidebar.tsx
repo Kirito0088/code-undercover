@@ -1,198 +1,242 @@
 "use client"
 
-import { useState } from "react"
-import { Search, LayoutDashboard, Users, Settings, Menu, X } from "lucide-react"
+import { useEffect, useState, useSyncExternalStore } from "react"
+import { LayoutGrid, Users, Settings, ChevronLeft } from "lucide-react"
 import { AdaptiveLink as Link } from "@/components/common/AdaptiveLink"
+import { getNavOpenSnapshot, getNavOpenServerSnapshot, subscribeNavOpen, closeNav } from "./navStore"
+import type { AgentSummary, Sector } from "./types"
 
-export interface SidebarSector {
-    name: string
-    status: "active" | "locked" | "complete"
+const RAIL_KEY = "cu:sidebar-rail"
+
+const NAV_ITEMS = [
+    { label: "Dashboard", href: "/dashboard", icon: LayoutGrid, current: true },
+    { label: "Clubs", href: "/leaderboard", icon: Users, current: false },
+    { label: "Settings", href: "/profile", icon: Settings, current: false },
+]
+
+const SCRAMBLE_CHARS = "0123456789ABCDEF"
+
+// Count-up with a brief hex-scramble lead-in (250ms), settling to the real value.
+function useScrambleCountUp(target: number, suffix: string, digits: number) {
+    const [display, setDisplay] = useState(`${"0".repeat(digits)}${suffix}`)
+
+    useEffect(() => {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        if (reduceMotion) {
+            setDisplay(`${target}${suffix}`)
+            return
+        }
+
+        const duration = 600
+        const scrambleFor = 250
+        const start = performance.now()
+        let raf: number
+
+        const tick = (now: number) => {
+            const elapsed = now - start
+            if (elapsed < scrambleFor) {
+                const scrambled = Array.from({ length: digits }, () => SCRAMBLE_CHARS[Math.floor(Math.random() * 16)]).join("")
+                setDisplay(`${scrambled}${suffix}`)
+                raf = requestAnimationFrame(tick)
+            } else if (elapsed < duration) {
+                const progress = (elapsed - scrambleFor) / (duration - scrambleFor)
+                setDisplay(`${Math.round(target * progress)}${suffix}`)
+                raf = requestAnimationFrame(tick)
+            } else {
+                setDisplay(`${target}${suffix}`)
+            }
+        }
+
+        raf = requestAnimationFrame(tick)
+        return () => cancelAnimationFrame(raf)
+    }, [target, suffix, digits])
+
+    return display
 }
 
-export interface AppSidebarProps {
-    agentName: string
-    agentIdShort: string
-    rank: string
-    rankColorClass: string
-    rankShadowClass: string
-    auraPoints: number
-    nextThreshold: number
-    sectors: SidebarSector[]
-    className?: string
+interface SidebarProps {
+    agent: AgentSummary
+    sectors: Sector[]
 }
 
-const statusDotClass: Record<SidebarSector["status"], string> = {
-    active: "bg-emerald-400 animate-pulse",
-    complete: "bg-emerald-500",
-    locked: "bg-[#3A423C]",
-}
+function SidebarContent({ agent, sectors, rail, onToggleRail }: SidebarProps & { rail: boolean; onToggleRail: () => void }) {
+    const initials = agent.displayName
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
 
-// ─── Desktop sidebar: agent profile, rank progress, nav, active sectors, CTA ───
-export function AppSidebar({
-    agentName,
-    agentIdShort,
-    rank,
-    rankColorClass,
-    rankShadowClass,
-    auraPoints,
-    nextThreshold,
-    sectors,
-    className = "hidden lg:flex sticky top-0 h-screen",
-}: AppSidebarProps) {
-    const progressPercent = Math.round(Math.min(100, (auraPoints / nextThreshold) * 100))
-
-    return (
-        <aside className={`flex flex-col w-[280px] shrink-0 bg-[#111413] border-r border-white/[.06] overflow-y-auto ${className}`}>
-            {/* Agent Profile Card */}
-            <div className="p-5 border-b border-white/[.06]">
-                <div className="flex items-center gap-3">
-                    <div className="size-11 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-center text-lg font-mono font-bold text-emerald-400 shadow-inner shrink-0">
-                        {agentName[0]?.toUpperCase() ?? "U"}
-                    </div>
-                    <div className="min-w-0">
-                        <div className="text-sm font-mono font-bold text-[#E2E8F0] truncate">
-                            {agentName}
-                        </div>
-                        <div className="text-[10px] font-mono text-[#5E6B65] truncate">
-                            ID: {agentIdShort}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 mt-3 bg-[#161820]/50 border border-white/[.06] px-2 py-0.5 rounded-sm">
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-mono text-[#8F9F8F]">
-                        Clearance: <span className={`${rankColorClass} ${rankShadowClass}`}>{rank}</span>
-                    </span>
-                </div>
-
-                {/* Rank Progress Bar */}
-                <div className="mt-3">
-                    <div className="flex justify-between text-[9px] font-mono text-[#8F9F8F] mb-1">
-                        <span>RANK PROGRESS</span>
-                        <span className="text-emerald-400">{progressPercent}%</span>
-                    </div>
-                    <div className="flex gap-1 h-1.5 w-full">
-                        {Array.from({ length: 20 }).map((_, i) => {
-                            const isFilled = i < Math.floor((progressPercent / 100) * 20)
-                            return (
-                                <div
-                                    key={i}
-                                    className={`h-full flex-1 rounded-none transition-all duration-300 ${
-                                        isFilled ? "bg-emerald-400" : "bg-emerald-950"
-                                    }`}
-                                />
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* AP Display */}
-                <div className="mt-3 flex items-center justify-between">
-                    <span className="text-[9px] font-mono tracking-widest text-[#5E6B65] uppercase">Aura Points</span>
-                    <span className="text-sm font-mono font-bold text-[#E2E8F0]">{auraPoints} AP</span>
-                </div>
-            </div>
-
-            {/* Search */}
-            <div className="p-4">
-                <div className="relative flex items-center bg-[#181C18] border border-white/[.06] rounded-lg px-3 py-2 cursor-pointer hover:border-emerald-500/30 transition-all">
-                    <Search className="size-4 text-[#5E6B65] mr-2 shrink-0" />
-                    <span className="text-xs text-[#5E6B65] flex-1">Search</span>
-                    <kbd className="bg-[#111413] text-[#5E6B65] border border-white/[.06] px-1.5 py-0.5 rounded text-[10px] font-mono shrink-0">
-                        ⌘K
-                    </kbd>
-                </div>
-            </div>
-
-            {/* Navigation */}
-            <nav className="px-3 space-y-1">
-                <Link
-                    href="/dashboard"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-emerald-400 bg-[#181C18] font-medium border border-white/[.06]"
-                >
-                    <LayoutDashboard className="size-4" />
-                    Dashboard
-                </Link>
-                <Link
-                    href="/leaderboard"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
-                >
-                    <Users className="size-4" />
-                    Clubs
-                </Link>
-                <Link
-                    href="/profile"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
-                >
-                    <Settings className="size-4" />
-                    Settings
-                </Link>
-            </nav>
-
-            {/* Active Sectors */}
-            <div className="px-3 mt-6">
-                <span className="block px-3 mb-2 text-[10px] uppercase font-bold tracking-wider text-[#5E6B65]">
-                    Active Sectors
-                </span>
-                <div className="space-y-0.5">
-                    {sectors.map((sector) => (
-                        <div
-                            key={sector.name}
-                            className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm text-[#8F9F8F]"
-                        >
-                            <div className={`size-2 rounded-full ${statusDotClass[sector.status]}`} />
-                            {sector.name}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Primary CTA */}
-            <div className="mt-auto p-4 border-t border-white/[.06]">
-                <Link
-                    href="/levels"
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-black flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold shadow-[0_0_24px_rgba(52,211,153,.25)] transition-colors"
-                >
-                    Resume Mission
-                </Link>
-            </div>
-        </aside>
-    )
-}
-
-// ─── Mobile drawer: hamburger trigger + off-canvas overlay wrapping AppSidebar ───
-export default function MobileSidebarDrawer(props: AppSidebarProps) {
-    const [open, setOpen] = useState(false)
+    const xpDisplay = useScrambleCountUp(agent.xpToNextRank, " XP", String(agent.xpToNextRank).length)
+    const apDisplay = useScrambleCountUp(agent.auraPoints, " AP", String(agent.auraPoints).length)
 
     return (
         <>
-            <button
-                type="button"
-                onClick={() => setOpen(true)}
-                aria-label="Open navigation menu"
-                className="lg:hidden inline-flex items-center justify-center size-9 rounded-lg border border-white/[.06] bg-[#111413] text-[#8F9F8F] hover:text-emerald-400 hover:border-emerald-500/30 transition-colors shrink-0"
-            >
-                <Menu className="size-4" />
-            </button>
+            <div className="flex items-center gap-2 h-[52px] px-4 shrink-0 border-b border-dash-line">
+                <span className="size-[26px] rounded-[7px] shrink-0 grid place-items-center bg-[var(--dash-accent-wash)] border border-dash-accent-mid text-dash-accent font-dash-mono text-[11px] font-semibold">
+                    {"<>"}
+                </span>
+                {!rail && (
+                    <span className="font-dash-display text-sm font-semibold tracking-tight whitespace-nowrap">
+                        Code Undercover
+                    </span>
+                )}
+            </div>
 
-            {open && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    <div
-                        className="absolute inset-0 bg-black/60"
-                        onClick={() => setOpen(false)}
-                    />
-                    <div className="absolute left-0 top-0 h-full w-[280px] max-w-[85vw] shadow-2xl">
-                        <AppSidebar {...props} className="flex h-full" />
-                        <button
-                            type="button"
-                            onClick={() => setOpen(false)}
-                            aria-label="Close navigation menu"
-                            className="absolute top-4 right-[-44px] size-9 inline-flex items-center justify-center rounded-lg bg-[#111413] border border-white/[.06] text-[#8F9F8F] hover:text-emerald-400"
-                        >
-                            <X className="size-4" />
-                        </button>
+            <div className="flex-1 overflow-y-auto overflow-x-hidden pb-3">
+                {!rail && (
+                    <div className="mx-3 mt-3 p-3 bg-dash-surface-2 border border-dash-line rounded-[14px] shadow-[inset_0_1px_0_rgba(255,255,255,.035)]">
+                        <div className="flex items-center gap-3">
+                            <div className="size-8 rounded-[9px] shrink-0 grid place-items-center bg-[var(--dash-accent-wash)] border border-dash-accent-mid text-dash-accent font-dash-display font-semibold text-[13px]">
+                                {initials || "U"}
+                            </div>
+                            <div className="min-w-0">
+                                <div className="font-semibold text-[13px] tracking-tight truncate">{agent.displayName}</div>
+                                <div className="font-dash-mono text-[10px] text-dash-text-faint mt-px truncate">
+                                    {agent.agentId} · Rank {String(agent.rank).padStart(2, "0")}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 flex flex-col gap-3">
+                            <div>
+                                <div className="flex justify-between items-baseline mb-1">
+                                    <span className="text-[11px] text-dash-text-dim">Next rank</span>
+                                    <span className="font-dash-mono text-[11px] font-medium text-dash-accent tabular-nums">
+                                        {xpDisplay}
+                                    </span>
+                                </div>
+                                <div className="h-1 rounded-full bg-dash-surface-4 overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full bg-dash-accent transition-[width] duration-500"
+                                        style={{ width: `${Math.round(agent.xpProgress * 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between items-baseline mb-1">
+                                    <span className="text-[11px] text-dash-text-dim">Aura points</span>
+                                    <span className="font-dash-mono text-[11px] font-medium text-dash-orange tabular-nums">
+                                        {apDisplay}
+                                    </span>
+                                </div>
+                                <div className="h-1 rounded-full bg-dash-surface-4 overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full bg-dash-orange transition-[width] duration-500"
+                                        style={{ width: `${Math.min(100, (agent.auraPoints / 500) * 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                )}
+
+                <nav className="px-3 pt-4 flex flex-col gap-px">
+                    {NAV_ITEMS.map((item) => {
+                        const Icon = item.icon
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                data-tip={rail ? item.label : undefined}
+                                data-tip-side="right"
+                                aria-current={item.current ? "page" : undefined}
+                                className={`flex items-center gap-3 h-[34px] px-2 rounded-[8px] text-[13px] font-medium whitespace-nowrap transition-colors ${
+                                    item.current
+                                        ? "bg-[var(--dash-accent-wash)] text-dash-accent"
+                                        : "text-dash-text-dim hover:bg-dash-surface-2 hover:text-dash-text"
+                                }`}
+                            >
+                                <Icon className="size-4 stroke-[1.75] ml-[5px] shrink-0" />
+                                {!rail && <span>{item.label}</span>}
+                            </Link>
+                        )
+                    })}
+                </nav>
+
+                {!rail && (
+                    <div className="px-3 pt-5">
+                        <div className="font-dash-mono text-[9.5px] font-medium tracking-[.16em] uppercase text-dash-text-faint px-2 pb-2">
+                            Active sectors
+                        </div>
+                        <div className="flex flex-col gap-px">
+                            {sectors.map((sector) => (
+                                <div
+                                    key={sector.id}
+                                    data-tip={sector.locked ? sector.unlockHint : undefined}
+                                    data-tip-side="right"
+                                    className="flex items-center gap-2.5 h-[30px] px-2 rounded-[8px] text-[12.5px] text-dash-text-dim"
+                                >
+                                    <span className={`size-1.5 rounded-full shrink-0 ${sector.locked ? "bg-dash-line-strong" : "bg-dash-accent"}`} />
+                                    <span className={sector.locked ? "" : "text-dash-text"}>{sector.codename}</span>
+                                    <span className="ml-auto font-dash-mono text-[10px] text-dash-text-faint">
+                                        {sector.locked ? "Locked" : `${Math.round((sector.missionsDone / sector.missionsTotal) * 100)}%`}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="border-t border-dash-line p-2 shrink-0">
+                <button
+                    type="button"
+                    onClick={onToggleRail}
+                    aria-label={rail ? "Expand sidebar" : "Collapse sidebar"}
+                    className="flex items-center gap-3 w-full h-8 px-2.5 rounded-[8px] text-dash-text-faint text-xs hover:bg-dash-surface-2 hover:text-dash-text-dim transition-colors"
+                >
+                    <ChevronLeft className={`size-[15px] stroke-[1.75] transition-transform duration-200 ${rail ? "rotate-180" : ""}`} />
+                    {!rail && <span>Collapse</span>}
+                </button>
+            </div>
+        </>
+    )
+}
+
+export default function Sidebar({ agent, sectors }: SidebarProps) {
+    const [rail, setRail] = useState(false)
+    const navOpen = useSyncExternalStore(subscribeNavOpen, getNavOpenSnapshot, getNavOpenServerSnapshot)
+
+    useEffect(() => {
+        if (localStorage.getItem(RAIL_KEY) === "1") setRail(true)
+    }, [])
+
+    useEffect(() => {
+        if (!navOpen) return
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") closeNav()
+        }
+        document.addEventListener("keydown", onKey)
+        return () => document.removeEventListener("keydown", onKey)
+    }, [navOpen])
+
+    const toggleRail = () => {
+        setRail((prev) => {
+            const next = !prev
+            localStorage.setItem(RAIL_KEY, next ? "1" : "0")
+            return next
+        })
+    }
+
+    return (
+        <>
+            {/* Desktop / tablet rail */}
+            <aside
+                className={`hidden md:flex flex-col shrink-0 bg-dash-surface border-r border-dash-line sticky top-[56px] h-[calc(100dvh-56px)] transition-[width] duration-200 z-40 ${
+                    rail ? "w-[60px]" : "w-[252px]"
+                }`}
+            >
+                <SidebarContent agent={agent} sectors={sectors} rail={rail} onToggleRail={toggleRail} />
+            </aside>
+
+            {/* Mobile off-canvas */}
+            {navOpen && (
+                <div className="fixed inset-0 z-50 md:hidden">
+                    <div className="absolute inset-0 bg-black/60" onClick={closeNav} />
+                    <aside className="absolute left-0 top-0 h-full w-[252px] flex flex-col bg-dash-surface border-r border-dash-line">
+                        <SidebarContent agent={agent} sectors={sectors} rail={false} onToggleRail={toggleRail} />
+                    </aside>
                 </div>
             )}
         </>
