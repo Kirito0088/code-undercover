@@ -122,7 +122,7 @@ function LoginForm() {
     }
 
     return (
-        <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
+        <div className="bg-[#0D0E12] border border-[#1F261F] rounded-2xl p-8 shadow-xl relative">
             <form className="space-y-6" onSubmit={handleSubmit}>
                 {state.error && (
                     <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
@@ -131,7 +131,7 @@ function LoginForm() {
                 )}
 
                 <div>
-                    <label htmlFor="email" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                    <label htmlFor="email" className="block text-xs font-medium text-[#8F9F8F] mb-1.5">
                         Email Address
                     </label>
                     <div className="mt-2">
@@ -149,7 +149,7 @@ function LoginForm() {
                 </div>
 
                 <div>
-                    <label htmlFor="password" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                    <label htmlFor="password" className="block text-xs font-medium text-[#8F9F8F] mb-1.5">
                         Password
                     </label>
                     <div className="mt-2">
@@ -173,9 +173,9 @@ function LoginForm() {
                             name="remember-me"
                             type="checkbox"
                             aria-labelledby="remember-me-label"
-                            className="size-4 rounded border-[#323242] bg-[#14141A] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#14141A]"
+                            className="size-4 rounded border-[#1F261F] bg-[#07080A] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#07080A]"
                         />
-                        <label id="remember-me-label" htmlFor="remember-me" className="ml-2 block text-xs text-[#8B8BA7]">
+                        <label id="remember-me-label" htmlFor="remember-me" className="ml-2 block text-xs text-[#8F9F8F]">
                             Remember me
                         </label>
                     </div>
@@ -197,10 +197,10 @@ function LoginForm() {
             {/* Divider */}
             <div className="relative mt-6">
                 <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#323242]" />
+                    <div className="w-full border-t border-[#1F261F]" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                    <span className="bg-[#1C1C24] px-3 text-[#5C5C7A] font-medium">
+                    <span className="bg-[#0D0E12] px-3 text-[#4A5D4A] font-medium">
                         or
                     </span>
                 </div>
@@ -213,9 +213,9 @@ function LoginForm() {
                     onClick={handleGoogleSignIn}
                     disabled={state.googleLoading}
                     className="w-full flex items-center justify-center gap-3 rounded-md px-4 py-2.5 
-                               bg-[#14141A] border border-[#323242] 
-                               text-[#8B8BA7] text-sm
-                               hover:bg-[#2A2A35] hover:border-[#3F3F52] 
+                               bg-[#07080A] border border-[#1F261F] 
+                               text-[#8F9F8F] text-sm
+                               hover:bg-[#161820] hover:border-[#2A3A2A] 
                                focus:outline-none focus:ring-2 focus:ring-indigo-500/30 
                                transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -236,7 +236,7 @@ function LoginForm() {
                 </button>
             </div>
 
-            <div className="mt-6 text-center text-xs text-[#8B8BA7]">
+            <div className="mt-6 text-center text-xs text-[#8F9F8F]">
                 Don&apos;t have an account?{" "}
                 <Link href="/register" className="font-medium text-[#39D375] hover:text-indigo-300 transition-colors">
                     Sign up
@@ -250,10 +250,10 @@ export default function LoginPage() {
     return (
         <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
             <div className="mx-auto w-full max-w-sm">
-                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#E2E8F0]">
                     Welcome back
                 </h2>
-                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                <p className="mt-2 text-center text-sm text-[#8F9F8F]">
                     Continue your learning journey
                 </p>
             </div>

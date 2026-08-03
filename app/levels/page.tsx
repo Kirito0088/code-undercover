@@ -70,7 +70,7 @@ export default async function LevelsPage() {
     }))
 
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#14141A] text-white flex items-center justify-center font-mono">Loading Curriculum...</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-[#07080A] text-[#E2E8F0] flex items-center justify-center font-mono">Loading Curriculum...</div>}>
             <LevelsClient
                 user={user}
                 dbMissions={dbMissions}

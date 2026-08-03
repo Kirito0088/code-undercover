@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { acceptMission } from "@/services/mission.service"
+import { missionActionLimiter } from "@/lib/rate-limit"
 
 export async function POST(req: Request) {
     try {
@@ -11,6 +12,14 @@ export async function POST(req: Request) {
             return NextResponse.json(
                 { message: "Unauthorized" },
                 { status: 401 }
+            )
+        }
+
+        const rate = await missionActionLimiter.check(session.user.id)
+        if (!rate.success) {
+            return NextResponse.json(
+                { message: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
             )
         }
 

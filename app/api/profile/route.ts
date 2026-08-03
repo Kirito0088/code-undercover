@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { profileLimiter } from "@/lib/rate-limit"
+import { isValidAvatarPath } from "@/lib/avatars"
 
 export async function PATCH(req: Request) {
     try {
@@ -10,8 +12,16 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        const rate = await profileLimiter.check(session.user.id)
+        if (!rate.success) {
+            return NextResponse.json(
+                { error: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
+            )
+        }
+
         const body = await req.json().catch(() => ({}))
-        const { name, email, username } = body
+        const { name, email, username, image } = body
 
         // Validation
         if (name !== undefined) {
@@ -39,6 +49,12 @@ export async function PATCH(req: Request) {
             }
         }
 
+        // image is either "" (clear avatar) or one of the known preset paths —
+        // never an arbitrary string, since it's rendered as an <img src>.
+        if (image !== undefined && image !== "" && !isValidAvatarPath(image)) {
+            return NextResponse.json({ error: "Invalid avatar selection." }, { status: 400 })
+        }
+
         // Get current user to check for changes and collisions
         const currentUser = await db.user.findUnique({
             where: { id: session.user.id },
@@ -49,8 +65,9 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        const updateData: { name?: string; email?: string; username?: string } = {}
+        const updateData: { name?: string; email?: string; username?: string; image?: string | null } = {}
         if (name !== undefined) updateData.name = name.trim()
+        if (image !== undefined) updateData.image = image === "" ? null : image
         if (email !== undefined) {
             const normalizedEmail = email.trim().toLowerCase()
             if (normalizedEmail !== currentUser.email?.toLowerCase()) {
@@ -81,7 +98,7 @@ export async function PATCH(req: Request) {
         const updatedUser = await db.user.update({
             where: { id: session.user.id },
             data: updateData,
-            select: { name: true, email: true, username: true }
+            select: { name: true, email: true, username: true, image: true }
         })
 
         return NextResponse.json({ success: true, user: updatedUser })
@@ -97,16 +114,24 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
     try {
-        const session = await getServerSession(authOptions);
-        const userId = session?.user?.id;
+        const session = await getServerSession(authOptions)
+        const userId = session?.user?.id
 
         if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const rate = await profileLimiter.check(userId)
+        if (!rate.success) {
+            return NextResponse.json(
+                { error: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
+            )
         }
 
         await db.user.delete({
             where: { id: userId }
-        });
+        })
 
         const response = NextResponse.json({ 
             success: true, 

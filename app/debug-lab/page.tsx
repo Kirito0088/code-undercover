@@ -26,7 +26,7 @@ export default async function DebugLabPage() {
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
     return (
-        <div className="flex-1 bg-[#14141A] py-8">
+        <div className="flex-1 bg-[#07080A] py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* Header */}
@@ -36,19 +36,19 @@ export default async function DebugLabPage() {
                             <BugOff className="size-8" />
                             Debug Lab
                         </h1>
-                        <p className="mt-1 text-xs text-[#8B8BA7]">
+                        <p className="mt-1 text-xs text-[#8F9F8F]">
                             Fix broken modules. Earn Aura. Restore the system.
                         </p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-8 bg-[#1C1C24] rounded-xl p-5 border border-red-500/20">
+                <div className="mb-8 bg-[#0D0E12] rounded-xl p-5 border border-red-500/20">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-[#8B8BA7]">Debug Progress</span>
+                        <span className="text-xs text-[#8F9F8F]">Debug Progress</span>
                         <span className="text-xs font-mono text-red-400">{completedCount}/{totalCount} Restored</span>
                     </div>
-                    <div className="w-full bg-[#2A2A35] rounded-full h-1.5">
+                    <div className="w-full bg-[#161820] rounded-full h-1.5">
                         <div
                             className="bg-red-500 h-1.5 rounded-full transition-all duration-500"
                             style={{ width: `${progressPercent}%` }}
@@ -65,8 +65,8 @@ export default async function DebugLabPage() {
 
                 {missions.length === 0 && (
                     <div className="text-center py-20">
-                        <BugOff className="size-12 text-[#3A3A52] mx-auto mb-4" />
-                        <p className="text-[#8B8BA7] text-sm">No corrupted modules detected. The system is secure.</p>
+                        <BugOff className="size-12 text-[#4A5D4A] mx-auto mb-4" />
+                        <p className="text-[#8F9F8F] text-sm">No corrupted modules detected. The system is secure.</p>
                     </div>
                 )}
 

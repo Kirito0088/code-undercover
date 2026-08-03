@@ -221,6 +221,9 @@ export const loginFailedLimiter = createLimiter("loginFailed", 10, 900000);
 // prevent one account from hammering a shared third-party service.
 export const compilerRunLimiter = createLimiter("compilerRun", 20, 60000);
 export const missionValidateLimiter = createLimiter("missionValidate", 20, 60000);
+export const missionActionLimiter = createLimiter("missionAction", 15, 60000);
+export const dailyChallengeLimiter = createLimiter("dailyChallenge", 10, 60000);
+export const profileLimiter = createLimiter("profile", 20, 60000);
 
 if (typeof setInterval !== "undefined") {
     setInterval(() => {
@@ -231,5 +234,8 @@ if (typeof setInterval !== "undefined") {
         loginFailedLimiter.sweep();
         compilerRunLimiter.sweep();
         missionValidateLimiter.sweep();
+        missionActionLimiter.sweep();
+        dailyChallengeLimiter.sweep();
+        profileLimiter.sweep();
     }, 5 * 60000);
 }

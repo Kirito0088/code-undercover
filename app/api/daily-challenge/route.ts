@@ -4,12 +4,21 @@ import { authOptions } from "@/lib/auth"
 import { db, safeDbQuery } from "@/lib/db"
 import { calculateAuraLevel } from "@/lib/aura"
 import { dailyQuestions } from "@/src/data/missionsData"
+import { dailyChallengeLimiter } from "@/lib/rate-limit"
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const rate = await dailyChallengeLimiter.check(session.user.id)
+        if (!rate.success) {
+            return NextResponse.json(
+                { error: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
+            )
         }
 
         const dbQuestions = await safeDbQuery(
@@ -70,6 +79,14 @@ export async function POST(req: Request) {
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const rate = await dailyChallengeLimiter.check(session.user.id)
+        if (!rate.success) {
+            return NextResponse.json(
+                { error: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
+            )
         }
 
         const { questionId, answer } = await req.json()

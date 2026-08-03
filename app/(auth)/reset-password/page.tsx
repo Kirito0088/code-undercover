@@ -65,10 +65,10 @@ function ResetPasswordForm() {
                 <div className="mx-auto size-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
                     <KeyRound className="size-6 text-red-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
+                <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">
                     Invalid Link
                 </h3>
-                <p className="text-sm text-[#8B8BA7] leading-relaxed mb-6">
+                <p className="text-sm text-[#8F9F8F] leading-relaxed mb-6">
                     The recovery link is invalid or has expired. Please request a new one.
                 </p>
                 <Link
@@ -122,10 +122,10 @@ function ResetPasswordForm() {
                 <div className="mx-auto size-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
                     <ShieldCheck className="size-6 text-emerald-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
+                <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">
                     Password Updated
                 </h3>
-                <p className="text-sm text-[#8B8BA7] leading-relaxed mb-6">
+                <p className="text-sm text-[#8F9F8F] leading-relaxed mb-6">
                     Your password has been successfully updated.
                 </p>
                 <Link
@@ -146,7 +146,7 @@ function ResetPasswordForm() {
                 </div>
             )}
             <div>
-                <label htmlFor="password" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                <label htmlFor="password" className="block text-xs font-medium text-[#8F9F8F] mb-1.5">
                     New Password
                 </label>
                 <div className="mt-2">
@@ -163,7 +163,7 @@ function ResetPasswordForm() {
             </div>
 
             <div>
-                <label htmlFor="confirmPassword" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                <label htmlFor="confirmPassword" className="block text-xs font-medium text-[#8F9F8F] mb-1.5">
                     Confirm Password
                 </label>
                 <div className="mt-2">
@@ -196,16 +196,16 @@ export default function ResetPasswordPage() {
     return (
         <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
             <div className="mx-auto w-full max-w-sm">
-                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#E2E8F0]">
                     Reset your password
                 </h2>
-                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                <p className="mt-2 text-center text-sm text-[#8F9F8F]">
                     Enter your new password
                 </p>
             </div>
 
             <div className="mt-8 mx-auto w-full max-w-sm">
-                <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
+                <div className="bg-[#0D0E12] border border-[#1F261F] rounded-2xl p-8 shadow-xl relative">
                     <Suspense fallback={<div className="text-center text-indigo-400 text-sm">Loading interface&hellip;</div>}>
                         <ResetPasswordForm />
                     </Suspense>

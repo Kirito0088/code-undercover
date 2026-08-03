@@ -63,17 +63,17 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
     })
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#14141A]/98 z-40 overflow-y-auto">
-            <div className="max-w-5xl w-full bg-[#1C1C24] border border-[#323242] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
+        <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6 bg-[#07080A]/98 z-40 overflow-y-auto">
+            <div className="max-w-5xl w-full bg-[#0D0E12] border border-[#1F261F] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] max-h-full md:max-h-none flex flex-col backdrop-blur-xl relative">
                 {/* Top border bar */}
-                <div className="absolute top-0 inset-x-0 h-px bg-[#323242]" />
+                <div className="absolute top-0 inset-x-0 h-px bg-[#1F261F]" />
 
                 {/* ─── Top: Centered Mission Title ─── */}
                 <div className="flex flex-col items-center pt-10 pb-6 px-8">
                     <div className="size-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
                         <GraduationCap className="size-6 text-indigo-400" />
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-semibold text-[#F1F1F5] tracking-tight text-center">
+                    <h1 className="text-2xl md:text-3xl font-semibold text-[#E2E8F0] tracking-tight text-center">
                         {mission.title}
                     </h1>
                 </div>
@@ -89,15 +89,15 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                 return (
                                     <div
                                         key={slide.id}
-                                        className={`bg-[#22222B] border border-[#323242] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
+                                        className={`bg-[#161820] border border-[#1F261F] rounded-xl p-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards] ${isLastOdd ? "md:col-span-2" : ""
                                             }`}
                                         style={{ animationDelay: `${index * 200}ms` }}
                                     >
-                                        <h3 className="text-sm font-medium text-[#F1F1F5] mb-3">
+                                        <h3 className="text-sm font-medium text-[#E2E8F0] mb-3">
                                             {slide.title}
                                         </h3>
                                         {Array.isArray(slide.content) ? (
-                                            <ul className="space-y-2 text-[#8B8BA7] text-sm leading-relaxed">
+                                            <ul className="space-y-2 text-[#8F9F8F] text-sm leading-relaxed">
                                                 {slide.content.map((point) => (
                                                     <li key={point.id} className="flex items-start gap-2.5">
                                                         <div className="size-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
@@ -106,7 +106,7 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                                                 ))}
                                             </ul>
                                         ) : (
-                                            <p className="text-[#8B8BA7] text-sm leading-relaxed">
+                                            <p className="text-[#8F9F8F] text-sm leading-relaxed">
                                                 {slide.content}
                                             </p>
                                         )}
@@ -118,10 +118,10 @@ export function TeachingPhase({ mission, onComplete }: TeachingPhaseProps) {
                 </div>
 
                 {/* ─── Bottom Row: Platypus left, Button right ─── */}
-                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-[#323242] flex-shrink-0">
+                <div className="flex items-end justify-between px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-[#1F261F] flex-shrink-0">
                     {/* Platypus + Label */}
                     <div className="flex flex-col items-center shrink-0">
-                        <span className="text-xs font-semibold text-[#5C5C7A] uppercase mb-1">
+                        <span className="text-xs font-semibold text-[#4A5D4A] uppercase mb-1">
                             Briefing
                         </span>
                         <div className="relative size-20 md:h-40 md:w-40">

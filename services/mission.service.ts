@@ -20,49 +20,48 @@ async function ensureMissionsSeeded(): Promise<void> {
     try {
         const count = await db.mission.count()
 
-        if (count === 0) {
-            console.log("[MISSION] Mission collection is empty — auto-seeding from missionsData.ts...")
-
-            await Promise.all(
-                missionData.map(async (m) => {
-                    const details = missionDetails[m.id]
-                    await db.mission.upsert({
-                        where: { order: m.id },
-                        update: {
-                            title: m.title,
-                            description: details?.description ?? "",
-                            briefing: details?.briefing ?? "",
-                            difficulty: m.difficulty,
-                            language: m.language,
-                            auraReward: m.aura,
-                            teachingContent: m.teachingContent,
-                            mcqContent: m.mcqContent ?? null,
-                            validationRules: m.validationRules ?? null,
-                            startingCode: m.startingCode ?? null,
-                            goal: m.goal ?? null,
-                        },
-                        create: {
-                            order: m.id,
-                            title: m.title,
-                            description: details?.description ?? "",
-                            briefing: details?.briefing ?? "",
-                            difficulty: m.difficulty,
-                            language: m.language,
-                            auraReward: m.aura,
-                            teachingContent: m.teachingContent,
-                            mcqContent: m.mcqContent ?? null,
-                            validationRules: m.validationRules ?? null,
-                            startingCode: m.startingCode ?? null,
-                            goal: m.goal ?? null,
-                        },
-                    })
-                    console.log(`[MISSION] Auto-seeded Mission #${m.id}: "${m.title}"`)
+        // Always upsert every mission from missionsData so existing databases
+        // converge on the full 60-mission curriculum, not just the first N.
+        await Promise.all(
+            missionData.map(async (m) => {
+                const details = missionDetails[m.id]
+                await db.mission.upsert({
+                    where: { order: m.id },
+                    update: {
+                        title: m.title,
+                        description: details?.description ?? "",
+                        briefing: details?.briefing ?? "",
+                        difficulty: m.difficulty,
+                        language: m.language,
+                        auraReward: m.aura,
+                        teachingContent: m.teachingContent,
+                        mcqContent: m.mcqContent ?? null,
+                        validationRules: m.validationRules ?? null,
+                        startingCode: m.startingCode ?? null,
+                        goal: m.goal ?? null,
+                    },
+                    create: {
+                        order: m.id,
+                        title: m.title,
+                        description: details?.description ?? "",
+                        briefing: details?.briefing ?? "",
+                        difficulty: m.difficulty,
+                        language: m.language,
+                        auraReward: m.aura,
+                        teachingContent: m.teachingContent,
+                        mcqContent: m.mcqContent ?? null,
+                        validationRules: m.validationRules ?? null,
+                        startingCode: m.startingCode ?? null,
+                        goal: m.goal ?? null,
+                    },
                 })
-            )
+            })
+        )
 
+        if (count === 0) {
             console.log(`[MISSION] Auto-seed complete. ${missionData.length} missions ready.`)
         } else {
-            console.log(`[MISSION] Mission collection already has ${count} entries — skipping auto-seed.`)
+            console.log(`[MISSION] Mission collection had ${count} entries — upserted to ${missionData.length}.`)
         }
 
         const dailyQuestionsCount = await db.dailyQuestion.count()

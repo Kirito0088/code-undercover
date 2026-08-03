@@ -9,12 +9,12 @@ export interface ButtonProps
 }
 
 const variants = {
-    default: "bg-indigo-600 text-white hover:bg-indigo-500 transition-colors",
+    default: "bg-accent text-accent-fg hover:opacity-90 transition-opacity",
     destructive: "bg-red-500 text-white hover:bg-red-600",
-    outline: "border border-[#323242] text-[#8B8BA7] hover:bg-[#2A2A35] hover:text-[#F1F1F5] hover:border-[#3F3F52] transition-colors",
-    secondary: "bg-[#2A2A35] text-[#F1F1F5] border border-[#323242] hover:bg-[#323242] hover:border-[#3F3F52] transition-colors",
-    ghost: "hover:bg-[#2A2A35] hover:text-[#F1F1F5] text-[#8B8BA7] transition-colors",
-    link: "text-[#39D375] underline-offset-4 hover:underline hover:text-indigo-300",
+    outline: "border border-border text-muted hover:bg-surface hover:text-text hover:border-accent/40 transition-colors",
+    secondary: "bg-surface text-text border border-border hover:border-accent/40 transition-colors",
+    ghost: "hover:bg-surface hover:text-text text-muted transition-colors",
+    link: "text-accent underline-offset-4 hover:underline",
 }
 
 const sizes = {
@@ -30,7 +30,7 @@ const Button = ({ className, variant = "default", size = "default", ref, ...prop
             type="button"
             ref={ref}
             className={cn(
-                "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-black transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#14141A] disabled:pointer-events-none disabled:opacity-50",
+                "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-bg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
                 variants[variant],
                 sizes[size],
                 className

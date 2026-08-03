@@ -1,10 +1,13 @@
 "use client"
 
 import React, { useReducer, useEffect, useRef } from "react"
-import { Shield, CreditCard, Award, User as UserIcon, LogOut, ArrowLeft, Sun, Moon, AlertTriangle, CheckCircle, Loader } from "lucide-react"
+import Image from "next/image"
+import { Shield, CreditCard, User as UserIcon, ArrowLeft, AlertTriangle, CheckCircle, Loader, Check } from "lucide-react"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
+import { AVATAR_OPTIONS } from "@/lib/avatars"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { SubscriptionTab } from "./SubscriptionTab"
 
 interface ProfileClientProps {
@@ -13,14 +16,10 @@ interface ProfileClientProps {
     name: string | null
     email: string | null
     username: string | null
+    image: string | null
     auraPoints: number
     auraLevel: number
   }
-}
-
-function getStoredTheme(): 'dark' | 'light' {
-  if (typeof window === 'undefined') return 'dark'
-  return localStorage.getItem('cu_theme') === 'light' ? 'light' : 'dark'
 }
 
 function getStoredBio() {
@@ -30,11 +29,11 @@ function getStoredBio() {
 
 interface ProfileState {
   activeTab: 'profile' | 'subscription';
-  theme: 'dark' | 'light';
   form: {
     name: string;
     email: string;
     username: string;
+    image: string;
     bio: string;
   };
   saving: boolean;
@@ -46,8 +45,7 @@ interface ProfileState {
 
 type ProfileAction =
   | { type: 'SET_TAB'; tab: 'profile' | 'subscription' }
-  | { type: 'SET_THEME'; theme: 'dark' | 'light' }
-  | { type: 'SET_FIELD'; field: 'name' | 'email' | 'username' | 'bio'; value: string }
+  | { type: 'SET_FIELD'; field: 'name' | 'email' | 'username' | 'image' | 'bio'; value: string }
   | { type: 'SET_SAVING'; saving: boolean }
   | { type: 'SET_SAVE_STATUS'; status: 'idle' | 'success' | 'error'; errorMessage?: string }
   | { type: 'SET_DELETE_MODAL'; open: boolean }
@@ -57,8 +55,6 @@ function profileReducer(state: ProfileState, action: ProfileAction): ProfileStat
   switch (action.type) {
     case 'SET_TAB':
       return { ...state, activeTab: action.tab };
-    case 'SET_THEME':
-      return { ...state, theme: action.theme };
     case 'SET_FIELD':
       return {
         ...state,
@@ -95,7 +91,7 @@ const DeleteAccountModal = ({ isOpen, deleting, onClose, onConfirm }: DeleteModa
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="w-full max-w-md bg-[#1C1C24] border border-[#323242] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden transform animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden transform animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6 space-y-4">
@@ -104,18 +100,18 @@ const DeleteAccountModal = ({ isOpen, deleting, onClose, onConfirm }: DeleteModa
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-lg font-black text-[#F1F1F5] tracking-tight">Destroy Operative Record?</h3>
-            <p className="text-xs text-[#8B8BA7] leading-relaxed">
+            <h3 className="text-lg font-black text-text tracking-tight">Destroy Operative Record?</h3>
+            <p className="text-xs text-muted leading-relaxed">
               This action is permanent and completely irreversible. All your completed C challenges, sandbox codes, leaderboard rank points, and session keys will be wiped.
             </p>
           </div>
         </div>
 
-        <div className="bg-[#14141A] px-6 py-4 flex justify-end gap-3 border-t border-[#323242]">
+        <div className="bg-bg px-6 py-4 flex justify-end gap-3 border-t border-border">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-xs font-bold text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35]/60 transition-all border border-[#323242]"
+            className="px-4 py-2 rounded-lg text-xs font-bold text-muted hover:text-text hover:bg-surface/60 transition-all border border-border"
           >
             Cancel Deletion
           </button>
@@ -148,7 +144,7 @@ interface DangerZoneProps {
 
 const DangerZone = ({ onOpenDelete }: DangerZoneProps) => {
   return (
-    <div className="border-t border-[#323242] pt-8 mt-4">
+    <div className="border-t border-border pt-8 mt-4">
       <div className="flex items-center gap-2 text-red-500/90 font-bold text-sm uppercase tracking-wider mb-4">
         <AlertTriangle className="size-4" />
         Danger Zone
@@ -156,8 +152,8 @@ const DangerZone = ({ onOpenDelete }: DangerZoneProps) => {
 
       <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="max-w-md">
-          <h4 className="text-sm font-bold text-[#F1F1F5]">Delete Account</h4>
-          <p className="text-xs text-[#8B8BA7] mt-1">Once you delete your account, all field records, achievements, and completed missions will be permanently destroyed. There is no going back.</p>
+          <h4 className="text-sm font-bold text-text">Delete Account</h4>
+          <p className="text-xs text-muted mt-1">Once you delete your account, all field records, achievements, and completed missions will be permanently destroyed. There is no going back.</p>
         </div>
 
         <button
@@ -176,59 +172,61 @@ const DangerZone = ({ onOpenDelete }: DangerZoneProps) => {
 interface ProfileSidebarProps {
   name: string
   email: string
+  image: string
   activeTab: 'profile' | 'subscription'
-  theme: 'dark' | 'light'
   auraLevel: number
   agentRank: string
   rankStyles: { colorText: string; shadow: string }
   onTabChange: (tab: 'profile' | 'subscription') => void
-  onThemeToggle: (theme: 'dark' | 'light') => void
 }
 
 const ProfileSidebar = ({
   name,
   email,
+  image,
   activeTab,
-  theme,
   auraLevel,
   agentRank,
   rankStyles,
   onTabChange,
-  onThemeToggle
 }: ProfileSidebarProps) => {
   return (
-    <aside className="w-full md:w-80 border-r border-[#323242] p-6 flex flex-col bg-[#14141A]/30">
+    <aside className="w-full md:w-80 border-r border-border p-6 flex flex-col bg-bg/30">
       {/* Identity Card Block */}
-      <div className="text-center p-6 rounded-xl border border-[#323242] bg-[#14141A]/50 relative overflow-hidden mb-6">
-        <div className="absolute top-0 inset-x-0 h-1 bg-indigo-600"></div>
+      <div className="text-center p-6 rounded-xl border border-border bg-bg/50 relative overflow-hidden mb-6">
+        <div className="absolute top-0 inset-x-0 h-1 bg-accent"></div>
 
         {/* Circular Avatar */}
-        <div className="size-20 mx-auto rounded-full bg-indigo-500/10 flex items-center justify-center border-2 border-indigo-500/30 overflow-hidden mb-4 relative shadow-lg">
-          <Shield className="size-10 text-indigo-400" />
+        <div className="size-20 mx-auto rounded-full bg-accent/10 flex items-center justify-center border-2 border-accent/30 overflow-hidden mb-4 relative shadow-lg">
+          {image ? (
+            <Image src={image} alt={name || "Agent"} fill sizes="80px" className="object-cover" />
+          ) : (
+            <Shield className="size-10 text-accent" />
+          )}
         </div>
 
-        <h2 className="text-lg font-bold text-[#F1F1F5] truncate tracking-tight">{name || "Agent"}</h2>
-        <p className="text-xs text-[#8B8BA7] truncate mb-3">{email}</p>
+        <h2 className="text-lg font-bold text-text truncate tracking-tight">{name || "Agent"}</h2>
+        <p className="text-xs text-muted truncate mb-3">{email}</p>
 
         {/* Aura Rank Pill */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1C1C24] border border-[#323242] text-xs font-semibold">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-border text-xs font-semibold">
           <span className={`uppercase tracking-wider ${rankStyles.colorText} ${rankStyles.shadow}`}>
             {agentRank}
           </span>
-          <span className="text-[#5C5C7A]">•</span>
-          <span className="text-[#8B8BA7]">Lvl {auraLevel}</span>
+          <span className="text-muted">•</span>
+          <span className="text-muted">Lvl {auraLevel}</span>
         </div>
       </div>
 
       {/* Sidebar Navigation */}
       <nav className="flex-1 space-y-1 mb-8">
-        <div className="text-[10px] font-semibold text-[#5C5C7A] uppercase tracking-widest px-3 mb-2">Account Settings</div>
+        <div className="text-[10px] font-semibold text-muted uppercase tracking-widest px-3 mb-2">Account Settings</div>
         <button
           type="button"
           onClick={() => onTabChange('profile')}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${activeTab === 'profile'
-              ? 'bg-indigo-600/10 border border-indigo-500/30 text-indigo-400'
-              : 'text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35]/40 border border-transparent'
+              ? 'bg-accent/10 border border-accent/30 text-accent'
+              : 'text-muted hover:text-text hover:bg-surface/40 border border-transparent'
             }`}
         >
           <UserIcon className="size-4" />
@@ -239,44 +237,14 @@ const ProfileSidebar = ({
           type="button"
           onClick={() => onTabChange('subscription')}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${activeTab === 'subscription'
-              ? 'bg-indigo-600/10 border border-indigo-500/30 text-indigo-400'
-              : 'text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35]/40 border border-transparent'
+              ? 'bg-accent/10 border border-accent/30 text-accent'
+              : 'text-muted hover:text-text hover:bg-surface/40 border border-transparent'
             }`}
         >
           <CreditCard className="size-4" />
           Subscription Plan
         </button>
       </nav>
-
-      {/* Appearance theme toggler block */}
-      <div className="border-t border-[#323242] pt-6">
-        <div className="text-[10px] font-semibold text-[#5C5C7A] uppercase tracking-widest px-3 mb-3">Appearance</div>
-
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-[#14141A] border border-[#323242] shadow-inner">
-          <button
-            type="button"
-            onClick={() => onThemeToggle('dark')}
-            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${theme === 'dark'
-                ? 'bg-[#1C1C24] border border-[#323242] text-[#F1F1F5] shadow-md'
-                : 'text-[#8B8BA7] hover:text-[#F1F1F5]'
-              }`}
-          >
-            <Moon className="size-3.5" />
-            Dark
-          </button>
-          <button
-            type="button"
-            onClick={() => onThemeToggle('light')}
-            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${theme === 'light'
-                ? 'bg-[#1C1C24] border border-[#323242] text-[#F1F1F5] shadow-md'
-                : 'text-[#8B8BA7] hover:text-[#F1F1F5]'
-              }`}
-          >
-            <Sun className="size-3.5" />
-            Light
-          </button>
-        </div>
-      </div>
     </aside>
   )
 }
@@ -287,12 +255,13 @@ interface ProfileInfoTabProps {
     name: string
     email: string
     username: string
+    image: string
     bio: string
   }
   saving: boolean
   saveStatus: 'idle' | 'success' | 'error'
   errorMessage: string
-  onFieldChange: (field: 'name' | 'email' | 'username' | 'bio', value: string) => void
+  onFieldChange: (field: 'name' | 'email' | 'username' | 'image' | 'bio', value: string) => void
   onSubmit: (e: React.FormEvent) => void
   onOpenDelete: () => void
 }
@@ -309,14 +278,54 @@ const ProfileInfoTab = ({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-[#F1F1F5] tracking-tight">Profile Information</h1>
-        <p className="text-sm text-[#8B8BA7] mt-1">Manage your undercover identity credentials and field bio.</p>
+        <h1 className="text-2xl font-extrabold text-text tracking-tight">Profile Information</h1>
+        <p className="text-sm text-muted mt-1">Manage your undercover identity credentials and field bio.</p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-5">
+        {/* Avatar picker */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-muted uppercase tracking-wider">Avatar</label>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              title="No avatar (use initials)"
+              onClick={() => onFieldChange('image', '')}
+              className={`relative size-14 rounded-xl overflow-hidden border-2 flex items-center justify-center bg-bg text-[10px] font-semibold text-muted uppercase transition-all ${
+                form.image === '' ? 'border-accent' : 'border-border hover:border-accent/40'
+              }`}
+            >
+              None
+              {form.image === '' && (
+                <span className="absolute -top-1 -right-1 size-4 rounded-full bg-accent flex items-center justify-center">
+                  <Check className="size-2.5 text-accent-fg" />
+                </span>
+              )}
+            </button>
+            {AVATAR_OPTIONS.map((option) => (
+              <button
+                key={option.path}
+                type="button"
+                title={option.label}
+                onClick={() => onFieldChange('image', option.path)}
+                className={`relative size-14 rounded-xl overflow-hidden border-2 transition-all ${
+                  form.image === option.path ? 'border-accent' : 'border-border hover:border-accent/40'
+                }`}
+              >
+                <Image src={option.path} alt={option.label} fill sizes="56px" className="object-cover" />
+                {form.image === option.path && (
+                  <span className="absolute -top-1 -right-1 size-4 rounded-full bg-accent flex items-center justify-center">
+                    <Check className="size-2.5 text-accent-fg" />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Full Name field */}
         <div className="space-y-2">
-          <label id="name-label" htmlFor="name" className="text-xs font-semibold text-[#8B8BA7] uppercase tracking-wider">Full Name</label>
+          <label id="name-label" htmlFor="name" className="text-xs font-semibold text-muted uppercase tracking-wider">Full Name</label>
           <input
             type="text"
             id="name"
@@ -325,7 +334,7 @@ const ProfileInfoTab = ({
             aria-labelledby="name-label"
             maxLength={50}
             required
-            className="w-full px-4 py-3 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-sm focus:outline-none focus:border-indigo-500 transition-all font-medium"
+            className="w-full px-4 py-3 rounded-xl bg-bg border border-border text-text text-sm focus:outline-none focus:border-accent transition-all font-medium"
             placeholder="Agent Name"
             value={form.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
@@ -334,9 +343,9 @@ const ProfileInfoTab = ({
 
         {/* Codename / username field */}
         <div className="space-y-2">
-          <label id="username-label" htmlFor="username" className="text-xs font-semibold text-[#8B8BA7] uppercase tracking-wider">Codename</label>
+          <label id="username-label" htmlFor="username" className="text-xs font-semibold text-muted uppercase tracking-wider">Codename</label>
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#5C5C7A] text-sm font-medium">@</span>
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-medium">@</span>
             <input
               type="text"
               id="username"
@@ -346,18 +355,18 @@ const ProfileInfoTab = ({
               minLength={3}
               maxLength={20}
               pattern="[a-zA-Z0-9_-]+"
-              className="w-full pl-8 pr-4 py-3 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-sm focus:outline-none focus:border-indigo-500 transition-all font-medium"
+              className="w-full pl-8 pr-4 py-3 rounded-xl bg-bg border border-border text-text text-sm focus:outline-none focus:border-accent transition-all font-medium"
               placeholder="agent_foxtrot"
               value={form.username}
               onChange={(e) => onFieldChange('username', e.target.value)}
             />
           </div>
-          <p className="text-[11px] text-[#5C5C7A]">3–20 characters: letters, numbers, underscores, and hyphens. Shown publicly on the leaderboard.</p>
+          <p className="text-[11px] text-muted">3–20 characters: letters, numbers, underscores, and hyphens. Shown publicly on the leaderboard.</p>
         </div>
 
         {/* Email address field */}
         <div className="space-y-2">
-          <label id="email-label" htmlFor="email" className="text-xs font-semibold text-[#8B8BA7] uppercase tracking-wider">Email Address</label>
+          <label id="email-label" htmlFor="email" className="text-xs font-semibold text-muted uppercase tracking-wider">Email Address</label>
           <input
             type="email"
             id="email"
@@ -365,19 +374,19 @@ const ProfileInfoTab = ({
             autoComplete="email"
             aria-labelledby="email-label"
             required
-            className="w-full px-4 py-3 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-sm focus:outline-none focus:border-indigo-500 transition-all font-medium"
+            className="w-full px-4 py-3 rounded-xl bg-bg border border-border text-text text-sm focus:outline-none focus:border-accent transition-all font-medium"
             placeholder="zero@undercover.net"
             value={form.email}
             onChange={(e) => onFieldChange('email', e.target.value)}
           />
-          <p className="text-[11px] text-[#5C5C7A]">Changing your email address will directly change your system login credentials.</p>
+          <p className="text-[11px] text-muted">Changing your email address will directly change your system login credentials.</p>
         </div>
 
         {/* Bio Text Area */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label id="bio-label" htmlFor="bio" className="text-xs font-semibold text-[#8B8BA7] uppercase tracking-wider">Bio</label>
-            <span className={`text-[10px] ${form.bio.length > 180 ? 'text-amber-500 font-semibold' : 'text-[#5C5C7A]'}`}>
+            <label id="bio-label" htmlFor="bio" className="text-xs font-semibold text-muted uppercase tracking-wider">Bio</label>
+            <span className={`text-[10px] ${form.bio.length > 180 ? 'text-amber-500 font-semibold' : 'text-muted'}`}>
               {form.bio.length} / 200
             </span>
           </div>
@@ -386,7 +395,7 @@ const ProfileInfoTab = ({
             aria-labelledby="bio-label"
             maxLength={200}
             rows={4}
-            className="w-full px-4 py-3 rounded-xl bg-[#14141A] border border-[#323242] text-[#F1F1F5] text-sm focus:outline-none focus:border-indigo-500 transition-all font-medium resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-bg border border-border text-text text-sm focus:outline-none focus:border-accent transition-all font-medium resize-none"
             placeholder="Specializing in encrypted network infiltrations and data extractions..."
             value={form.bio}
             onChange={(e) => onFieldChange('bio', e.target.value)}
@@ -398,11 +407,11 @@ const ProfileInfoTab = ({
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-sm shadow-[0_0_20px_rgba(14,185,77,0.2)] hover:shadow-[0_0_25px_rgba(14,185,77,0.3)] transition-all flex items-center justify-center gap-2"
+            className="px-6 py-3 rounded-xl bg-accent hover:opacity-90 disabled:opacity-50 text-accent-fg font-bold text-sm transition-all flex items-center justify-center gap-2"
           >
             {saving ? (
               <>
-                <Loader className="size-4 animate-spin text-white" />
+                <Loader className="size-4 animate-spin text-accent-fg" />
                 Saving Settings&hellip;
               </>
             ) : (
@@ -412,7 +421,7 @@ const ProfileInfoTab = ({
 
           {/* Inline feedback lines */}
           {saveStatus === 'success' && (
-            <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 animate-in fade-in slide-in-from-left-2 duration-200">
+            <div className="flex items-center gap-2 text-xs font-bold text-accent animate-in fade-in slide-in-from-left-2 duration-200">
               <CheckCircle className="size-4" />
               Changes saved successfully.
             </div>
@@ -437,11 +446,11 @@ const ProfileInfoTab = ({
 export function ProfileClient({ user }: ProfileClientProps) {
   const [state, dispatch] = useReducer(profileReducer, {
     activeTab: 'profile',
-    theme: getStoredTheme(),
     form: {
       name: user.name ?? '',
       email: user.email ?? '',
       username: user.username ?? '',
+      image: user.image ?? '',
       bio: getStoredBio(),
     },
     saving: false,
@@ -457,11 +466,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
   }
   const saveStatusTimeouts = saveStatusTimeoutsRef.current
 
-  // Keep the document class in sync with the selected theme.
-  useEffect(() => {
-    document.documentElement.classList.toggle('light', state.theme === 'light')
-  }, [state.theme])
-
   useEffect(() => {
     return () => {
       for (const timeout of saveStatusTimeouts) {
@@ -476,13 +480,6 @@ export function ProfileClient({ user }: ProfileClientProps) {
       clearTimeout(timeout)
     }
     saveStatusTimeouts.clear()
-  }
-
-  // Handle theme toggling
-  const toggleTheme = (targetTheme: 'dark' | 'light') => {
-    dispatch({ type: 'SET_THEME', theme: targetTheme })
-    document.documentElement.classList.toggle('light', targetTheme === 'light')
-    localStorage.setItem('cu_theme', targetTheme)
   }
 
   // Escape key listener for the modal
@@ -512,6 +509,9 @@ export function ProfileClient({ user }: ProfileClientProps) {
           // Username is optional — omit when blank so the API doesn't treat
           // "hasn't set one yet" as an invalid (too-short) value.
           ...(state.form.username.trim() ? { username: state.form.username.trim() } : {}),
+          // Unlike username, "" is a valid image value (clears the avatar),
+          // so always send it rather than omitting when blank.
+          image: state.form.image,
         }),
       })
 
@@ -566,32 +566,32 @@ export function ProfileClient({ user }: ProfileClientProps) {
   const rankStyles = getRankBadgeStyles(agentRank)
 
   return (
-    <div className="min-h-screen bg-[#14141A] text-[#F1F1F5] py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+    <div className="min-h-screen bg-bg text-text py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Back Link */}
-        <div className="mb-6">
+        {/* Page header: back link + theme toggle */}
+        <div className="mb-6 flex items-center justify-between">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors group"
+            className="inline-flex items-center gap-2 text-sm text-muted hover:text-text transition-colors group"
           >
             <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
           </Link>
+          <ThemeToggle />
         </div>
 
         {/* Outer Shell Card */}
-        <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md flex flex-col md:flex-row min-h-[680px]">
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md flex flex-col md:flex-row min-h-[680px]">
 
           <ProfileSidebar
             name={state.form.name}
             email={state.form.email}
+            image={state.form.image}
             activeTab={state.activeTab}
-            theme={state.theme}
             auraLevel={user.auraLevel}
             agentRank={agentRank}
             rankStyles={rankStyles}
             onTabChange={(tab) => dispatch({ type: 'SET_TAB', tab })}
-            onThemeToggle={toggleTheme}
           />
 
           {/* RIGHT PANEL CONTENT */}
@@ -619,12 +619,12 @@ export function ProfileClient({ user }: ProfileClientProps) {
             </div>
 
             {/* Bottom Brand footer inside shell */}
-            <div className="border-t border-[#323242] pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[#5C5C7A] text-xs">
+            <div className="border-t border-border pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-muted text-xs">
               <div>CODE-UNDERCOVER settings panel.</div>
               <div className="flex gap-4">
-                <span className="hover:text-[#8B8BA7] transition-colors cursor-pointer">Security Policy</span>
+                <span className="hover:text-muted transition-colors cursor-pointer">Security Policy</span>
                 <span>•</span>
-                <span className="hover:text-[#8B8BA7] transition-colors cursor-pointer">Support Desk</span>
+                <span className="hover:text-muted transition-colors cursor-pointer">Support Desk</span>
               </div>
             </div>
 

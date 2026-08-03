@@ -39,8 +39,8 @@ export function CharacterManager({
 
             {/* VICTORY OVERLAY */}
             {missionCleared && clearInfo && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#14141A]/90 backdrop-blur-sm z-[60] pointer-events-auto">
-                    <div className="animate-in zoom-in-95 fade-in duration-200 bg-[#1C1C24] border border-[#323242] rounded-2xl p-10 max-w-md w-full mx-4 text-center shadow-2xl">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#07080A]/90 backdrop-blur-sm z-[60] pointer-events-auto">
+                    <div className="animate-in zoom-in-95 fade-in duration-200 bg-[#0D0E12] border border-[#1F261F] rounded-2xl p-10 max-w-md w-full mx-4 text-center shadow-2xl">
                         
                         {/* Icon */}
                         <div className="size-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
@@ -48,16 +48,16 @@ export function CharacterManager({
                         </div>
 
                         {/* Title */}
-                        <h2 className="text-2xl font-semibold text-[#F1F1F5] mt-6">Mission Complete</h2>
-                        <p className="text-xs text-[#5C5C7A] mt-1 font-mono">Module Restored</p>
+                        <h2 className="text-2xl font-semibold text-[#E2E8F0] mt-6">Mission Complete</h2>
+                        <p className="text-xs text-[#4A5D4A] mt-1 font-mono">Module Restored</p>
 
                         {/* Aura Block */}
-                        <div className="bg-[#14141A] border border-[#323242] rounded-xl p-4 mt-6">
+                        <div className="bg-[#07080A] border border-[#1F261F] rounded-xl p-4 mt-6">
                             {clearInfo.isReplay ? (
                                 <div className="flex flex-col gap-1">
-                                    <span className="text-2xl font-semibold font-mono text-[#8B8BA7]">0 AP (Replay)</span>
+                                    <span className="text-2xl font-semibold font-mono text-[#8F9F8F]">0 AP (Replay)</span>
                                     {clearInfo.wouldHaveEarned !== undefined && (
-                                        <span className="text-xs text-[#5C5C7A] font-mono">Would have earned: {clearInfo.wouldHaveEarned} AP</span>
+                                        <span className="text-xs text-[#4A5D4A] font-mono">Would have earned: {clearInfo.wouldHaveEarned} AP</span>
                                     )}
                                 </div>
                             ) : (
@@ -71,7 +71,7 @@ export function CharacterManager({
                                 <Zap className="size-4 text-amber-400" />
                                 <span className="text-sm text-amber-400 font-mono">Combo ×{clearInfo.comboStreak}</span>
                                 {clearInfo.comboBonus > 0 && (
-                                    <span className="text-xs text-[#5C5C7A] font-mono">(+{clearInfo.comboBonus})</span>
+                                    <span className="text-xs text-[#4A5D4A] font-mono">(+{clearInfo.comboBonus})</span>
                                 )}
                             </div>
                         )}
@@ -88,7 +88,7 @@ export function CharacterManager({
                             <button
                                 type="button"
                                 onClick={() => push("/dashboard")}
-                                className="w-full bg-[#2A2A35] hover:bg-[#323242] text-[#8B8BA7] border border-[#323242] px-6 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                                className="w-full bg-[#161820] hover:bg-[#1F261F] text-[#8F9F8F] border border-[#1F261F] px-6 py-2.5 rounded-lg text-sm font-medium transition-colors"
                             >
                                 Back to Dashboard
                             </button>
@@ -99,7 +99,7 @@ export function CharacterManager({
 
             {/* FOX: Shows up when innovation unlocks */}
             {showFoxAnimation && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#14141A]/90 backdrop-blur-sm z-50">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#07080A]/90 backdrop-blur-sm z-50">
                     <div className="animate-in zoom-in-95 fade-in duration-200 flex flex-col items-center">
                         <div className="relative size-64 mb-6">
                             <Image
@@ -111,11 +111,11 @@ export function CharacterManager({
                             />
                         </div>
 
-                        <div className="bg-[#1C1C24] border border-amber-500/20 p-6 rounded-xl text-center shadow-2xl backdrop-blur-md">
-                            <h2 className="text-xl font-semibold text-[#F1F1F5] mb-2">
+                        <div className="bg-[#0D0E12] border border-amber-500/20 p-6 rounded-xl text-center shadow-2xl backdrop-blur-md">
+                            <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
                                 Innovation Detected
                             </h2>
-                            <p className="text-[#8B8BA7] text-sm max-w-md leading-relaxed">
+                            <p className="text-[#8F9F8F] text-sm max-w-md leading-relaxed">
                                 {systemMessage?.sender === "fox"
                                     ? systemMessage.text
                                     : "Outstanding approach! You solved the mission using alternative logic. Fox badge awarded."}

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { canAccessMission } from '@/services/mission.service'
+import { missionActionLimiter } from '@/lib/rate-limit'
 
 const HINTS = [
     "System Log > Pointers must point to valid memory addresses.",
@@ -17,6 +18,14 @@ export async function POST(req: Request) {
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const rate = await missionActionLimiter.check(session.user.id)
+        if (!rate.success) {
+            return NextResponse.json(
+                { error: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
+                { status: 429 }
+            )
         }
 
         const { missionId } = await req.json()

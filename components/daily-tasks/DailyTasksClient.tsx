@@ -14,13 +14,11 @@ import {
     BookOpen, 
     Terminal, 
     Check, 
-    Sparkles,
-    Trophy,
-    Award,
-    Code
+    Sparkles
 } from "lucide-react"
 import type { DailyChallengeQuestion } from "@/components/dashboard/DailyChallenge"
 import { flashcardsData, type Flashcard } from "@/src/data/flashcardsData"
+import { HudPage } from "@/components/hud/HudPage"
 
 interface DailyTasksClientProps {
     initialQuestion: DailyChallengeQuestion | null
@@ -166,77 +164,45 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
     }
 
     return (
-        <div className="flex-grow bg-[#07080A] min-h-[calc(100vh-3.5rem)] relative text-[#E2E8F0] font-mono selection:bg-emerald-500/20 overflow-hidden">
-            {/* Background Grid & Scanline */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#00ff4104_1px,transparent_1px),linear-gradient(to_bottom,#00ff4104_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none z-[1]"></div>
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%] pointer-events-none z-[1] opacity-40"></div>
-            
-            {/* CRT Scanline Sweep Animation */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none z-[2]">
-                <div className="w-full h-24 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent absolute top-0 left-0 right-0 animate-scanline-sweep"></div>
-            </div>
-
-            <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6 relative z-10">
-                
-                {/* Header Tile */}
-                <motion.div 
-                    initial={{ opacity: 0, y: -15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="bg-[#0D0E12] border border-[#1F261F] rounded-xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                >
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,#00ff4105,transparent_70%)] pointer-events-none"></div>
-                    <div className="text-left relative z-10">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="relative flex size-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
-                            </span>
-                            <span className="text-[10px] font-mono tracking-widest text-[#4A5D4A] uppercase select-none">
-                                DAILY_PROTOCOL // INTEL_OPERATIONS
-                            </span>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-black font-sans text-emerald-400 tracking-tight drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">
-                            Daily Task Assignment
-                        </h1>
-                        <p className="text-xs text-[#8F9F8F] font-sans mt-1">
-                            Complete today&apos;s intercept quiz or review flashcards to earn AP rewards and keep your clearance streak active.
-                        </p>
+        <HudPage
+            eyebrow="DAILY_PROTOCOL // INTEL_OPERATIONS"
+            title="Daily Task Assignment"
+            subtitle="Complete today's intercept quiz or review flashcards to earn AP rewards and keep your clearance streak active."
+            maxWidth="max-w-[1100px]"
+            status={
+                <div className="relative flex items-center gap-4 bg-[#141814] border border-[#1F261F] px-4 py-2.5 rounded-lg font-mono shrink-0 self-start sm:self-auto">
+                    <div className="text-right">
+                        <span className="text-[9px] text-[#4A5D4A] block uppercase select-none">OPERATIONAL AP</span>
+                        <span className="text-sm font-bold text-emerald-400 drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]">
+                            {auraPoints} AP
+                        </span>
                     </div>
 
-                    {/* Stats HUD Box */}
-                    <div className="relative flex items-center gap-4 bg-[#141814] border border-[#1F261F] px-4 py-2.5 rounded-lg font-mono shrink-0 self-start sm:self-auto">
-                        <div className="text-right">
-                            <span className="text-[9px] text-[#4A5D4A] block uppercase select-none">OPERATIONAL AP</span>
-                            <span className="text-sm font-bold text-emerald-400 drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]">
-                                {auraPoints} AP
-                            </span>
-                        </div>
+                    {/* Floating AP Flyup chip animation */}
+                    <AnimatePresence>
+                        {apFlying.active && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                                animate={{ opacity: 1, y: -30, scale: 1.1 }}
+                                exit={{ opacity: 0, y: -50 }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className="absolute -top-3 right-4 bg-emerald-500 text-black font-extrabold text-xs px-2.5 py-1 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.8)] flex items-center gap-1 z-30"
+                            >
+                                <Sparkles className="size-3.5 fill-black" />
+                                +{apFlying.amount} AP
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                        {/* Floating AP Flyup chip animation */}
-                        <AnimatePresence>
-                            {apFlying.active && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                                    animate={{ opacity: 1, y: -30, scale: 1.1 }}
-                                    exit={{ opacity: 0, y: -50 }}
-                                    transition={{ duration: 0.8, ease: "easeOut" }}
-                                    className="absolute -top-3 right-4 bg-emerald-500 text-black font-extrabold text-xs px-2.5 py-1 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.8)] flex items-center gap-1 z-30"
-                                >
-                                    <Sparkles className="size-3.5 fill-black" />
-                                    +{apFlying.amount} AP
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                    <div className="h-6 w-px bg-[#1F261F]"></div>
 
-                        <div className="h-6 w-px bg-[#1F261F]"></div>
-
-                        <div className="flex items-center gap-1.5 text-amber-400">
-                            <Flame className="size-4 fill-amber-400 animate-pulse" />
-                            <span className="text-xs font-bold font-mono">x{user?.comboStreak ?? 1}</span>
-                        </div>
+                    <div className="flex items-center gap-1.5 text-amber-400">
+                        <Flame className="size-4 fill-amber-400 animate-pulse" />
+                        <span className="text-xs font-bold font-mono">x{user?.comboStreak ?? 1}</span>
                     </div>
-                </motion.div>
+                </div>
+            }
+        >
 
                 {/* Top Tab Switcher */}
                 <div className="flex justify-center">
@@ -608,7 +574,6 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                     )}
                 </AnimatePresence>
 
-            </div>
-        </div>
+        </HudPage>
     )
 }

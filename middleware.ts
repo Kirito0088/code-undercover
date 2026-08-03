@@ -1,21 +1,6 @@
 import { withAuth, NextRequestWithAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
-/**
- * ROUTE GUARD — Three layers of protection:
- *
- * LAYER 1 (this file — edge, runs before React):
- *   Reads hasSeenIntro from the JWT. No DB call. Instant redirect.
- *
- * LAYER 2 (lib/auth.ts):
- *   hasSeenIntro is written into the JWT on sign-in from the DB.
- *   It is refreshed when the intro page calls updateSession().
- *
- * LAYER 3 (localStorage — UI cache only, NEVER trusted for access control):
- *   Written after the server confirms intro seen. Used only to avoid
- *   redundant API calls on cold boots. Middleware never reads it.
- */
-
 const PROTECTED_APP_ROUTES = [
     "/dashboard",
     "/levels",
@@ -72,8 +57,6 @@ export default withAuth(
         callbacks: {
             authorized({ token, req }) {
                 const { pathname } = req.nextUrl
-                // Allow unauthenticated access to auth pages (our middleware
-                // above handles the logged-in redirect for those)
                 if (AUTH_ONLY_ROUTES.some((r) => pathname.startsWith(r))) {
                     return true
                 }
@@ -85,7 +68,6 @@ export default withAuth(
 
 export const config = {
     matcher: [
-        // Protected app routes
         "/dashboard/:path*",
         "/levels/:path*",
         "/mission/:path*",
@@ -93,10 +75,8 @@ export const config = {
         "/profile/:path*",
         "/leaderboard/:path*",
         "/debug-lab/:path*",
-        // Intro
         "/intro",
         "/intro/:path*",
-        // Auth pages
         "/login",
         "/register",
         "/forgot-password",

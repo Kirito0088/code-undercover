@@ -25,7 +25,7 @@ function getLineColor(type: string) {
         case "hint": return "text-amber-400"
         case "finish": return "text-indigo-400"
         case "input-prompt": return "text-amber-400"
-        default: return "text-[#5C5C7A]"  // system lines
+        default: return "text-[#4A5D4A]"  // system lines
     }
 }
 
@@ -75,10 +75,10 @@ export function TerminalPanel({
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#14141A] border-l border-[#323242] relative font-mono">
+        <div className="flex flex-col h-full bg-[#07080A] border-l border-[#1F261F] relative font-mono">
             {/* Terminal Header & Hints */}
-            <div className="h-9 bg-[#14141A] border-b border-[#323242] flex items-center justify-between px-4 flex-shrink-0">
-                <div className="flex items-center gap-2 text-xs font-mono text-[#5C5C7A]">
+            <div className="h-9 bg-[#07080A] border-b border-[#1F261F] flex items-center justify-between px-4 flex-shrink-0">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#4A5D4A]">
                     <TerminalIcon className="size-4" />
                     Terminal Output
                 </div>
@@ -88,7 +88,7 @@ export function TerminalPanel({
                     onClick={handleRequestHint}
                     disabled={hintsUsed >= 5}
                     aria-label={`Request a hint (${hintsUsed} of 5 used)`}
-                    className="flex items-center gap-2 border border-[#323242] bg-[#1C1C24] hover:border-amber-500/30 text-[#8B8BA7] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 border border-[#1F261F] bg-[#0D0E12] hover:border-amber-500/30 text-[#8F9F8F] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
                 >
                     <HelpCircle className="size-3 text-amber-400" />
                     Request Hint ({hintsUsed}/5)
@@ -102,15 +102,15 @@ export function TerminalPanel({
                     if (line.isDiagnostic) {
                         return (
                             <div key={line.id} className="mb-4">
-                                <div className="text-[#F1F1F5] text-sm font-semibold mb-1 break-words">
+                                <div className="text-[#E2E8F0] text-sm font-semibold mb-1 break-words">
                                     <span className="text-red-400">error: </span>
                                     {line.message.split('error:')[1] || line.message}
                                 </div>
-                                <div className="text-[#5C5C7A] text-xs mb-2">
+                                <div className="text-[#4A5D4A] text-xs mb-2">
                                     {line.message.split('error:')[0]}
                                 </div>
                                 {line.rawContext && (
-                                    <pre className="bg-[#1C1C24] border-l-2 border-red-500/40 p-2 text-xs text-[#8B8BA7] font-mono overflow-x-auto whitespace-pre">
+                                    <pre className="bg-[#0D0E12] border-l-2 border-red-500/40 p-2 text-xs text-[#8F9F8F] font-mono overflow-x-auto whitespace-pre">
                                         {line.rawContext}
                                     </pre>
                                 )}
@@ -124,7 +124,7 @@ export function TerminalPanel({
                             <div key={line.id} className="mb-4 bg-amber-500/5 border border-amber-500/15 rounded-lg overflow-hidden">
                                 {/* Platypus Header */}
                                 <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/10">
-                                    <div className="relative size-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#14141A]">
+                                    <div className="relative size-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#07080A]">
                                         <Image
                                             src="/characters/platipus.png"
                                             alt="Platypus"
@@ -134,10 +134,10 @@ export function TerminalPanel({
                                         />
                                     </div>
                                     <span className="text-amber-400 text-xs font-medium">Platypus</span>
-                                    <span className="text-[#5C5C7A] text-xs font-mono ml-auto">Coding Mentor</span>
+                                    <span className="text-[#4A5D4A] text-xs font-mono ml-auto">Coding Mentor</span>
                                 </div>
                                 {/* Message */}
-                                <div className="p-3 text-[#8B8BA7] text-sm font-mono leading-relaxed whitespace-pre-wrap">
+                                <div className="p-3 text-[#8F9F8F] text-sm font-mono leading-relaxed whitespace-pre-wrap">
                                     {line.message.replace('Analysis: ', '').replace('Mission requirement: ', '')}
                                 </div>
                             </div>
@@ -173,7 +173,7 @@ export function TerminalPanel({
                                         autoComplete="off"
                                         ref={inputRef}
                                         aria-label={line.message}
-                                        className="flex-1 bg-transparent border-none outline-none text-[#F1F1F5] font-mono caret-indigo-400"
+                                        className="flex-1 bg-transparent border-none outline-none text-[#E2E8F0] font-mono caret-indigo-400"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault()

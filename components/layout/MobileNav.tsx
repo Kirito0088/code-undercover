@@ -38,7 +38,7 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2.5 rounded-lg text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors flex items-center justify-center"
+        className="p-2.5 rounded-lg text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors flex items-center justify-center"
         aria-label="Toggle menu"
       >
         {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -46,21 +46,21 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
 
       {/* Mobile Menu Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 rounded-xl bg-[#1C1C24] border border-[#323242] shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-full mt-2 w-64 rounded-xl bg-[#0D0E12] border border-[#1F261F] shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-2 space-y-1">
             {isAuthenticated ? (
               <>
                 <Link
                   href="/dashboard"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                  className="block px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/daily-tasks"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
                 >
                   <span>Daily Task</span>
                   <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
@@ -70,26 +70,26 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
                 <Link
                   href="/debug-lab"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                  className="block px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
                 >
                   Debug Lab
                 </Link>
                 <Link
                   href="/leaderboard"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                  className="block px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
                 >
                   Leaderboard
                 </Link>
                 <Link
                   href="/history"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-sm text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                  className="block px-3 py-2 rounded-lg text-sm text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
                 >
                   History
                 </Link>
                 {/* Profile section */}
-                <div className="pt-2 mt-2 border-t border-[#323242] flex justify-center">
+                <div className="pt-2 mt-2 border-t border-[#1F261F] flex justify-center">
                   {children}
                 </div>
               </>
@@ -98,14 +98,14 @@ export function MobileNav({ isAuthenticated, children }: MobileNavProps) {
                 <Link
                   href="/login"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-medium text-[#8B8BA7] hover:text-[#F1F1F5] hover:bg-[#2A2A35] transition-colors"
+                  className="block px-3 py-2 rounded-lg text-sm font-medium text-[#8F9F8F] hover:text-[#E2E8F0] hover:bg-[#181C18] transition-colors"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 transition-colors text-center"
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 transition-colors text-center"
                 >
                   Register
                 </Link>

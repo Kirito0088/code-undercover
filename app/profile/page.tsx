@@ -24,7 +24,7 @@ export default async function ProfilePage() {
           ...(session?.user?.email ? [{ email: session.user.email }] : [])
         ]
       },
-      select: { id: true, name: true, email: true, username: true, auraPoints: true, auraLevel: true }
+      select: { id: true, name: true, email: true, username: true, image: true, auraPoints: true, auraLevel: true }
     }),
     null,
     "ProfilePage.user"
@@ -41,6 +41,7 @@ export default async function ProfilePage() {
         name: user.name,
         email: user.email,
         username: user.username,
+        image: user.image,
         auraPoints: user.auraPoints,
         auraLevel: user.auraLevel,
       }}

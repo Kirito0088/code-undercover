@@ -1,0 +1,425 @@
+/* ============================================================
+   Detective Academy hero — scoped to the landing page only.
+   Colors map onto the app's existing theme variables (globals.css)
+   so this section still inverts correctly between dark/light mode.
+   Fixed hex values are used only for "physical artifact" pieces
+   (the case-file photo, tape, stamp, CTA button) that are meant to
+   stay paper/leather-toned regardless of theme — same precedent
+   already used for the dossier photo elsewhere on this page.
+   ============================================================ */
+
+.section {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ---------- Background: chalk ruling + code-mark glyphs ---------- */
+/* `absolute` (not `fixed`) and contained to this section only — the
+   original mockup was a full-page background; here it must not bleed
+   over the navbar or the sections below the hero. */
+.codeBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.codeBg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 46% 22% at 22% 26%, rgba(244, 231, 211, 0.045), transparent 70%),
+    radial-gradient(ellipse 38% 18% at 74% 40%, rgba(244, 231, 211, 0.03), transparent 72%),
+    radial-gradient(ellipse 52% 16% at 44% 72%, rgba(244, 231, 211, 0.025), transparent 74%);
+  background-repeat: no-repeat;
+}
+
+.codeBgChecks {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(183, 135, 66, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(183, 135, 66, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(183, 135, 66, 0.1) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, rgba(183, 135, 66, 0.085) 1.5px, transparent 1.5px);
+  background-size: 48px 48px, 48px 48px, 192px 192px, 192px 192px;
+  opacity: 0.7;
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, rgba(0, 0, 0, 0.35) 100%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+.codeBgTokens {
+  position: absolute;
+  inset: 0;
+}
+
+.glyph {
+  position: absolute;
+  font-family: var(--font-courier), "Courier New", monospace;
+  font-size: var(--glyph-size, 18px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  color: var(--accent);
+  opacity: 0.22;
+  pointer-events: auto;
+  transform: rotate(var(--glyph-rot, 0deg));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.glyph:hover {
+  opacity: 0.5;
+  transform: rotate(var(--glyph-rot, 0deg)) scale(1.08);
+}
+
+.g1 { font-size: 28px; --glyph-rot: -4deg; top: 10%; left: 4%; }
+.g2 { font-size: 24px; --glyph-rot: 3deg; top: 7%; right: 6%; }
+.g3 { font-size: 19px; --glyph-rot: -2deg; top: 26%; left: 8%; }
+.g4 { font-size: 30px; --glyph-rot: 0deg; top: 20%; right: 15%; }
+.g5 { font-size: 18px; --glyph-rot: 2deg; top: 82%; left: 20%; }
+.g6 { font-size: 20px; --glyph-rot: -1deg; top: 86%; right: 22%; }
+
+@media (max-width: 1000px) {
+  .g3, .g4 { display: none; }
+}
+
+/* ---------- Layout ---------- */
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 56px 28px 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: 56px;
+  pointer-events: none;
+}
+.heroInner > * {
+  pointer-events: auto;
+}
+
+@media (max-width: 1000px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    text-align: left;
+    padding: 40px 24px 56px;
+  }
+}
+
+/* ---------- Copy ---------- */
+.eyebrow {
+  font-family: var(--font-courier), "Courier New", monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 2.6px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 20px;
+  min-height: 1em;
+  opacity: 0;
+  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.eyebrow::after {
+  content: "_";
+  color: var(--accent);
+  animation: blink 1.05s steps(1) infinite;
+}
+
+.headline {
+  margin: 0 0 22px;
+  opacity: 0;
+  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.15s forwards;
+}
+.headlineSmall {
+  display: block;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  font-size: clamp(22px, 3vw, 34px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.headlineBig {
+  display: block;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: clamp(46px, 7.2vw, 92px);
+  line-height: 0.92;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.headlineBig em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.lede {
+  max-width: 52ch;
+  font-family: var(--font-karla), sans-serif;
+  font-size: clamp(15px, 1.1vw, 17px);
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 0 0 32px;
+  padding-left: 18px;
+  border-left: 2px solid rgba(183, 135, 66, 0.5);
+  opacity: 0;
+  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.3s forwards;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  opacity: 0;
+  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.45s forwards;
+}
+
+/* Physical button — fixed leather/gold tones regardless of theme,
+   same treatment as the dossier photo below. */
+.btnPrimary {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 30px;
+  background: linear-gradient(180deg, #7a5234, #5b3d2a);
+  color: #f4e7d3;
+  border-radius: 4px;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 0 0 1px rgba(216, 177, 122, 0.3),
+    0 5px 0 #b78742,
+    0 14px 26px rgba(18, 21, 24, 0.4);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+.btnPrimary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.5) 50%, transparent 75%);
+  transform: translateX(-110%);
+  transition: transform 0.55s ease;
+}
+.btnPrimary:hover {
+  background: linear-gradient(180deg, #8b5e3c, #7a5234);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #d2a05a, 0 20px 34px rgba(18, 21, 24, 0.48);
+}
+.btnPrimary:hover::before {
+  transform: translateX(110%);
+}
+.btnPrimary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #b78742;
+}
+
+.btnSecondary {
+  padding: 15px 24px;
+  font-family: var(--font-karla), sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+.btnSecondary:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+/* ---------- Dossier (case-file photo) ---------- */
+.dossier {
+  position: relative;
+  margin: 0;
+  padding: 24px 24px 16px;
+  background-color: #f4e7d3;
+  border-radius: 6px;
+  transform: rotate(-1.6deg);
+  box-shadow:
+    0 2px 0 #fff8ec,
+    0 24px 48px rgba(18, 21, 24, 0.45),
+    0 0 0 1px rgba(91, 61, 42, 0.3);
+  transition: transform 0.35s ease;
+  opacity: 0;
+  animation: dossierIn 0.85s cubic-bezier(0.2, 0.7, 0.3, 1) 0.25s forwards;
+}
+.dossier::before {
+  content: "Case File";
+  position: absolute;
+  top: -24px;
+  left: 30px;
+  padding: 6px 18px 8px;
+  background: #b78742;
+  color: #1c2025;
+  font-family: var(--font-courier), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 5px 5px 0 0;
+}
+.dossier:hover {
+  transform: rotate(-0.4deg) translateY(-4px);
+}
+
+.tape {
+  position: absolute;
+  top: -12px;
+  width: 88px;
+  height: 26px;
+  background: rgba(126, 151, 168, 0.55);
+  border-left: 1px dashed rgba(255, 255, 255, 0.5);
+  border-right: 1px dashed rgba(255, 255, 255, 0.5);
+}
+.tapeLeft {
+  left: -20px;
+  transform: rotate(-38deg);
+}
+.tapeRight {
+  right: -20px;
+  transform: rotate(38deg);
+}
+
+.stamp {
+  position: absolute;
+  right: 14px;
+  bottom: 46px;
+  z-index: 3;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(201, 118, 38, 0.72);
+  border: 3px solid rgba(201, 118, 38, 0.6);
+  border-radius: 3px;
+  padding: 4px 12px 2px;
+  transform: rotate(-11deg);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.dossierFrame {
+  position: relative;
+  overflow: hidden;
+  background: #f4e7d3;
+  border: 1px solid rgba(91, 61, 42, 0.28);
+  border-radius: 3px;
+}
+.dossierFrame :global(img) {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.caption {
+  margin-top: 10px;
+  font-family: var(--font-courier), monospace;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #5b3d2a;
+  text-align: center;
+}
+
+/* ---------- Magnifying glass hover ---------- */
+.magnifier {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 104px;
+  height: 104px;
+  border: 5px solid #b78742;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #5b3d2a,
+    inset 0 0 0 2px rgba(91, 61, 42, 0.55),
+    0 8px 18px rgba(91, 61, 42, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.86);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 3;
+}
+.magnifierActive {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.magnifierLens {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f4e7d3;
+}
+.magnifierZoom {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+}
+.magnifierHandle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 2px 6px 6px 2px;
+  background: linear-gradient(90deg, #b78742 0 26%, #7a5234 26% 34%, #5b3d2a 34% 100%);
+  box-shadow: inset 0 1px 0 rgba(244, 231, 211, 0.28), inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform-origin: 0 50%;
+  transform: rotate(45deg) translateX(50px);
+}
+
+@media (hover: none) {
+  .dossierFrame {
+    cursor: default;
+  }
+  .magnifier {
+    display: none;
+  }
+}
+
+/* ---------- Motion ---------- */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dossierIn {
+  from { opacity: 0; transform: rotate(4deg) translateY(28px) scale(0.96); }
+  to { opacity: 1; transform: rotate(-1.6deg) translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eyebrow, .headline, .lede, .ctaRow, .dossier {
+    animation-duration: 0.001ms !important;
+    opacity: 1;
+  }
+  .dossier {
+    transform: rotate(-1.6deg);
+  }
+  .glyph {
+    transition: none;
+  }
+}

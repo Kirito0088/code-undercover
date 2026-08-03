@@ -1,6 +1,11 @@
 "use client"
 
-import LetterGlitch from "@/components/LetterGlitch"
+import dynamic from "next/dynamic"
+
+const LetterGlitch = dynamic(
+    () => import("@/components/LetterGlitch"),
+    { ssr: false }
+)
 
 export default function AuthLayout({
     children,

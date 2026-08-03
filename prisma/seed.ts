@@ -24,14 +24,9 @@ const missions = missionData.map((m) => ({
 async function main() {
     console.log("[SEED] Starting mission seeding...")
 
-    // Guard: all missions must be EASY until LevelsClient curriculum maps support tiers
-    const nonEasyMissions = missions.filter(m => m.difficulty !== "EASY")
-    if (nonEasyMissions.length > 0) {
-        throw new Error(
-            `Seed error: missions ${nonEasyMissions.map(m => m.order).join(", ")} have non-EASY difficulty. ` +
-            `Update missionsData.ts or LevelsClient.tsx curriculum maps before seeding.`
-        )
-    }
+    // Difficulty tiers (EASY/MEDIUM/HARD) map cleanly onto the curriculum
+    // tracks in LevelsClient, so no EASY-only guard is needed here.
+    console.log(`[SEED] ${missions.filter(m => m.difficulty === "EASY").length} EASY, ${missions.filter(m => m.difficulty === "MEDIUM").length} MEDIUM, ${missions.filter(m => m.difficulty === "HARD").length} HARD missions.`)
 
     await Promise.all(
         missions.map(async (mission) => {

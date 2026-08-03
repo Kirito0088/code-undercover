@@ -13,7 +13,7 @@ export function NavBackButton() {
     return (
         <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 text-xs text-[#8B8BA7] hover:text-[#F1F1F5] transition-colors border border-[#323242] bg-[#1C1C24] px-3 py-1.5 rounded-md hover:border-[#3F3F52] ml-4 group"
+            className="flex items-center gap-1.5 text-xs text-[#8F9F8F] hover:text-[#E2E8F0] transition-colors border border-[#1F261F] bg-[#0D0E12] px-3 py-1.5 rounded-md hover:border-[#2A3A2A] ml-4 group"
         >
             <ChevronLeft className="size-3.5 group-hover:-translate-x-0.5 transition-transform" />
             Back to Dashboard

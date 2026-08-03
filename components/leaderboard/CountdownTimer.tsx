@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 
@@ -12,23 +13,20 @@ export default function CountdownTimer() {
         m1: "0",
         m2: "0",
         s1: "0",
-        s2: "0"
+        s2: "0",
     })
 
     useEffect(() => {
         const updateTimer = () => {
             const now = new Date()
-            // Baseline target: July 12, 2026, 08:44:10 UTC (exactly 12 hours from 02:14:10 AM local time)
             const targetReset = new Date("2026-07-12T08:44:10Z")
-            const intervalMs = 12 * 60 * 60 * 1000 // 12 hours
-            
+            const intervalMs = 12 * 60 * 60 * 1000
+
             const elapsed = now.getTime() - targetReset.getTime()
             const difference = intervalMs - (elapsed % intervalMs)
             const cycleIndex = Math.floor(elapsed / intervalMs)
 
-            // Check if we crossed the reset boundary
             if (prevTargetRef.current !== null && cycleIndex !== prevTargetRef.current) {
-                // The target time has changed, meaning we crossed the 12-hour boundary!
                 router.refresh()
             }
             prevTargetRef.current = cycleIndex
@@ -47,28 +45,32 @@ export default function CountdownTimer() {
                 m1: minutesStr[0],
                 m2: minutesStr[1],
                 s1: secondsStr[0],
-                s2: secondsStr[1]
+                s2: secondsStr[1],
             })
         }
 
         updateTimer()
-        const timer = setInterval(updateTimer, 1000) // Update every second for real-time countdown
+        const timer = setInterval(updateTimer, 1000)
 
         return () => clearInterval(timer)
     }, [router])
 
     return (
         <div className="flex items-center gap-3 select-none">
-            <span className="text-[#8B8BA7] uppercase font-bold tracking-wider text-[10px]">Leaderboard resets in:</span>
+            <span className="text-[12px] font-normal leading-[1.40] tracking-[0] text-[#62666d] uppercase font-semibold tracking-wider font-mono">
+                Resets in
+            </span>
             <div className="flex items-center gap-1">
-                <span className="bg-[#1C1C24] border border-[#2B2B38] px-2 py-1 rounded text-xs font-mono font-bold text-[#F1F1F5] shadow-inner">{timeDigits.h1}</span>
-                <span className="bg-[#1C1C24] border border-[#2B2B38] px-2 py-1 rounded text-xs font-mono font-bold text-[#F1F1F5] shadow-inner">{timeDigits.h2}</span>
-                <span className="text-[#5C5C7A] font-bold mx-0.5 animate-pulse">:</span>
-                <span className="bg-[#1C1C24] border border-[#2B2B38] px-2 py-1 rounded text-xs font-mono font-bold text-[#F1F1F5] shadow-inner">{timeDigits.m1}</span>
-                <span className="bg-[#1C1C24] border border-[#2B2B38] px-2 py-1 rounded text-xs font-mono font-bold text-[#F1F1F5] shadow-inner">{timeDigits.m2}</span>
-                <span className="text-[#5C5C7A] font-bold mx-0.5 animate-pulse">:</span>
-                <span className="bg-[#1C1C24] border border-[#2B2B38] px-2 py-1 rounded text-xs font-mono font-bold text-[#F1F1F5] shadow-inner">{timeDigits.s1}</span>
-                <span className="bg-[#1C1C24] border border-[#2B2B38] px-2 py-1 rounded text-xs font-mono font-bold text-[#F1F1F5] shadow-inner">{timeDigits.s2}</span>
+                {Object.values(timeDigits).map((digit, i) => (
+                    <React.Fragment key={i}>
+                        <span className="bg-[#141516] border border-[#23252a] px-2 py-1 rounded text-xs font-mono font-bold text-[#f7f8f8]">
+                            {digit}
+                        </span>
+                        {i % 2 === 1 && i < 5 && (
+                            <span className="text-[#62666d] font-bold mx-0.5 animate-pulse">:</span>
+                        )}
+                    </React.Fragment>
+                ))}
             </div>
         </div>
     )

@@ -64,17 +64,17 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
     return (
         <div
             className={`relative rounded-xl p-6 border transition-all duration-300 shadow-lg overflow-hidden group ${isLocked
-                ? "bg-[#0D0D14] border-[#323242] opacity-50"
+                ? "bg-[#07080A] border-[#1F261F] opacity-50"
                 : isCompleted
-                    ? "bg-[#1C1C24] border-emerald-500/20"
-                    : "bg-[#1C1C24] border-[#323242] hover:border-[#3F3F52] hover:bg-[#14141C]"
+                    ? "bg-[#0D0E12] border-emerald-500/20"
+                    : "bg-[#0D0E12] border-[#1F261F] hover:border-[#2A3A2A] hover:bg-[#0D0E12]"
                 } ${isActive && !isCompleted ? "border-l-2 border-l-indigo-500" : ""}`}
         >
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                    <DiffIcon className={`size-5 ${isLocked ? "text-[#3A3A52]" : diff.color}`} />
-                    <span className="text-xs font-mono text-[#5C5C7A]">#{String(mission.order).padStart(2, "0")}</span>
+                    <DiffIcon className={`size-5 ${isLocked ? "text-[#4A5D4A]" : diff.color}`} />
+                    <span className="text-xs font-mono text-[#4A5D4A]">#{String(mission.order).padStart(2, "0")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     {isActive && !isCompleted && (
@@ -82,32 +82,32 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                             In Progress
                         </span>
                     )}
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${isLocked ? "bg-[#2A2A35] text-[#5C5C7A] border-[#323242]" : `${diff.bg} ${diff.color} ${diff.border}`
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${isLocked ? "bg-[#161820] text-[#4A5D4A] border-[#1F261F]" : `${diff.bg} ${diff.color} ${diff.border}`
                         }`}>
                         {mission.difficulty}
                     </span>
                     {isCompleted && <CheckCircle2 className="size-5 text-emerald-400" />}
-                    {isLocked && <Lock className="size-4 text-[#3A3A52]" />}
+                    {isLocked && <Lock className="size-4 text-[#4A5D4A]" />}
                 </div>
             </div>
 
             {/* Title */}
-            <h3 className={`text-lg font-semibold mb-2 ${isLocked ? "text-[#3A3A52]" : "text-[#F1F1F5]"}`}>
+            <h3 className={`text-lg font-semibold mb-2 ${isLocked ? "text-[#4A5D4A]" : "text-[#E2E8F0]"}`}>
                 {mission.title}
             </h3>
 
             {/* Description */}
-            <p className={`text-sm mb-6 line-clamp-3 ${isLocked ? "text-[#3A3A52]" : "text-[#8B8BA7]"}`}>
+            <p className={`text-sm mb-6 line-clamp-3 ${isLocked ? "text-[#4A5D4A]" : "text-[#8F9F8F]"}`}>
                 {isLocked ? "Complete the previous mission to unlock this briefing." : mission.description}
             </p>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#323242]">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#1F261F]">
                 <div className="flex items-center gap-3">
-                    <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-[#3A3A52]" : "text-[#5C5C7A]"}`}>
+                    <span className={`text-xs font-mono flex items-center gap-1 ${isLocked ? "text-[#4A5D4A]" : "text-[#4A5D4A]"}`}>
                         <Code className="size-3" /> {mission.language}
                     </span>
-                    <span className={`text-xs font-mono ${isLocked ? "text-[#3A3A52]" : "text-indigo-400"}`}>
+                    <span className={`text-xs font-mono ${isLocked ? "text-[#4A5D4A]" : "text-indigo-400"}`}>
                         +{mission.auraReward} AP
                     </span>
                 </div>
@@ -136,7 +136,7 @@ export function MissionCard({ mission }: { mission: DashboardMission }) {
                     </Button>
                 )}
                 {isLocked && (
-                    <span className="text-xs font-mono text-[#3A3A52] flex items-center gap-1">
+                    <span className="text-xs font-mono text-[#4A5D4A] flex items-center gap-1">
                         <Lock className="size-3" /> LOCKED
                     </span>
                 )}

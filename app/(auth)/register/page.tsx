@@ -320,7 +320,7 @@ const AgentIntakeForm = ({
     onSubmit,
 }: AgentIntakeFormProps) => {
     return (
-        <div className="bg-[#1A1A1A] border border-[#323242] rounded-2xl p-8 shadow-2xl relative">
+        <div className="bg-[#0D0E12] border border-[#1F261F] rounded-2xl p-8 shadow-2xl relative">
             <div className="mb-6">
                 <p className="text-xs text-[#6B6B6B] font-mono uppercase tracking-widest">
                     Classification Level: Unclassified until selection
@@ -347,7 +347,7 @@ const AgentIntakeForm = ({
                             onChange={(e) => onChange("name", e.target.value)}
                             onBlur={() => onBlur("name")}
                             placeholder="Enter full real name"
-                            className="w-full bg-transparent border-b border-[#323242] focus:border-transparent text-[#E8E0D0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
+                            className="w-full bg-transparent border-b border-[#1F261F] focus:border-transparent text-[#E2E8F0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
                         />
                         <span className="input-underline" />
                     </div>
@@ -372,7 +372,7 @@ const AgentIntakeForm = ({
                             onChange={(e) => onChange("username", e.target.value)}
                             onBlur={() => onBlur("username")}
                             placeholder="Akshat_09"
-                            className="w-full bg-transparent border-b border-[#323242] focus:border-transparent text-[#E8E0D0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
+                            className="w-full bg-transparent border-b border-[#1F261F] focus:border-transparent text-[#E2E8F0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
                         />
                         <span className="input-underline" />
                     </div>
@@ -397,7 +397,7 @@ const AgentIntakeForm = ({
                             onChange={(e) => onChange("email", e.target.value)}
                             onBlur={() => onBlur("email")}
                             placeholder="name@secure-mail.com"
-                            className="w-full bg-transparent border-b border-[#323242] focus:border-transparent text-[#E8E0D0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
+                            className="w-full bg-transparent border-b border-[#1F261F] focus:border-transparent text-[#E2E8F0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
                         />
                         <span className="input-underline" />
                     </div>
@@ -422,7 +422,7 @@ const AgentIntakeForm = ({
                             onChange={(e) => onChange("password", e.target.value)}
                             onBlur={() => onBlur("password")}
                             placeholder="••••••••"
-                            className="w-full bg-transparent border-b border-[#323242] focus:border-transparent text-[#E8E0D0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
+                            className="w-full bg-transparent border-b border-[#1F261F] focus:border-transparent text-[#E2E8F0] py-2 px-1 focus:outline-none font-mono text-sm tracking-wide transition-all"
                         />
                         <span className="input-underline" />
                     </div>
@@ -439,8 +439,8 @@ const AgentIntakeForm = ({
                         disabled={!isStep1Valid}
                         className={`w-full py-3 px-4 rounded-md font-mono text-sm font-bold uppercase tracking-wider transition-all duration-300
                             ${isStep1Valid
-                                ? "bg-[#C9A84C] hover:bg-[#B5953F] text-[#1A1A1A] cursor-pointer shadow-lg shadow-[#C9A84C]/10"
-                                : "bg-[#2A2A35] text-[#5C5C7A] cursor-not-allowed border border-[#323242]"
+                                ? "bg-[#C9A84C] hover:bg-[#B5953F] text-[#0D0E12] cursor-pointer shadow-lg shadow-[#C9A84C]/10"
+                                : "bg-[#161820] text-[#4A5D4A] cursor-not-allowed border border-[#1F261F]"
                             }`}
                     >
                         PROCEED TO LANGUAGE SELECTION
@@ -488,7 +488,7 @@ const DossierSelection = ({
                     type="button"
                     onClick={onAbort}
                     disabled={loading}
-                    className="flex items-center gap-1.5 text-xs font-mono text-[#8B8BA7] hover:text-[#E8E0D0] disabled:opacity-40 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-mono text-[#8F9F8F] hover:text-[#E2E8F0] disabled:opacity-40 transition-colors cursor-pointer"
                 >
                     <ChevronLeft className="size-4" />
                     ABORT
@@ -526,7 +526,7 @@ const DossierSelection = ({
                         {/* Body pocket of the dossier */}
                         <div className="dossier-body absolute bottom-0 left-0 right-0 h-[calc(100%-12px)] flex flex-col justify-end p-5 pb-8 z-10">
                             <div className="absolute inset-x-0 top-24 bottom-4 flex flex-col items-center justify-center p-6 text-center select-none pointer-events-none">
-                                <div className="bg-[#E8E0D0] text-[#1A1A1A] text-[10px] font-mono font-bold tracking-widest px-2.5 py-1.5 border border-[#81662B] uppercase mb-2 shadow-sm">
+                                <div className="bg-[#E2E8F0] text-[#0D0E12] text-[10px] font-mono font-bold tracking-widest px-2.5 py-1.5 border border-[#81662B] uppercase mb-2 shadow-sm">
                                     PRIMARY WEAPON — SELECT ONE
                                 </div>
                                 <p className="text-[9px] font-mono text-[#56441D] tracking-wide uppercase opacity-75">
@@ -578,14 +578,14 @@ const DossierSelection = ({
                                                     }}
                                                     className={`dossier-card-item relative aspect-[4/3] flex flex-col justify-between p-3.5 
                                                         text-left border transition-all duration-300 rounded shadow-md group
-                                                        bg-[#E8E0D0] border-[#1A1A1A] text-[#1A1A1A]
+                                                        bg-[#E2E8F0] border-[#0D0E12] text-[#0D0E12]
                                                         hover:-translate-y-1 hover:shadow-lg hover:shadow-[#C9A84C]/20
                                                         disabled:pointer-events-none
                                                         ${isSelected ? "scale-[0.96] border-[#39D375] border-2 shadow-inner" : ""}
                                                     `}
                                                 >
                                                     {isSelected && (
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-[#E8E0D0]/80 z-20 transition-all rounded">
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-[#E2E8F0]/80 z-20 transition-all rounded">
                                                             <div className="ink-stamp-selected text-xs">
                                                                 SELECTED
                                                             </div>
@@ -593,7 +593,7 @@ const DossierSelection = ({
                                                     )}
 
                                                     <div className="flex justify-between items-start">
-                                                        <div className="p-1 rounded bg-[#1A1A1A]/5 text-[#1A1A1A] group-hover:bg-[#1A1A1A]/10 transition-colors">
+                                                        <div className="p-1 rounded bg-[#0D0E12]/5 text-[#0D0E12] group-hover:bg-[#0D0E12]/10 transition-colors">
                                                             <IconComponent className="size-5" />
                                                         </div>
                                                         <span className="text-[9px] font-mono text-[#6B6B6B] tracking-wider uppercase font-bold">
@@ -796,10 +796,10 @@ export default function RegisterPage() {
             <div className="mx-auto w-full max-w-md">
                 {/* Step indicator top right */}
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold tracking-wider text-[#F1F1F5] font-mono">
+                    <h2 className="text-xl font-bold tracking-wider text-[#E2E8F0] font-mono">
                         {state.step === 1 ? "AGENT ENLISTMENT" : "PRIMARY WEAPON SELECTION"}
                     </h2>
-                    <div className="flex gap-1.5 text-xs text-[#8B8BA7] font-mono">
+                    <div className="flex gap-1.5 text-xs text-[#8F9F8F] font-mono">
                         <span className={state.step === 1 ? "text-[#C9A84C]" : "opacity-40"}>●</span>
                         <span className={state.step === 2 ? "text-[#C9A84C]" : "opacity-40"}>●</span>
                     </div>

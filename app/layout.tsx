@@ -5,6 +5,8 @@ import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import Navbar from "@/components/Navbar";
 import { NetworkProvider } from "@/components/common/NetworkProvider";
+import { NavigationProgress } from "@/components/NavigationProgress";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,27 +30,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{
           __html: `
           try {
-            const t = localStorage.getItem('cu_theme');
-            if (t === 'light') document.documentElement.classList.add('light');
+            var t = localStorage.getItem('cu-theme');
+            document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark';
           } catch(e) {}
         ` }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <AuthProvider>
-          <NetworkProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Navbar />
-              <main className="flex-1 flex flex-col">{children}</main>
-            </div>
-          </NetworkProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <NetworkProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <Navbar />
+                <NavigationProgress />
+                <main className="flex-1 flex flex-col">{children}</main>
+              </div>
+            </NetworkProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

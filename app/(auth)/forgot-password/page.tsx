@@ -41,26 +41,26 @@ export default function ForgotPasswordPage() {
         <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
 
             <div className="mx-auto w-full max-w-sm">
-                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#F1F1F5]">
+                <h2 className="text-center text-3xl font-semibold tracking-tight text-[#E2E8F0]">
                     Reset your password
                 </h2>
-                <p className="mt-2 text-center text-sm text-[#8B8BA7]">
+                <p className="mt-2 text-center text-sm text-[#8F9F8F]">
                     Enter your email to receive reset instructions
                 </p>
             </div>
 
             <div className="mt-8 mx-auto w-full max-w-sm">
-                <div className="bg-[#1C1C24] border border-[#323242] rounded-2xl p-8 shadow-xl relative">
+                <div className="bg-[#0D0E12] border border-[#1F261F] rounded-2xl p-8 shadow-xl relative">
 
                     {submitted ? (
                         <div className="text-center py-4">
                             <div className="mx-auto size-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4">
                                 <CheckCircle className="size-6 text-emerald-400" />
                             </div>
-                            <h3 className="text-lg font-semibold text-[#F1F1F5] mb-2">
+                            <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">
                                 Email Sent
                             </h3>
-                            <p className="text-sm text-[#8B8BA7] leading-relaxed">
+                            <p className="text-sm text-[#8F9F8F] leading-relaxed">
                                 If an account with that email exists in our system, recovery instructions have been dispatched.
                             </p>
                             <div className="mt-6 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
                     ) : (
                         <form className="space-y-6" onSubmit={handleSubmit}>
                             <div>
-                                <label htmlFor="email" className="block text-xs font-medium text-[#8B8BA7] mb-1.5">
+                                <label htmlFor="email" className="block text-xs font-medium text-[#8F9F8F] mb-1.5">
                                     Email Address
                                 </label>
                                 <div className="mt-2 text-white">
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
                     )}
 
                     {!submitted && (
-                        <div className="mt-6 text-center text-xs text-[#8B8BA7]">
+                        <div className="mt-6 text-center text-xs text-[#8F9F8F]">
                             Remember your password?{" "}
                             <Link href="/login" className="font-medium text-[#39D375] hover:text-indigo-300 transition-colors">
                                 Log in
