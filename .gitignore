@@ -29,8 +29,9 @@ yarn-error.log*
 .env
 .env*.local
 
-# judge0 secrets (see judge0.conf.example for the template)
-judge0.conf
+# judge0.conf is committed with dev-only defaults so a fresh clone can run
+# the stack out of the box (see judge0.conf.example for the template).
+# judge0.conf
 
 # vercel
 .vercel

@@ -1,5 +1,5 @@
 # Stage 1: dependencies
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY prisma ./prisma
 RUN npm install
 
 # Stage 2: builder
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -20,7 +20,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Stage 3: runner
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 # openssl required by Prisma's linux-musl-openssl-3.0.x query engine at runtime
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
