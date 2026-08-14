@@ -71,6 +71,16 @@
   background: rgba(183, 135, 66, 0.5);
 }
 
+/* ─── Monaco Root Error Gutter Decal (T4) ───
+   Exactly one renders at a time — see lib/monacoMarkers.ts. */
+.platypus-gutter-decal {
+  background-image: url("/characters/platipus.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 80%;
+  cursor: pointer;
+}
+
 /* ─── ACCESS DENIED Animations ─── */
 @keyframes denied-flash {
   0% { opacity: 1; }

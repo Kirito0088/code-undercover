@@ -1,10 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import dynamic from "next/dynamic"
-import { MissionRecord } from "@/types"
+import type { OnMount } from "@monaco-editor/react"
+import type { editor as MonacoEditorNS } from "monaco-editor"
+import { CompilerDiagnostic, MissionRecord } from "@/types"
 import type { MissionClearInfo, TerminalLine } from "../MissionWorkspace"
 import { Play } from "lucide-react"
+import { toMonacoMarkers, toGutterDecorations, isRootErrorTarget } from "@/lib/monacoMarkers"
+import { selectRootError } from "@/lib/gccDiagnostics"
+
+// Marker "owner" id — scopes our markers so we only ever clear/replace our
+// own set, never diagnostics another feature might attach to this model.
+const MARKER_OWNER = "gcc"
 
 // Auto-incrementing id for stable React list keys in TerminalPanel
 let lineId = 0
@@ -28,6 +36,10 @@ interface EditorPanelProps {
     setInnovationUnlocked: (unlocked: boolean) => void
     setPendingClearInfo: (info: MissionClearInfo | null) => void
     onRunStarted?: () => void
+    /** Fires whenever the Root Error changes — including to null when it clears. */
+    onRootErrorChange?: (rootError: CompilerDiagnostic | null) => void
+    /** Fires when the student clicks the gutter decal or the Root Error's squiggle. */
+    onRootErrorClick?: (rootError: CompilerDiagnostic) => void
 }
 
 export function EditorPanel({
@@ -38,6 +50,8 @@ export function EditorPanel({
     setInnovationUnlocked,
     setPendingClearInfo,
     onRunStarted,
+    onRootErrorChange,
+    onRootErrorClick,
 }: EditorPanelProps) {
     const defaultCode = mission.startingCode || [
         "// Mission: " + mission.title,
@@ -54,6 +68,60 @@ export function EditorPanel({
 
     const [code, setCode] = useState(defaultCode)
     const [isRunning, setIsRunning] = useState(false)
+
+    // Monaco instances arrive via onMount — refs, not state, since we mutate
+    // markers/decorations imperatively and don't want to re-render on it.
+    const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
+    const monacoRef = useRef<typeof import("monaco-editor") | null>(null)
+    const decorationIdsRef = useRef<string[]>([])
+    // Mirrors the current Root Error for the click listener registered once
+    // in handleEditorMount — state would be stale inside that closure.
+    const rootErrorRef = useRef<CompilerDiagnostic | null>(null)
+
+    const applyDiagnostics = (diagnostics: CompilerDiagnostic[]) => {
+        const editorInstance = editorRef.current
+        const monacoInstance = monacoRef.current
+        const model = editorInstance?.getModel()
+        if (!editorInstance || !monacoInstance || !model) return
+
+        const rootError = selectRootError(diagnostics)
+        rootErrorRef.current = rootError
+
+        monacoInstance.editor.setModelMarkers(
+            model,
+            MARKER_OWNER,
+            toMonacoMarkers(diagnostics, rootError)
+        )
+        decorationIdsRef.current = editorInstance.deltaDecorations(
+            decorationIdsRef.current,
+            toGutterDecorations(rootError)
+        )
+
+        onRootErrorChange?.(rootError)
+    }
+
+    // Clears stale markers/decals immediately — called at the start of every
+    // compile, before the new result arrives, so nothing from a previous run
+    // survives pointing at a line the student has since edited.
+    const clearDiagnostics = () => applyDiagnostics([])
+
+    const handleEditorMount: OnMount = (editorInstance, monacoInstance) => {
+        editorRef.current = editorInstance
+        monacoRef.current = monacoInstance
+
+        editorInstance.onMouseDown((e) => {
+            const rootError = rootErrorRef.current
+            const hit = isRootErrorTarget(
+                e.target.type,
+                e.target.position?.lineNumber,
+                rootError,
+                monacoInstance.editor.MouseTargetType
+            )
+            if (hit && rootError) {
+                onRootErrorClick?.(rootError)
+            }
+        })
+    }
 
     const handleRunCode = async () => {
         // Quick client-side pre-check to avoid unnecessary roundtrips
@@ -72,6 +140,7 @@ export function EditorPanel({
         }
 
         setIsRunning(true)
+        clearDiagnostics()
         setTerminalOutput([
             mkLine({ type: "system" as const, message: "> Compiling and executing…" }),
         ])
@@ -136,6 +205,7 @@ export function EditorPanel({
             })
 
             const result = await response.json()
+            applyDiagnostics(result.diagnostics ?? [])
 
             if (result.success) {
                 // ── SUCCESS: Show output → Platypus → Finish button ──────
@@ -289,6 +359,7 @@ export function EditorPanel({
                     theme="vs-dark"
                     value={code}
                     onChange={(value) => setCode(value || "")}
+                    onMount={handleEditorMount}
                     options={{
                         minimap: { enabled: false },
                         fontSize: 14,
@@ -296,6 +367,8 @@ export function EditorPanel({
                         scrollBeyondLastLine: false,
                         smoothScrolling: true,
                         padding: { top: 16 },
+                        // Root Error gutter decal (T4) renders here.
+                        glyphMargin: true,
                         // ── Autocomplete / IntelliSense disabled ────────────────
                         quickSuggestions: false,
                         suggestOnTriggerCharacters: false,
