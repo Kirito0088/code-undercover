@@ -124,3 +124,20 @@ model DailyQuestion {
   explanation   String   // Explains why it's correct
   createdAt     DateTime @default(now())
 }
+
+// Global, cross-student cache for AI-generated compiler error diagnostics.
+// Keyed by computeErrorHash() (lib/errorHash.ts) over the normalized error
+// message + broken line, so semantically identical beginner mistakes reuse
+// one explanation instead of re-generating per student. See ADR-002.
+model CompilerErrorCache {
+  id          String   @id @default(uuid())
+  errorHash   String   @unique
+  explanation String   @db.Text
+  directFix   String   @db.Text
+  errorType   String?  // CompilerErrorType from lib/errorClassifier.ts, for analytics
+  hitCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([errorHash])
+}
