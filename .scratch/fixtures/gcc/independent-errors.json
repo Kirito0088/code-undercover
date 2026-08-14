@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "error",
+    "message": "'total' undeclared (first use in this function)",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 5, "column": 5 },
+        "finish": { "file": "main.c", "line": 5, "column": 10 }
+      }
+    ]
+  },
+  {
+    "kind": "error",
+    "message": "incompatible types when assigning to type 'int' from type 'char *'",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 12, "column": 9 },
+        "finish": { "file": "main.c", "line": 12, "column": 20 }
+      }
+    ]
+  }
+]

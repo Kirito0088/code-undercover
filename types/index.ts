@@ -5,6 +5,9 @@ export interface CompilerDiagnostic {
     type: "error" | "warning" | "note"
     message: string
     rawContext: string
+    endLine?: number      // from locations[0].finish — for Monaco range markers
+    endColumn?: number
+    children?: CompilerDiagnostic[]  // nested GCC diagnostics (notes attached to a parent error)
 }
 
 /**

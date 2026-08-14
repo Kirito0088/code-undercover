@@ -1,4 +1,5 @@
 import { explainFirstDiagnostic } from './compilerExplanation'
+import { parseGccJsonDiagnostics } from './gccDiagnostics'
 import { CompilerDiagnostic } from '@/types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -98,9 +99,6 @@ function sanitizeString(raw: string): string {
     return filtered.join('\n')
 }
 
-/**
- * Parse GCC diagnostic messages from sanitized compiler output into structured objects.
- */
 function b64encode(text: string): string {
     return Buffer.from(text, 'utf-8').toString('base64')
 }
@@ -108,47 +106,6 @@ function b64encode(text: string): string {
 function b64decode(encoded: string | null | undefined): string {
     if (!encoded) return ''
     return Buffer.from(encoded, 'base64').toString('utf-8')
-}
-
-function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
-    const diagnostics: CompilerDiagnostic[] = []
-    const lines = sanitizedStderr.split('\n')
-
-    // Matches GCC's `<file>:<line>:<col>: error|warning|note: <message>` format.
-    // Filename-agnostic on purpose — different backends/language boxes compile
-    // the submitted source under different internal filenames (e.g. Judge0's
-    // C box compiles as `main.c`, not a name we control).
-    const diagnosticRegex = /^\S+:(\d+):(\d+):\s*(error|warning|note|fatal error):\s*(.+)$/
-
-    let currentDiag: CompilerDiagnostic | null = null
-    let contextLines: string[] = []
-
-    for (const line of lines) {
-        const match = line.match(diagnosticRegex)
-        if (match) {
-            if (currentDiag) {
-                currentDiag.rawContext = contextLines.join('\n').trim()
-                diagnostics.push(currentDiag)
-            }
-            currentDiag = {
-                line: parseInt(match[1], 10),
-                column: parseInt(match[2], 10),
-                type: (match[3] === 'fatal error' ? 'error' : match[3]) as 'error' | 'warning' | 'note',
-                message: match[4].trim(),
-                rawContext: '',
-            }
-            contextLines = []
-        } else if (currentDiag && line.trim() !== '') {
-            contextLines.push(line)
-        }
-    }
-
-    if (currentDiag) {
-        currentDiag.rawContext = contextLines.join('\n').trim()
-        diagnostics.push(currentDiag)
-    }
-
-    return diagnostics
 }
 
 // ─── Main Entry Point ─────────────────────────────────────────────────────────
@@ -187,6 +144,11 @@ export async function executeCode(
                     source_code: b64encode(code),
                     language_id: languageId,
                     stdin: b64encode(input),
+                    // Forces GCC to emit diagnostics as a structured JSON array on
+                    // stderr instead of freeform text, so we can parse them
+                    // deterministically (see lib/gccDiagnostics.ts, ADR-001) rather
+                    // than regexing GCC's human-readable format.
+                    compiler_options: '-fdiagnostics-format=json',
                     cpu_time_limit: cpuTimeLimitSec,
                     wall_time_limit: wallTimeLimitSec,
                     memory_limit: MEMORY_LIMIT_KB,
@@ -220,8 +182,14 @@ export async function executeCode(
 
         // ── Compilation error ────────────────────────────────────────────
         if (statusId === STATUS_COMPILATION_ERROR) {
-            const sanitizedCompilerError = sanitizeString(b64decode(judge0Response.compile_output))
-            const diagnostics = parseGccDiagnostics(sanitizedCompilerError)
+            const rawCompilerOutput = b64decode(judge0Response.compile_output)
+            const sanitizedCompilerError = sanitizeString(rawCompilerOutput)
+            // Parse from the raw (unsanitized) output — parseGccJsonDiagnostics does its
+            // own noise-tolerant JSON-array extraction (see gccDiagnostics.ts), and
+            // sanitizeString's line-filtering is meant for human-readable GCC noise, not
+            // JSON; running it first risks stripping a line that happens to match a noise
+            // pattern out of the JSON payload.
+            const diagnostics = parseGccJsonDiagnostics(rawCompilerOutput)
             const explanationText =
                 explainFirstDiagnostic(diagnostics) ??
                 'There is a compilation error. Read the output above for details.'
@@ -273,11 +241,10 @@ export async function executeCode(
         // ── Collect any compiler warnings that didn't block execution ─────
         const programOutput = sanitizeString(b64decode(judge0Response.stdout))
         const programError = sanitizeString(b64decode(judge0Response.stderr))
-        const sanitizedWarnings = judge0Response.compile_output
-            ? sanitizeString(b64decode(judge0Response.compile_output)) || undefined
-            : undefined
-        const warningDiagnostics = sanitizedWarnings
-            ? parseGccDiagnostics(sanitizedWarnings)
+        const rawCompileOutput = judge0Response.compile_output ? b64decode(judge0Response.compile_output) : ''
+        const sanitizedWarnings = rawCompileOutput ? sanitizeString(rawCompileOutput) || undefined : undefined
+        const warningDiagnostics = rawCompileOutput
+            ? parseGccJsonDiagnostics(rawCompileOutput)
             : undefined
 
         // ── Success ───────────────────────────────────────────────────────

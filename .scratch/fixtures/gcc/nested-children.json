@@ -1,0 +1,27 @@
+[
+  {
+    "kind": "error",
+    "message": "invalid conversion from 'int' to 'int *'",
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 8, "column": 14 },
+        "finish": { "file": "main.c", "line": 8, "column": 15 }
+      }
+    ],
+    "children": [
+      {
+        "kind": "note",
+        "message": "initializing argument 1 of 'void process(int *)'",
+        "children": [],
+        "column-origin": 1,
+        "locations": [
+          {
+            "caret": { "file": "main.c", "line": 2, "column": 6 },
+            "finish": { "file": "main.c", "line": 2, "column": 13 }
+          }
+        ]
+      }
+    ]
+  }
+]

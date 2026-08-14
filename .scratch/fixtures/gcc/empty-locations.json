@@ -1,0 +1,21 @@
+[
+  {
+    "kind": "error",
+    "message": "compilation terminated due to unresolvable internal state",
+    "children": [],
+    "column-origin": 1,
+    "locations": []
+  },
+  {
+    "kind": "error",
+    "message": "'foo' undeclared (first use in this function)",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 6, "column": 3 },
+        "finish": { "file": "main.c", "line": 6, "column": 6 }
+      }
+    ]
+  }
+]

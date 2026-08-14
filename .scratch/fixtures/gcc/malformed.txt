@@ -1,0 +1,4 @@
+In file included from main.c:1:
+main.c: In function 'main':
+main.c:4:12: error: expected ';' before 'return'
+    [{"kind": "error", "message": "trunc

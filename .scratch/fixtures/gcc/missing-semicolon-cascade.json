@@ -1,0 +1,74 @@
+[
+  {
+    "kind": "error",
+    "message": "expected ';' before 'return'",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 4, "column": 12 },
+        "finish": { "file": "main.c", "line": 4, "column": 12 }
+      }
+    ]
+  },
+  {
+    "kind": "error",
+    "message": "'sum' undeclared (first use in this function)",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 5, "column": 12 },
+        "finish": { "file": "main.c", "line": 5, "column": 15 }
+      }
+    ]
+  },
+  {
+    "kind": "note",
+    "message": "each undeclared identifier is reported only once for each function it appears in",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 5, "column": 12 },
+        "finish": { "file": "main.c", "line": 5, "column": 15 }
+      }
+    ]
+  },
+  {
+    "kind": "error",
+    "message": "'sum' undeclared (first use in this function)",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 6, "column": 5 },
+        "finish": { "file": "main.c", "line": 6, "column": 8 }
+      }
+    ]
+  },
+  {
+    "kind": "error",
+    "message": "expected expression before ')' token",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 7, "column": 20 },
+        "finish": { "file": "main.c", "line": 7, "column": 20 }
+      }
+    ]
+  },
+  {
+    "kind": "error",
+    "message": "expected statement before '}' token",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 9, "column": 1 },
+        "finish": { "file": "main.c", "line": 9, "column": 1 }
+      }
+    ]
+  }
+]

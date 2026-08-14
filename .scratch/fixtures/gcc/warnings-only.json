@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "warning",
+    "message": "unused variable 'x' [-Wunused-variable]",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 3, "column": 9 },
+        "finish": { "file": "main.c", "line": 3, "column": 10 }
+      }
+    ]
+  },
+  {
+    "kind": "warning",
+    "message": "control reaches end of non-void function [-Wreturn-type]",
+    "children": [],
+    "column-origin": 1,
+    "locations": [
+      {
+        "caret": { "file": "main.c", "line": 10, "column": 1 },
+        "finish": { "file": "main.c", "line": 10, "column": 1 }
+      }
+    ]
+  }
+]
