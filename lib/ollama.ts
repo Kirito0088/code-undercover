@@ -1,0 +1,148 @@
+import { z } from "zod"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Oracle Ollama SLM client (ADR-004: Fail-Fast Circuit Breaker).
+//
+// Exactly one fetch attempt, wrapped in an AbortController with a strict
+// 8000ms timeout. No retries, no backoff. Any of {timeout, network error,
+// non-2xx, invalid JSON, schema mismatch} resolves to `null` — the caller
+// (lib/explainService.ts) is responsible for turning that into the
+// FALLBACK_EXPLANATION payload. This module never throws for an SLM-side
+// failure.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const OLLAMA_TIMEOUT_MS = 8000
+const MAX_EXPLANATION_SENTENCES = 3
+
+// Ollama's raw generation response, `{ response: "<model output>" }`. The
+// model output itself must be raw JSON matching OllamaExplanationSchema —
+// enforced by the system prompt and re-validated here, since an SLM that
+// can't follow the schema can't be trusted on content either.
+const OllamaGenerateResponseSchema = z.object({
+    response: z.string(),
+})
+
+// Strict: extra keys are rejected outright, matching ADR-004's requirement
+// that deviations are treated as parse failures, never silently coerced.
+const OllamaExplanationSchema = z.strictObject({
+    explanation: z.string(),
+    direct_fix: z.string(),
+})
+
+export type OllamaExplanation = z.infer<typeof OllamaExplanationSchema>
+
+// ADR-004's kid-friendly fallback contract (text/casing per the T3
+// implementation instructions — see PR discussion for the OPEN-1 tradeoff
+// against using the static map's "unknown" explanation instead).
+export const FALLBACK_EXPLANATION = {
+    explanation:
+        "Agent, the diagnostic signal is heavily scrambled on my end. Try fixing one obvious syntax error and compile again to clear the channel.",
+    direct_fix: "",
+} as const
+
+function buildPrompt(rootErrorMessage: string, brokenLineContent: string, errorType?: string): string {
+    return [
+        "You are Platypus, a friendly C programming mentor for students aged 13-18.",
+        "A student's code failed to compile. Explain the mistake and suggest a fix.",
+        "",
+        "Rules (must follow exactly):",
+        "- Reply with raw JSON only: {\"explanation\": string, \"direct_fix\": string}",
+        "- No markdown, no code fences, no prose outside the JSON object.",
+        "- explanation must be at most 3 sentences, plain English, no jargon.",
+        "- direct_fix is a short, concrete code suggestion (or \"\" if none applies).",
+        "",
+        `Compiler error: ${rootErrorMessage}`,
+        `Offending line: ${brokenLineContent}`,
+        errorType ? `Known error category: ${errorType}` : undefined,
+    ]
+        .filter((line) => line !== undefined)
+        .join("\n")
+}
+
+function countSentences(text: string): number {
+    const trimmed = text.trim()
+    if (trimmed.length === 0) return 0
+    const matches = trimmed.match(/[^.!?]+[.!?]+/g)
+    // A trailing sentence fragment with no terminal punctuation still counts
+    // as one sentence — don't let a missing period sneak past the cap.
+    if (!matches) return 1
+    const consumed = matches.join("").length
+    return matches.length + (consumed < trimmed.length ? 1 : 0)
+}
+
+/**
+ * Call the Oracle Ollama instance for an unmapped compiler error.
+ * Returns the validated explanation, or `null` on any failure — never
+ * throws for an SLM-side problem.
+ */
+export async function callOllama(
+    rootErrorMessage: string,
+    brokenLineContent: string,
+    errorType?: string
+): Promise<OllamaExplanation | null> {
+    const baseUrl = process.env.OLLAMA_BASE_URL
+    const model = process.env.OLLAMA_MODEL
+
+    if (!baseUrl || !model) {
+        console.error("[ollama] OLLAMA_BASE_URL/OLLAMA_MODEL not configured — skipping Oracle call")
+        return null
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS)
+
+    try {
+        const res = await fetch(`${baseUrl}/api/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model,
+                prompt: buildPrompt(rootErrorMessage, brokenLineContent, errorType),
+                format: "json",
+                stream: false,
+            }),
+            signal: controller.signal,
+        })
+
+        if (!res.ok) {
+            console.warn(`[ollama] non-2xx response: ${res.status}`)
+            return null
+        }
+
+        const outer = OllamaGenerateResponseSchema.safeParse(await res.json())
+        if (!outer.success) {
+            console.warn("[ollama] malformed top-level response shape")
+            return null
+        }
+
+        let inner: unknown
+        try {
+            inner = JSON.parse(outer.data.response)
+        } catch {
+            // Includes markdown-fenced JSON (```json ... ```) — deliberately
+            // not unwrapped per ADR-004: an SLM that can't emit raw JSON
+            // can't be trusted on content either.
+            console.warn("[ollama] model output was not valid JSON")
+            return null
+        }
+
+        const parsed = OllamaExplanationSchema.safeParse(inner)
+        if (!parsed.success) {
+            console.warn("[ollama] model output failed schema validation", parsed.error.issues)
+            return null
+        }
+
+        if (countSentences(parsed.data.explanation) > MAX_EXPLANATION_SENTENCES) {
+            console.warn("[ollama] explanation exceeded the 3-sentence cap — treating as schema failure")
+            return null
+        }
+
+        return parsed.data
+    } catch (error) {
+        // Network rejection or AbortController firing on timeout.
+        console.warn("[ollama] fetch failed or timed out", error instanceof Error ? error.message : error)
+        return null
+    } finally {
+        clearTimeout(timeoutId)
+    }
+}

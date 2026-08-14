@@ -102,3 +102,13 @@ export function explainFirstDiagnostic(diagnostics: CompilerDiagnostic[]): strin
     const first = diagnostics.find(d => d.type === 'error') ?? diagnostics[0]
     return explainCompilerError(first)
 }
+
+/**
+ * Look up the static Platypus explanation for an already-classified
+ * CompilerErrorType. Used by lib/explainService.ts as the OPEN-1 primary
+ * layer: known error types short-circuit to this map at zero latency/cost,
+ * before ever reaching the Oracle Ollama instance.
+ */
+export function explainByErrorType(errorType: CompilerErrorType): string {
+    return PLATYPUS_EXPLANATIONS[errorType]
+}

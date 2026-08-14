@@ -224,6 +224,10 @@ export const missionValidateLimiter = createLimiter("missionValidate", 20, 60000
 export const missionActionLimiter = createLimiter("missionAction", 15, 60000);
 export const dailyChallengeLimiter = createLimiter("dailyChallenge", 10, 60000);
 export const profileLimiter = createLimiter("profile", 20, 60000);
+// Guards /api/compiler/explain (T3, OPEN-2) — the Oracle Ollama instance is a
+// free-tier self-hosted box; this stops spam-compiling trivial line variants
+// from exhausting it with cache-miss traffic.
+export const compilerExplainLimiter = createLimiter("compilerExplain", 20, 60000);
 
 if (typeof setInterval !== "undefined") {
     setInterval(() => {
@@ -237,5 +241,6 @@ if (typeof setInterval !== "undefined") {
         missionActionLimiter.sweep();
         dailyChallengeLimiter.sweep();
         profileLimiter.sweep();
+        compilerExplainLimiter.sweep();
     }, 5 * 60000);
 }
