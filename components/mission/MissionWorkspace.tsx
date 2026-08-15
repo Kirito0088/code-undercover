@@ -1,14 +1,15 @@
 "use client"
 
-import { useReducer } from "react"
+import { useReducer, useRef, useState } from "react"
 import dynamic from "next/dynamic"
-import type { MissionRecord, UserMissionRecord } from "@/types"
+import type { CompilerDiagnostic, MissionRecord, UserMissionRecord } from "@/types"
 import { LeftPanel } from "./panels/LeftPanel"
 import { EditorPanel } from "./panels/EditorPanel"
 import { TerminalPanel } from "./panels/TerminalPanel"
 import { TeachingPhase } from "./phases/TeachingPhase"
 import { MCQPhase } from "./phases/MCQPhase"
 import { CharacterManager } from "./CharacterManager"
+import { RevealPanel, type RevealPanelHandle } from "../platypus/RevealPanel"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, Zap } from "lucide-react"
 import Link from "next/link"
@@ -103,6 +104,11 @@ export function MissionWorkspace({
     mission,
     userMission,
 }: MissionWorkspaceProps) {
+    // T5 Reveal Friction State Machine — lives outside the reducer since it's
+    // driven by EditorPanel's per-compile callbacks, not a workspace action.
+    const [rootError, setRootError] = useState<CompilerDiagnostic | null>(null)
+    const revealPanelRef = useRef<RevealPanelHandle>(null)
+
     const [state, dispatch] = useReducer(workspaceReducer, {
         phase: (userMission?.phase as "TEACHING" | "MCQ" | "CODING") || "TEACHING",
         hintsUsed: userMission?.hintsUsed || 0,
@@ -342,7 +348,14 @@ export function MissionWorkspace({
                                 setInnovationUnlocked={setInnovationUnlocked}
                                 setPendingClearInfo={setPendingClearInfo}
                                 onRunStarted={() => setActiveTab("terminal")}
+                                onRootErrorChange={setRootError}
+                                onRootErrorClick={() => revealPanelRef.current?.reveal()}
                             />
+
+                            {/* Platypus mascot + Reveal Friction State Machine (T5, ADR-003) */}
+                            <div className="absolute left-4 bottom-4 z-20 pointer-events-none">
+                                <RevealPanel ref={revealPanelRef} rootError={rootError} />
+                            </div>
                         </section>
 
                         {/* RIGHT: Terminal & Hints */}
