@@ -1,0 +1,7 @@
+# judge0.conf is sourced with `env_file:` by docker-compose.yml and read
+# inside a Linux container. A CRLF-ending value (from a Windows checkout
+# with core.autocrlf=true, which has no .gitattributes override by
+# default) leaves a trailing \r on every var, e.g. REDIS_HOST="judge0-redis\r"
+# — that breaks the container's socket/hostname lookups outright. Force LF
+# on checkout regardless of the checking-out machine's autocrlf setting.
+judge0.conf text eol=lf
