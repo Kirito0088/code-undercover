@@ -5,3 +5,11 @@
 # — that breaks the container's socket/hostname lookups outright. Force LF
 # on checkout regardless of the checking-out machine's autocrlf setting.
 judge0.conf text eol=lf
+
+# T7 dataset + tooling: train.jsonl/val.jsonl are read by a Linux-side
+# training pipeline (T8, likely on Oracle Cloud per T10/T11) — force LF so a
+# Windows checkout with core.autocrlf=true doesn't inject \r into every row.
+# generate_dataset.py/verify_dataset.py travel with the data they produce
+# and consume, so pin them the same way for consistency.
+scripts/ml/data/*.jsonl text eol=lf
+scripts/ml/*.py text eol=lf

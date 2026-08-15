@@ -51,6 +51,10 @@ node_modules
 *.o
 compile_commands.json
 
+# Python build artifacts
+__pycache__/
+*.pyc
+
 # Local MongoDB data
 /mongodb_data
 fix_mongodb.bat
