@@ -11,7 +11,12 @@ export default defineConfig({
     },
     test: {
         setupFiles: ["./vitest.setup.ts"],
-        exclude: ["node_modules", ".next", "MyProject"],
+        // Glob form (**/x/**), not bare directory names — a bare name only
+        // matches a top-level entry, so nested paths slip through.
+        // .venv: T8's Python training venv (scripts/ml/.venv) vendors JS
+        // packages that ship their own *.test.ts files — 300+ of them, all
+        // collected as repo tests and all failing, without this.
+        exclude: ["**/node_modules/**", "**/.next/**", "**/MyProject/**", "**/.venv/**"],
         projects: [
             {
                 extends: true,

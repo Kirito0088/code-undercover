@@ -13,3 +13,9 @@ judge0.conf text eol=lf
 # and consume, so pin them the same way for consistency.
 scripts/ml/data/*.jsonl text eol=lf
 scripts/ml/*.py text eol=lf
+
+# T8 tooling read on the same Linux side: requirements.txt is fed to pip on
+# the Oracle box, and the Modelfile emitted next to the merged checkpoint is
+# parsed by Ollama. Same reasoning as the .py files above.
+scripts/ml/requirements.txt text eol=lf
+scripts/ml/outputs/**/Modelfile text eol=lf

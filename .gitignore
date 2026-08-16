@@ -54,6 +54,22 @@ compile_commands.json
 # Python build artifacts
 __pycache__/
 *.pyc
+.pytest_cache/
+
+# T8 fine-tuning: the local venv is multi-GB (torch + CUDA), and model
+# artifacts (LoRA adapters, merged fp16 checkpoints) don't belong in git —
+# requirements.txt pins how to rebuild the venv, and the merged model is
+# linked from the ticket instead. training_summary.json is the exception:
+# it's small, and T9 sanity-checks its loss curve and VRAM numbers.
+scripts/ml/.venv/
+# `import unsloth` writes generated trainer sources into a cache dir under
+# the process's working directory — so it lands wherever the script was run
+# from, not just scripts/ml. Unanchored so it matches at any depth.
+unsloth_compiled_cache/
+scripts/ml/outputs/**
+!scripts/ml/outputs/
+!scripts/ml/outputs/*/
+!scripts/ml/outputs/*/training_summary.json
 
 # Local MongoDB data
 /mongodb_data

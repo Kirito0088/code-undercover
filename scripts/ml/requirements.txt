@@ -1,0 +1,79 @@
+# T8 — Unsloth QLoRA fine-tuning dependencies (see scripts/ml/README.md).
+#
+# Two-step install — a single `pip install -r` can't do this, because pip
+# resolves every listed package's declared dependencies, and Unsloth declares
+# xformers (no Windows wheel exists for any xformers release built against
+# torch 2.5.1) and diffusers (unused; only its image-model paths need it).
+# So Unsloth is deliberately left out of this file and installed separately,
+# with --no-deps, after everything below:
+#
+#     python -m venv scripts/ml/.venv
+#     scripts/ml/.venv/Scripts/python -m pip install -r scripts/ml/requirements.txt        # Windows
+#     scripts/ml/.venv/Scripts/python -m pip install --no-deps unsloth==2026.8.18 unsloth_zoo==2026.8.12
+#
+#     scripts/ml/.venv/bin/python -m pip install -r scripts/ml/requirements.txt             # Linux
+#     scripts/ml/.venv/bin/python -m pip install --no-deps unsloth==2026.8.18 unsloth_zoo==2026.8.12
+#
+# Install into an ISOLATED venv (not --system-site-packages): transformers
+# imports TensorFlow when it can see one, and an unrelated global TF/protobuf
+# pair is enough to break `import trl` outright.
+#
+# torch is pinned to the +cu121 local build, which only exists on the PyTorch
+# index below — so the resolve is deterministic on both Windows and Linux
+# rather than silently picking up PyPI's cu124 wheel.
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+
+# Unsloth's actual dependency set, minus xformers/diffusers (see above) —
+# installed here so `pip install -r` alone satisfies everything Unsloth needs
+# at import time; Unsloth itself is added afterwards with --no-deps.
+transformers==4.57.1
+trl==0.24.0
+peft==0.18.0
+accelerate==1.14.0
+bitsandbytes==0.45.5
+datasets==3.6.0
+
+huggingface_hub==0.36.2
+hf_transfer==0.1.9
+safetensors==0.8.0
+sentencepiece==0.2.2
+tokenizers==0.22.2
+
+protobuf==7.35.1
+tyro==1.0.15
+psutil==7.2.2
+structlog==26.1.0
+typeguard==4.6.0
+docstring_parser==0.18.0
+numpy==2.4.6
+packaging==26.3
+tqdm==4.70.0
+
+# Triton powers Unsloth's fused kernels. There is no upstream Triton wheel for
+# Windows, so Windows uses the triton-windows fork; 3.1.x is the line built
+# against torch 2.5.x. Verified to JIT-compile and run a CUDA kernel on this
+# box with no MSVC toolchain installed.
+triton-windows==3.1.0.post17 ; sys_platform == "win32"
+triton==3.1.0 ; sys_platform == "linux"
+
+pytest==9.1.1  # scripts/ml/test_prompt_format.py
+
+# ── Deliberately absent (see the --no-deps install step at the top) ──────
+#
+# unsloth, unsloth_zoo — installed separately with --no-deps so pip never
+# tries to resolve their declared xformers/diffusers requirement.
+#
+# xformers — there is no Windows wheel for any xformers release built
+# against torch 2.5.1 (0.0.29.post1 ships manylinux wheels only), and
+# building it from source needs a CUDA toolchain. Unsloth imports it inside
+# a try/except and falls back to PyTorch SDPA attention when it's missing
+# (unsloth/models/_utils.py) — verified working end-to-end on this box
+# (10-step smoke test: loss 1.87 -> 1.28, peak VRAM 2.83GB). On Linux
+# (T10/T11's Oracle box) xformers installs cleanly and can be added back for
+# a modest speed-up — it is not required for correctness.
+#
+# diffusers — only imported by Unsloth's image-model paths. Omitted;
+# `import unsloth` and SFT training were both verified without it.
