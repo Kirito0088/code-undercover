@@ -1,58 +1,115 @@
 package com.example.codeundercover_1.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+/**
+ * Dynamic colour is intentionally NOT used. Code Undercover's identity is the
+ * brass-on-chalkboard detective palette; letting Material You repaint it from
+ * the user's wallpaper would erase the brand the web app is built around.
+ */
+
+private val DarkScheme = darkColorScheme(
+    primary = DarkTokens.accent,
+    onPrimary = DarkTokens.accentFg,
+    primaryContainer = Noir.brassDeep,
+    onPrimaryContainer = Noir.brassBright,
+
+    secondary = Noir.mossBright,
+    onSecondary = Noir.chalkboardDeep,
+    secondaryContainer = Noir.moss,
+    onSecondaryContainer = Noir.chalk,
+
+    tertiary = Noir.corkBase,
+    onTertiary = Noir.walnutDeep,
+    tertiaryContainer = Noir.corkDark,
+    onTertiaryContainer = Noir.note,
+
+    background = DarkTokens.bg,
+    onBackground = DarkTokens.text,
+    surface = DarkTokens.surface,
+    onSurface = DarkTokens.text,
+    surfaceVariant = Noir.walnut,
+    onSurfaceVariant = DarkTokens.muted,
+    surfaceContainerHighest = Noir.walnutLight,
+
+    outline = DarkTokens.border,
+    outlineVariant = Noir.walnutDeep,
+
+    error = Noir.inkRedBright,
+    onError = Noir.chalk,
+    errorContainer = Noir.inkRed,
+    onErrorContainer = Noir.note,
+
+    scrim = Noir.walnutDeep,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+private val LightScheme = lightColorScheme(
+    primary = LightTokens.accent,
+    onPrimary = LightTokens.accentFg,
+    primaryContainer = Noir.brassBright,
+    onPrimaryContainer = Noir.walnutDeep,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = Noir.moss,
+    onSecondary = Noir.chalk,
+    secondaryContainer = Noir.tapeGreen,
+    onSecondaryContainer = Noir.chalkboardDeep,
+
+    tertiary = Noir.corkDark,
+    onTertiary = Noir.note,
+    tertiaryContainer = Noir.corkBase,
+    onTertiaryContainer = Noir.walnutDeep,
+
+    background = LightTokens.bg,
+    onBackground = LightTokens.text,
+    surface = LightTokens.surface,
+    onSurface = LightTokens.text,
+    surfaceVariant = Noir.paper,
+    onSurfaceVariant = LightTokens.muted,
+    surfaceContainerHighest = Noir.paperLocked,
+
+    outline = LightTokens.border,
+    outlineVariant = Noir.paperEdge,
+
+    error = Noir.inkRed,
+    onError = Noir.chalk,
+    errorContainer = Noir.inkRedBright,
+    onErrorContainer = Noir.note,
+
+    scrim = Noir.walnutDeep,
 )
 
 @Composable
-fun CodeUndercover1Theme(
+fun CodeUndercoverTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val colorScheme: ColorScheme = if (darkTheme) DarkScheme else LightScheme
+    val view = LocalView.current
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            // Bars are drawn behind by enableEdgeToEdge; this only decides
+            // whether their icons render dark or light against our palette.
+            WindowCompat.getInsetsController(window, view)
+                .isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view)
+                .isAppearanceLightNavigationBars = !darkTheme
+        }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        typography = AppTypography,
+        content = content,
     )
 }

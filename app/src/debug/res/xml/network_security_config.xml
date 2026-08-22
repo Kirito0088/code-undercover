@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug only. Overrides the release config so the app can reach a Next.js dev
+  server over plain HTTP: 10.0.2.2 is the host machine from the emulator, and
+  a LAN address covers a physical device on the same Wi-Fi.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Release posture: HTTPS only. The debug source set overrides this file to
+  permit cleartext, so a dev build can talk to `next dev` over plain HTTP on
+  the LAN without weakening the shipping app.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
