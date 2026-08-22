@@ -1,20 +1,12 @@
 "use client"
 
 import { useRef, useEffect, useCallback } from "react"
-import Image from "next/image"
-import { MissionRecord } from "@/types"
 import type { TerminalLine } from "../MissionWorkspace"
-import { Terminal as TerminalIcon, HelpCircle, CheckCircle } from "lucide-react"
+import { Terminal as TerminalIcon, CheckCircle } from "lucide-react"
 
 
 interface TerminalPanelProps {
-    mission: MissionRecord
     terminalOutput: TerminalLine[]
-    hintsUsed: number
-    setHintsUsed: (count: number) => void
-    setTerminalOutput: React.Dispatch<React.SetStateAction<TerminalLine[]>>
-    attemptCount: number
-    innovationUnlocked: boolean
     onFinishMission: () => void
 }
 
@@ -22,7 +14,6 @@ function getLineColor(type: string) {
     switch (type) {
         case "error": return "text-red-400"
         case "success": return "text-emerald-400"
-        case "hint": return "text-amber-400"
         case "finish": return "text-indigo-400"
         case "input-prompt": return "text-amber-400"
         default: return "text-[#4A5D4A]"  // system lines
@@ -30,11 +21,7 @@ function getLineColor(type: string) {
 }
 
 export function TerminalPanel({
-    mission,
     terminalOutput,
-    hintsUsed,
-    setHintsUsed,
-    setTerminalOutput,
     onFinishMission,
 }: TerminalPanelProps) {
     const bottomRef = useRef<HTMLDivElement>(null)
@@ -52,47 +39,14 @@ export function TerminalPanel({
         }
     }, [])
 
-    const handleRequestHint = async () => {
-        if (hintsUsed >= 5) return
-
-        try {
-            const res = await fetch("/api/missions/hint", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ missionId: mission.id }),
-            })
-            const data = await res.json()
-            if (data.success) {
-                setHintsUsed(data.hintsUsed)
-                setTerminalOutput((prev) => [
-                    ...prev,
-                    { id: `hint-${Date.now()}`, type: "hint" as const, message: data.hint },
-                ])
-            }
-        } catch (e) {
-            console.error("Hint failed", e)
-        }
-    }
-
     return (
         <div className="flex flex-col h-full bg-[#07080A] border-l border-[#1F261F] relative font-mono">
-            {/* Terminal Header & Hints */}
-            <div className="h-9 bg-[#07080A] border-b border-[#1F261F] flex items-center justify-between px-4 flex-shrink-0">
+            {/* Terminal Header */}
+            <div className="h-9 bg-[#07080A] border-b border-[#1F261F] flex items-center px-4 flex-shrink-0">
                 <div className="flex items-center gap-2 text-xs font-mono text-[#4A5D4A]">
                     <TerminalIcon className="size-4" />
                     Terminal Output
                 </div>
-
-                <button
-                    type="button"
-                    onClick={handleRequestHint}
-                    disabled={hintsUsed >= 5}
-                    aria-label={`Request a hint (${hintsUsed} of 5 used)`}
-                    className="flex items-center gap-2 border border-[#1F261F] bg-[#0D0E12] hover:border-amber-500/30 text-[#8F9F8F] hover:text-amber-400 px-3 py-1 rounded-md text-xs transition-colors disabled:opacity-50"
-                >
-                    <HelpCircle className="size-3 text-amber-400" />
-                    Request Hint ({hintsUsed}/5)
-                </button>
             </div>
 
             {/* Terminal Output Area */}
@@ -118,30 +72,9 @@ export function TerminalPanel({
                         )
                     }
 
-                    // ── Platypus mentor card ─────────────────────────────
+                    // ── Hint messages are suppressed from the terminal ──
                     if (line.type === "hint") {
-                        return (
-                            <div key={line.id} className="mb-4 bg-amber-500/5 border border-amber-500/15 rounded-lg overflow-hidden">
-                                {/* Platypus Header */}
-                                <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/10">
-                                    <div className="relative size-6 rounded-full overflow-hidden border border-amber-500/30 flex-shrink-0 bg-[#07080A]">
-                                        <Image
-                                            src="/characters/platipus.png"
-                                            alt="Platypus"
-                                            fill
-                                            sizes="24px"
-                                            className="object-cover object-top scale-[1.4] translate-y-1"
-                                        />
-                                    </div>
-                                    <span className="text-amber-400 text-xs font-medium">Platypus</span>
-                                    <span className="text-[#4A5D4A] text-xs font-mono ml-auto">Coding Mentor</span>
-                                </div>
-                                {/* Message */}
-                                <div className="p-3 text-[#8F9F8F] text-sm font-mono leading-relaxed whitespace-pre-wrap">
-                                    {line.message.replace('Analysis: ', '').replace('Mission requirement: ', '')}
-                                </div>
-                            </div>
-                        )
+                        return null
                     }
 
                     // ── Finish Mission button ───────────────────────────

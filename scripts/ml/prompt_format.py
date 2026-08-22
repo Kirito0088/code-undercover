@@ -77,11 +77,16 @@ def build_production_prompt(
     broken_line_content: str,
     error_type: str | None = None,
 ) -> str:
-    """Port of lib/ollama.ts's buildPrompt() — the exact string production sends.
+    """The conceptual full training-time prompt: persona+rules, then the
+    per-request lines.
 
-    Composed from the same two halves the ChatML turns use, so the split can
-    never drift from the flat string: the persona+rules block, a blank line,
-    then the per-request lines.
+    NOT what lib/ollama.ts's buildPrompt() sends as a single string anymore
+    — buildPrompt() sends only the per-request half (matching
+    build_user_turn() below); SYSTEM_PROMPT reaches the model exclusively
+    via the Ollama Modelfile's SYSTEM directive (build_ollama_modelfile()).
+    This helper exists so tests can assert the two halves still concatenate
+    to the same ChatML-equivalent content the model was trained on, without
+    either half drifting independently.
     """
     row = {"gcc_error": root_error_message, "broken_line": broken_line_content}
     return f"{SYSTEM_PROMPT}\n\n{build_user_turn(row, error_type=error_type)}"

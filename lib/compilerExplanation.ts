@@ -9,67 +9,67 @@ import { classifyCompilerError, CompilerErrorType } from './errorClassifier'
 
 const PLATYPUS_EXPLANATIONS: Record<CompilerErrorType, string> = {
     missing_semicolon:
-        `Agent, every statement in C must end with a semicolon (;).\n\nLook at the line the error points to and the line just before it — one of them is probably missing a semicolon at the end.`,
+        `Every statement in C needs to end with a semicolon (;), and yours is missing one.\n\nLook at the line the error points to, and the line just above it — one of them almost always needs a ; added at the end.`,
 
     missing_closing_brace:
-        `Your code is missing a closing curly brace (}).\n\nEvery opening brace { must have a matching closing brace }. Count your braces from top to bottom — one is left unclosed.`,
+        `You're missing a closing curly brace (}) somewhere in your code.\n\nEvery opening { needs a matching } to close it. Try counting your braces from the top of the file down — the count will show you which one never got closed.`,
 
     missing_opening_brace:
-        `Your code is missing an opening curly brace ({).\n\nCheck the function or block around the error line — it might be missing its opening {.`,
+        `You're missing an opening curly brace ({) somewhere in your code.\n\nLook at the function or block near the error line — it's probably starting without its opening {.`,
 
     undeclared_identifier:
-        `You used a name that the program doesn't recognise.\n\nThis usually means:\n• The variable or function name is misspelled\n• You forgot to declare the variable before using it\n• You forgot to #include the header that defines it`,
+        `The compiler found a name it doesn't know.\n\nThat usually means one of three things:\n• You spelled the name differently somewhere else in your code\n• You used the name before you set it up\n• You forgot to #include the file that defines it`,
 
     implicit_function:
-        `You called a function without declaring it first.\n\nThis usually means a required #include is missing at the top of your file. For example, if you are using printf or scanf, you need:\n\n  #include <stdio.h>`,
+        `You called a function the compiler hasn't seen declared yet.\n\nThis almost always means a #include is missing at the top of your file. For example, printf and scanf both need:\n\n  #include <stdio.h>`,
 
     missing_stdio:
-        `You are using printf or scanf, but you haven't included the standard input/output library.\n\nAdd this line at the very top of your code:\n\n  #include <stdio.h>`,
+        `You're using printf or scanf, but the standard input/output library isn't included yet.\n\nAdd this line at the very top of your file:\n\n  #include <stdio.h>`,
 
     missing_math:
-        `You are using a maths function like sqrt or pow, but you haven't included the maths library.\n\nAdd this at the top of your file:\n\n  #include <math.h>\n\nAnd compile with the -lm flag if needed.`,
+        `You're using a math function like sqrt or pow, but the math library isn't included yet.\n\nAdd this at the top of your file:\n\n  #include <math.h>\n\nYou may also need to add the -lm flag when compiling.`,
 
     empty_printf:
-        `You used printf with empty quotes.\n\nprintf is used to display text on the screen. Put the message you want to show inside the quotes.\n\nExample:\n  printf("Hello Agent");`,
+        `You called printf with nothing but empty quotes.\n\nprintf shows text on the screen, so it needs a message inside the quotes to print. For example:\n\n  printf("Hello!");`,
 
     zero_length_format:
-        `Your printf has an empty format string — the quotes contain nothing.\n\nIf you want to print text, write it inside the quotes. If you want a blank line, use:\n  printf("\\n");`,
+        `Your printf's quotes are empty — there's no format text inside them.\n\nPut the text you want to print inside the quotes. If you just want a blank line, use:\n\n  printf("\\n");`,
 
     missing_return:
-        `Your function is declared to return a value (like int), but it has no return statement.\n\nAdd return 0; at the end of main(), or the correct return value at the end of any non-void function.`,
+        `Your function promises to return a value (like int), but it never actually does.\n\nAdd return 0; at the end of main(), or the right value at the end of any other non-void function.`,
 
     type_mismatch:
-        `You are trying to use two different types together in a way C doesn't allow.\n\nCheck that you are assigning compatible types, for example: don't assign a string to an int variable.`,
+        `You're mixing two types together in a way C doesn't allow.\n\nDouble-check what's on each side of the assignment — for example, a whole number (int) and a piece of text (a string) can't just be swapped for each other.`,
 
     too_few_args:
-        `You called a function with fewer arguments than it expects.\n\nCheck the function definition to see how many arguments it needs and add the missing ones.`,
+        `You called a function with fewer arguments than it needs.\n\nCheck how that function is defined to see exactly how many arguments it expects, then add whatever you're missing.`,
 
     too_many_args:
-        `You called a function with more arguments than it expects.\n\nRemove the extra arguments — they are not needed.`,
+        `You called a function with more arguments than it expects.\n\nCheck the function's definition and remove whichever extra arguments it doesn't need.`,
 
     missing_string_terminator:
-        `You opened a string with a double-quote (") but never closed it.\n\nEach string must start and end with a double-quote. Check the error line for an unclosed string.`,
+        `You opened a string with a double-quote (") but never closed it.\n\nEvery string needs a matching " at both ends. Look at the error line for the one that's still open.`,
 
     expected_expression:
-        `The compiler expected a value or expression here but found something else.\n\nCheck for typos, missing values, or misplaced operators near the error line.`,
+        `The compiler expected a value here but found something else instead.\n\nLook near the error line in your code for a typo, a missing value, or a stray symbol like + or - sitting where it shouldn't be.`,
 
     expected_declaration:
-        `The compiler expected a variable or function declaration here.\n\nCheck the area around the error for a missing keyword, type name, or misplaced bracket.`,
+        `The compiler expected a variable or function declaration here.\n\nLook around the error line in your code for a missing type name (like int), a missing keyword, or a bracket in the wrong place.`,
 
     redefinition:
-        `You defined the same variable or function more than once.\n\nEach name can only be declared once in the same scope. Check if you accidentally wrote the same variable declaration twice.`,
+        `You've declared the same variable or function more than once.\n\nEach name can only be declared once in the same scope — check whether you accidentally wrote the same declaration twice.`,
 
     unused_variable:
-        `You declared a variable but never used it.\n\nEither remove it if you don't need it, or use it in your code. This is a warning, not an error, but it's worth cleaning up.`,
+        `You created a variable but never actually used it anywhere.\n\nThis is just a warning, not an error, so your code will still run. It's worth either removing the variable or putting it to use.`,
 
     division_by_zero:
-        `Your code is attempting to divide by zero, which is undefined in C.\n\nCheck your divisor — make sure it can never be 0 before performing division.`,
+        `Your code is dividing by zero somewhere, and C doesn't allow that.\n\nCheck whatever you're dividing by, and make sure it can never end up being 0 before the division happens.`,
 
     incompatible_pointer:
-        `You assigned a pointer to an incompatible pointer type.\n\nCheck that the types on both sides of the assignment match, or cast appropriately.`,
+        `You're assigning a pointer to a variable that expects a different kind of pointer.\n\nCheck that the types on both sides of the assignment match, or add an explicit cast if you really mean to convert between them.`,
 
     unknown:
-        `Something in your code isn't quite right, but I couldn't identify the exact issue.\n\nRead the error message above carefully — it will tell you which line to look at and what the compiler expected to find there.`,
+        `Something in your code isn't quite right, but I couldn't pin down the exact cause.\n\nRead the compiler's message above carefully — it tells you which line to look at and what it expected to find there.`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

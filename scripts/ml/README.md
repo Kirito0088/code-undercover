@@ -13,6 +13,9 @@ diagnostic into the `{explanation, direct_fix}` JSON that
 | `test_prompt_format.py` | T8 | Pins the prompt contract (32 tests) |
 | `train_qlora.py` | T8 | The 4-bit QLoRA fine-tune |
 | `merge_and_export.py` | T8 | Adapter → merged fp16 checkpoint for T9/T11 |
+| `evaluate_model.py` | T9 | LLM-as-Judge evaluation harness across 500 val samples |
+| `test_evaluate_model.py` | T9 | Unit tests for LLM-as-Judge compliance metrics (11 tests) |
+| `evaluation_report.md` | T9 | Evaluator report (100% schema, 100% clarity, PASS) |
 
 ## Setup
 
@@ -157,16 +160,126 @@ rows carry no error-type field, so `build_user_turn()` defaults
 shows degradation when the line is present, the fix is to regenerate a
 fraction of the training rows with it rather than to change the prompt.
 
-## Handoff to T9 / T11
+## Running the LLM-as-Judge evaluation (T9)
+
+Run the full evaluation harness over the 500-sample validation set:
+
+```bash
+scripts/ml/.venv/Scripts/python scripts/ml/evaluate_model.py
+```
+
+Run unit tests for the evaluator:
+
+```bash
+scripts/ml/.venv/Scripts/python -m pytest scripts/ml/test_evaluate_model.py -q
+```
+
+### Measured T9 Evaluation Results (500 validation samples)
+
+From `scripts/ml/evaluation_report.md`:
+
+| Metric | Target | Measured Value | Result |
+|---|---|---|---|
+| **JSON Schema Adherence** | 100.0% | **100.0%** (500/500) | **PASS** |
+| **Pedagogical Clarity (Ages 13-18, Zero Jargon)** | ≥ 98.0% | **100.0%** (500/500) | **PASS** |
+| **Code Isolation (No code in explanation)** | 100.0% | **100.0%** (500/500) | **PASS** |
+| **Sentence Cap (≤ 3 sentences)** | 100.0% | **100.0%** (500/500) | **PASS** |
+| **Untested `error_type` Prompt Probe** | 100.0% Valid JSON | **8/8 Passed** (0% hallucination) | **PASS** |
+
+**Final Verdict:** **PASS — Ready for T11 (GGUF Quantization & Oracle Deploy)**.
+
+## Incident: a corrupt base download silently destroyed the merged model
+
+**Read this before trusting any merged/GGUF artifact.** This already happened
+once and every existing quality gate reported PASS while it did.
+
+**What happened.** A "fast download" (`hf_transfer`) wrote a *full-size,
+non-sparse* 4.6GB shard of the fp16 base
+(`unsloth/Qwen2.5-Coder-3B-Instruct`, `model-00001-of-00002.safetensors`)
+whose contents were partly **zero-filled**. There was no exception, no
+`.incomplete` marker, and the file was not sparse — nothing to notice.
+`merge_and_export.py` then merged the (perfectly good) LoRA adapter into
+those zeros, so every LoRA-targeted attention projection in the affected
+layers came out as *nothing but the tiny LoRA delta*:
+
+```
+model.layers.0.self_attn.q_proj.weight   base: 100% zeros   merged: norm 0.37, max 0.002
+model.layers.0.self_attn.v_proj.weight   base: 100% zeros   merged: norm 0.15, max 0.002
+```
+
+The merged checkpoint, its f16 GGUF, and its Q4_K_M quantisation were all
+dead — the model emitted a single token forever (`"ness"` repeated under
+Unsloth, `{{{{` under llama.cpp).
+
+**Why nothing caught it.**
+
+- `merge_and_export.py`'s delta probes both passed: `targeted_delta > 0` is
+  satisfied because a delta added to zero is still a delta, and
+  `untouched_delta == 0` is satisfied because an untargeted zero tensor is
+  still unchanged. They verify the merge *operation*, not the *sanity of the
+  weights being merged into*.
+- **T9's 100% PASS was never wrong, and never covered this.** T9's default
+  `--model-path` is `outputs/qwen2.5-coder-3b-platypus-lora` — the adapter,
+  against the *4-bit* base, which hashed clean. T9 never evaluated the
+  merged checkpoint, which is the artifact that actually ships.
+
+**How it was found.** In the HuggingFace cache an LFS blob's *filename is
+its expected sha256*, so re-hashing the shard and comparing it to its own
+name is an authoritative offline integrity check:
+
+```bash
+cd ~/.cache/huggingface/hub/models--unsloth--Qwen2.5-Coder-3B-Instruct/blobs
+sha256sum <blob-name>     # must equal the filename
+```
+
+**Guards now in place** (`merge_and_export.py`, tested in
+`test_merge_and_export.py`):
+
+1. `verify_cached_base_integrity()` — hashes every base weight shard against
+   its content-addressed blob name *before* merging, and aborts with the
+   blob path and the fix if any mismatch.
+2. `assert_no_dead_weights()` — aborts on any all-zero 2-D weight matrix or
+   any NaN/Inf, both before and after the merge. No healthy transformer has
+   an all-zero projection matrix, so this catches corruption whatever caused
+   it.
+
+**If you hit it again:**
+
+```bash
+rm ~/.cache/huggingface/hub/models--unsloth--Qwen2.5-Coder-3B-Instruct/blobs/<mismatching-blob>
+pip install hf_xet   # chunk-verified transfer for Xet-enabled repos
+HF_HUB_ENABLE_HF_TRANSFER=0 python -c "from huggingface_hub import hf_hub_download; hf_hub_download('unsloth/Qwen2.5-Coder-3B-Instruct','model-00001-of-00002.safetensors')"
+```
+
+`HF_HUB_ENABLE_HF_TRANSFER=0` is deliberate — `hf_transfer` is what produced
+the silently zero-filled shard.
+
+**Process rule this establishes:** *the quality gate must run against the
+artifact that ships.* An adapter passing under Unsloth says nothing about the
+merged checkpoint or the GGUF. `evaluate_model.py` already supports
+`--backend ollama`, so the deployable artifact can be held to the same 500
+samples — see the T11 handoff below.
+
+## Handoff to T11
 
 - **Adapter:** `outputs/qwen2.5-coder-3b-platypus-lora/` (30MB, gitignored)
 - **Merged fp16:** `outputs/qwen2.5-coder-3b-platypus-merged/` (~6.2GB, gitignored)
-- **Metrics:** `outputs/*/training_summary.json` — committed; holds the full
-  563-point loss curve, VRAM figures, and resolved config for T9 to
-  sanity-check against.
-- `prompt_format.build_inference_prompt()` and `parse_completion()` are the
-  matching inference-side helpers, so T9 evaluates against exactly the
-  prompt and strictness the model was trained for.
+- **Modelfile:** `outputs/qwen2.5-coder-3b-platypus-merged/Modelfile` — pins ChatML SYSTEM/TEMPLATE for Ollama deployment
+- **Evaluation Report:** `scripts/ml/evaluation_report.md` (committed)
+- **Evaluation Results:** `scripts/ml/outputs/evaluation_results.json` (committed)
 
 `merge_and_export.py` prints the exact `llama.cpp` convert + quantise
 commands for T11 when it finishes.
+
+**T11 must gate on the deployable artifact, not on T9's adapter numbers.**
+Once the GGUF is loaded into Ollama, re-run the same evaluation against it
+before the model is considered deployable:
+
+```bash
+scripts/ml/.venv/Scripts/python scripts/ml/evaluate_model.py --backend ollama --ollama-model qwen2.5-coder-platypus:3b
+```
+
+A `--smoke` run (10 samples) is enough to catch a destroyed model instantly;
+the full 500 is what certifies quality. See the incident section above for
+why this step is not optional.
+

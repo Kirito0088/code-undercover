@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { callOllama, FALLBACK_EXPLANATION } from "./ollama"
+import { callOllama, buildPrompt, FALLBACK_EXPLANATION } from "./ollama"
 
 // ADR-004: exactly one fetch attempt, wrapped in an 8000ms AbortController,
 // strict schema validation on the response — any deviation is a failure,
@@ -185,6 +185,44 @@ describe("callOllama", () => {
 
         expect(result).toBeNull()
         expect(global.fetch).not.toHaveBeenCalled()
+    })
+})
+
+describe("buildPrompt", () => {
+    // Train/serve alignment: the persona+rules block now lives solely in
+    // the Ollama Modelfile's SYSTEM directive (scripts/ml/prompt_format.py's
+    // build_ollama_modelfile()). buildPrompt() must send ONLY the
+    // per-request half — matching prompt_format.py's build_user_turn()
+    // line-for-line — or the fine-tuned model receives the persona twice
+    // (once via SYSTEM, once flattened into the user turn) and runs off
+    // the ChatML shape it was trained on.
+
+    it("sends only the per-request lines, with no persona/rules text", () => {
+        const prompt = buildPrompt("error: expected expression", "for (;;) {")
+
+        expect(prompt).toBe(
+            ["Compiler error: error: expected expression", "Offending line: for (;;) {"].join("\n")
+        )
+    })
+
+    it("appends the optional error-type line last, when provided", () => {
+        const prompt = buildPrompt("error: something", "int x = 1", "missing_semicolon")
+
+        expect(prompt).toBe(
+            [
+                "Compiler error: error: something",
+                "Offending line: int x = 1",
+                "Known error category: missing_semicolon",
+            ].join("\n")
+        )
+    })
+
+    it("never contains persona or rules text regardless of arguments", () => {
+        const prompt = buildPrompt("error: something", "int x = 1", "type_mismatch")
+
+        expect(prompt).not.toMatch(/friendly C programming mentor/i)
+        expect(prompt).not.toMatch(/Rules \(must follow exactly\)/i)
+        expect(prompt).not.toMatch(/Reply with raw JSON only/i)
     })
 })
 

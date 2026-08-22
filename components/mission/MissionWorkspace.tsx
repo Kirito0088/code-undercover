@@ -364,13 +364,7 @@ export function MissionWorkspace({
                             state.activeTab === "terminal" ? "flex" : "hidden md:flex"
                         )}>
                             <TerminalPanel
-                                mission={mission}
                                 terminalOutput={state.terminalOutput}
-                                setTerminalOutput={setTerminalOutput}
-                                hintsUsed={state.hintsUsed}
-                                setHintsUsed={setHintsUsed}
-                                attemptCount={state.attemptCount}
-                                innovationUnlocked={state.innovationUnlocked}
                                 onFinishMission={handleFinishMission}
                             />
                         </section>

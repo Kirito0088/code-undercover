@@ -28,7 +28,9 @@ HuggingFace cache for the fp16 base on first run).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -100,6 +102,110 @@ def resolve_base_model(adapter_dir: Path, override: str | None) -> str:
     return base
 
 
+_SHA256_BLOB_NAME = re.compile(r"^[0-9a-f]{64}$")
+
+
+def verify_cached_base_integrity(base_model_name: str) -> None:
+    """Hash-check the base model's cached weight shards before merging into them.
+
+    This exists because of a real incident. A "fast download" (hf_transfer)
+    wrote a *full-size, non-sparse* 4.6GB shard of the fp16 base whose
+    contents were partly zero-filled — no exception, no `.incomplete`
+    marker, nothing to notice. The adapter then merged cleanly into those
+    zeros, so every LoRA-targeted attention projection in the affected
+    layers came out as nothing but the tiny LoRA delta. The exported
+    checkpoint, its f16 GGUF, and its Q4_K_M quantisation were all
+    irrecoverably broken (the model emitted one token forever), while the
+    merge-delta probes further down still reported success.
+
+    In the HuggingFace cache, an LFS blob's *filename is its expected
+    sha256*. So re-hashing each resolved shard and comparing it to the blob
+    name is an authoritative, offline integrity check — no network, no
+    trust in whatever wrote the file. Anything that does not match is a
+    corrupt cache entry: delete that blob and re-download before merging.
+    """
+    from transformers.utils import cached_file
+
+    index = cached_file(base_model_name, "model.safetensors.index.json", _raise_exceptions_for_missing_entries=False)
+    if index is None:
+        shard_names = ["model.safetensors"]
+    else:
+        weight_map = json.loads(Path(index).read_text(encoding="utf-8"))["weight_map"]
+        shard_names = sorted(set(weight_map.values()))
+
+    checked = 0
+    for shard in shard_names:
+        resolved = Path(cached_file(base_model_name, shard)).resolve()
+        blob_name = resolved.name
+        if not _SHA256_BLOB_NAME.match(blob_name):
+            # Not a content-addressed LFS blob (e.g. a local dir or a
+            # non-symlinked cache); nothing authoritative to compare against.
+            print(f"  {shard}: skipped (not a content-addressed cache blob)")
+            continue
+
+        digest = hashlib.sha256()
+        with open(resolved, "rb") as handle:
+            for chunk in iter(lambda: handle.read(8 << 20), b""):
+                digest.update(chunk)
+
+        if digest.hexdigest() != blob_name:
+            raise SystemExit(
+                f"CORRUPT base weight shard: {shard}\n"
+                f"  cache blob:    {resolved}\n"
+                f"  expected sha256: {blob_name}\n"
+                f"  actual   sha256: {digest.hexdigest()}\n\n"
+                "Refusing to merge the adapter into a corrupt base — that silently produces a\n"
+                "broken checkpoint that still passes the merge-delta probes. Fix it with:\n"
+                f"  rm '{resolved}'\n"
+                "  HF_HUB_ENABLE_HF_TRANSFER=0 python -c \"from huggingface_hub import hf_hub_download; \"\n"
+                f"    \"hf_hub_download('{base_model_name}', '{shard}')\"\n"
+                "then re-run this script. Disabling hf_transfer is deliberate: it is what\n"
+                "produced the silently zero-filled shard in the first place."
+            )
+        print(f"  {shard}: sha256 OK ({resolved.stat().st_size / GB:.2f} GB)")
+        checked += 1
+
+    if checked == 0:
+        print("  WARNING: no content-addressed shards were verifiable — integrity unchecked.")
+
+
+def assert_no_dead_weights(model, stage: str) -> None:
+    """Abort if any 2-D weight tensor is entirely zero, or holds NaN/Inf.
+
+    The merge-delta probes below prove the adapter *changed* the right
+    tensors; they cannot prove the tensors were *sane to begin with*. A
+    zero-filled base passes both of them (a delta added to zero is still a
+    delta, and an untargeted zero tensor is still unchanged). This is the
+    absolute check that closes that gap: no real transformer has an
+    all-zero projection matrix, so finding one means the weights are
+    corrupt no matter which step produced them.
+    """
+    dead: list[str] = []
+    nonfinite: list[str] = []
+    for name, param in model.named_parameters():
+        if param.ndim < 2:
+            continue  # biases and norms legitimately can be all-zero
+        data = param.detach()
+        if not torch.isfinite(data).all():
+            nonfinite.append(name)
+        elif not data.any():
+            dead.append(name)
+
+    if dead or nonfinite:
+        detail = ""
+        if dead:
+            detail += f"\n  all-zero tensors ({len(dead)}): " + ", ".join(dead[:6]) + (" ..." if len(dead) > 6 else "")
+        if nonfinite:
+            detail += f"\n  NaN/Inf tensors ({len(nonfinite)}): " + ", ".join(nonfinite[:6])
+        raise SystemExit(
+            f"Corrupt weights detected {stage}.{detail}\n\n"
+            "An all-zero 2-D weight matrix cannot occur in a healthy transformer — the most\n"
+            "likely cause is a corrupt cached download of the base model. Verify the base\n"
+            "shards' sha256 against their cache blob names and re-download any mismatch."
+        )
+    print(f"  weight sanity {stage}: OK (no all-zero or non-finite 2-D tensors)")
+
+
 def write_ollama_modelfile(output_dir: Path) -> Path:
     """Emit the Ollama Modelfile that reproduces training-time ChatML exactly.
 
@@ -154,6 +260,12 @@ def main() -> int:
         low_cpu_mem_usage=True,
     )
 
+    # Both of these run *before* the merge: merging into corrupt weights
+    # destroys the model while every downstream delta probe still passes.
+    print("  verifying cached base weight shards ...")
+    verify_cached_base_integrity(base_model_name)
+    assert_no_dead_weights(model, "in the loaded base model")
+
     # Snapshot one LoRA-targeted weight and one untargeted weight so the merge
     # can be proven to have actually changed the right tensors.
     probe_targeted = model.model.layers[0].self_attn.q_proj.weight.detach().clone()
@@ -176,6 +288,8 @@ def main() -> int:
         )
     if untouched_delta != 0.0:
         raise SystemExit("Merge modified an untargeted weight (embed_tokens) — aborting.")
+
+    assert_no_dead_weights(model, "in the merged model")
 
     print("\n[4/5] Saving the merged checkpoint ...")
     args.output_dir.mkdir(parents=True, exist_ok=True)

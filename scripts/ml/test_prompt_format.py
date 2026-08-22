@@ -99,8 +99,10 @@ def test_generation_prompt_ends_at_the_assistant_marker():
 
 
 def test_system_plus_user_reconstructs_production_prompt_exactly():
-    # The whole point of the split: what the model sees during training is
-    # character-identical to what lib/ollama.ts sends at inference time.
+    # The whole point of the split: SYSTEM_PROMPT (delivered via the Ollama
+    # Modelfile's SYSTEM directive) plus build_user_turn()'s output (what
+    # lib/ollama.ts's buildPrompt() actually sends) is character-identical
+    # to the training-time content — the two halves can't drift apart.
     rebuilt = f"{SYSTEM_PROMPT}\n\n{build_user_turn(ROW)}"
     assert rebuilt == build_production_prompt(ROW["gcc_error"], ROW["broken_line"])
 
@@ -113,6 +115,16 @@ def test_error_type_line_is_appended_only_when_supplied():
 
 
 # ── 3. Drift guard against lib/ollama.ts ─────────────────────────────────
+#
+# buildPrompt() sends ONLY the per-request half — the persona+rules block
+# lives exclusively in the Ollama Modelfile's SYSTEM directive
+# (build_ollama_modelfile(), guarded in section 8 below). So this section
+# now guards two distinct regressions instead of one:
+#   (a) buildPrompt()'s per-request lines still match build_user_turn()'s,
+#       label-for-label (unchanged from before the split fix)
+#   (b) persona/rules text never sneaks back into buildPrompt() — that
+#       would send it twice (once via SYSTEM, once flattened into the user
+#       turn) and run the model off the ChatML shape it was trained on.
 
 
 def _buildprompt_body_from_typescript() -> str:
@@ -133,20 +145,23 @@ def _buildprompt_template_lines_from_typescript() -> list[str]:
 
     These are the per-request lines (`Compiler error: ${...}` etc.). They are
     the half build_user_turn() owns, so they need the same drift guard the
-    quoted persona/rules block gets — a renamed label here would otherwise
-    silently desync training from production.
+    quoted persona/rules block used to get — a renamed label here would
+    otherwise silently desync training from production.
     """
     raw = re.findall(r"`([^`]*)`", _buildprompt_body_from_typescript())
     return [re.sub(r"\$\{([^}]*)\}", r"{\1}", line) for line in raw]
 
 
-def test_system_prompt_matches_the_persona_and_rules_in_ollama_ts():
-    literals = _buildprompt_literals_from_typescript()
-    # buildPrompt()'s quoted literals are the fixed persona + rules block, ending
-    # with a blank separator before the interpolated `Compiler error:` template
-    # line. Everything before that separator is what SYSTEM_PROMPT must mirror.
-    assert literals[-1] == "", f"unexpected trailing literal in buildPrompt(): {literals[-1]!r}"
-    assert SYSTEM_PROMPT == "\n".join(literals[:-1])
+def test_buildprompt_carries_no_persona_or_rules_literal_text():
+    # buildPrompt()'s array literal must contain zero double-quoted string
+    # literals — every fixed line it used to send (persona, rules, the
+    # blank separator) has moved to the Modelfile's SYSTEM directive. Any
+    # quoted literal reappearing here means persona text has crept back
+    # into the per-request prompt, duplicating what SYSTEM already sends.
+    assert _buildprompt_literals_from_typescript() == []
+    body = _buildprompt_body_from_typescript()
+    assert "friendly C programming mentor" not in body
+    assert "Rules (must follow exactly)" not in body
 
 
 def test_user_turn_labels_match_the_template_lines_in_ollama_ts():
