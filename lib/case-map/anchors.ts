@@ -19,7 +19,7 @@ export function buildAnchors(): Pt[] {
 
 const angle = (from: Pt, to: Pt) => Math.atan2(to.y - from.y, to.x - from.x);
 const diff  = (a: number, b: number) => {
-  let d = Math.abs(a - b) % (Math.PI * 2);
+  const d = Math.abs(a - b) % (Math.PI * 2);
   return d > Math.PI ? Math.PI * 2 - d : d;
 };
 
