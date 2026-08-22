@@ -1,178 +1,273 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Big_Shoulders, Karla, Courier_Prime } from "next/font/google"
+import { detectiveFontVariables } from "@/lib/detective-fonts"
+import { useCaseTransition } from "@/hooks/useCaseTransition"
+import { CaseTransitionOverlay } from "@/components/transition/CaseTransitionOverlay"
 import styles from "./DetectiveHero.module.css"
 
-const bigShoulders = Big_Shoulders({
-    subsets: ["latin"],
-    weight: ["500", "700", "800"],
-    variable: "--font-display",
-})
-const karla = Karla({
-    subsets: ["latin"],
-    weight: ["400", "500", "600"],
-    variable: "--font-karla",
-})
-const courierPrime = Courier_Prime({
-    subsets: ["latin"],
-    weight: ["400", "700"],
-    variable: "--font-courier",
-})
+const ZOOM = 2.2 // magnification factor
+const MAX_TILT = 6 // degrees
 
-const EYEBROW_TEXT = "CLASSIFIED // BRIEFING 001"
-const ZOOM = 2.4
+// The hero only ever renders for signed-out visitors — app/page.tsx sends a
+// logged-in user to /dashboard, which is the clearance board itself. So the
+// CTA is the sign-in gate: authenticate, then land straight on the mission
+// board rather than being dropped back here.
+const CTA_HREF = "/login?callbackUrl=%2Flevels"
+
+// index.html: the floating chalk-written code inside .code-bg
+const CODE_BITS = [
+    { text: '<debug mode="on"/>', top: "12%", left: "6%", r: "-6deg", delay: "0s" },
+    { text: "if (bug.found) { solve(); }", top: "22%", left: "38%", r: "4deg", delay: "1.2s" },
+    { text: "for (clue of evidence)", top: "68%", left: "4%", r: "-3deg", delay: "2.1s" },
+    { text: "return caseClosed;", top: "80%", left: "32%", r: "5deg", delay: "0.6s" },
+    { text: "01001000 01001001", top: "6%", left: "70%", r: "-4deg", delay: "1.8s" },
+    { text: 'git commit -m "gotcha"', top: "46%", left: "2%", r: "3deg", delay: "2.6s" },
+    { text: "console.log('caught you');", top: "88%", left: "66%", r: "-5deg", delay: "0.3s" },
+    { text: "try { trust(); } catch(e) {}", top: "34%", left: "80%", r: "2deg", delay: "1.5s" },
+]
 
 export function DetectiveHero() {
-    const [eyebrowText, setEyebrowText] = useState("")
-    const frameRef = useRef<HTMLDivElement>(null)
-    const badgeRef = useRef<HTMLImageElement>(null)
-    const magnifierRef = useRef<HTMLDivElement>(null)
-    const zoomLayerRef = useRef<HTMLSpanElement>(null)
+    const heroRef = useRef<HTMLElement>(null)
+    const glowRef = useRef<HTMLDivElement>(null)
+    const boardWrapRef = useRef<HTMLElement>(null)
+    const corkboardRef = useRef<HTMLDivElement>(null)
+    const photoRef = useRef<HTMLDivElement>(null)
+    const imgRef = useRef<HTMLImageElement>(null)
+    const lensRef = useRef<HTMLDivElement>(null)
+    const glassRef = useRef<HTMLDivElement>(null)
+    const ctaRef = useRef<HTMLAnchorElement>(null)
 
-    // Eyebrow types itself out, matching the original mockup's timing.
-    useEffect(() => {
-        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        if (reduceMotion) {
-            setEyebrowText(EYEBROW_TEXT)
-            return
-        }
-        let i = 0
-        const id = setInterval(() => {
-            i++
-            setEyebrowText(EYEBROW_TEXT.slice(0, i))
-            if (i >= EYEBROW_TEXT.length) clearInterval(id)
-        }, 45)
-        return () => clearInterval(id)
-    }, [])
+    const { phase, message, launch } = useCaseTransition()
+    const isTransitioning = phase !== "idle"
 
-    // Magnifying-glass hover effect over the case-file badge photo.
-    // Uses refs + direct style writes (not React state) so pointermove
-    // doesn't trigger a re-render on every frame.
+    // script.js holds this in a module-level `inTransition` flag so the tilt
+    // handler stops fighting the fly-to-centre transform.
+    const transitioningRef = useRef(false)
+    transitioningRef.current = isTransitioning
+
+    // ─── Magnifying glass that tracks the cursor over the photo ───
     useEffect(() => {
-        const frame = frameRef.current
-        const badge = badgeRef.current
-        const magnifier = magnifierRef.current
-        const zoomLayer = zoomLayerRef.current
-        if (!frame || !badge || !magnifier || !zoomLayer) return
-        if (!window.matchMedia("(hover: hover)").matches) return
+        const wrap = photoRef.current
+        const img = imgRef.current
+        const lens = lensRef.current
+        const glass = glassRef.current
+        if (!wrap || !img || !lens || !glass) return
 
         const setLensBackground = () => {
-            zoomLayer.style.backgroundImage = `url("${badge.src}")`
-            zoomLayer.style.backgroundSize = `${badge.clientWidth * ZOOM}px ${badge.clientHeight * ZOOM}px`
+            glass.style.backgroundImage = `url("${img.currentSrc || img.src}")`
+            glass.style.backgroundSize = `${wrap.clientWidth * ZOOM}px ${wrap.clientHeight * ZOOM}px`
         }
 
-        if (badge.complete) setLensBackground()
-        badge.addEventListener("load", setLensBackground)
-        window.addEventListener("resize", setLensBackground)
+        const moveLens = (clientX: number, clientY: number) => {
+            const rect = wrap.getBoundingClientRect()
+            const x = Math.max(0, Math.min(clientX - rect.left, rect.width))
+            const y = Math.max(0, Math.min(clientY - rect.top, rect.height))
+            const lensSize = lens.offsetWidth
 
-        const handleMove = (e: PointerEvent) => {
-            const rect = badge.getBoundingClientRect()
-            const x = e.clientX - rect.left
-            const y = e.clientY - rect.top
-
-            if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-                magnifier.classList.remove(styles.magnifierActive)
-                return
-            }
-
-            const lensSize = magnifier.clientWidth
-            magnifier.style.left = `${x}px`
-            magnifier.style.top = `${y}px`
-            zoomLayer.style.backgroundPosition = `${-(x * ZOOM - lensSize / 2)}px ${-(y * ZOOM - lensSize / 2)}px`
-            magnifier.classList.add(styles.magnifierActive)
+            lens.style.transform = `translate(${x - lensSize / 2}px, ${y - lensSize / 2}px)`
+            glass.style.backgroundPosition = `${-(x * ZOOM - lensSize / 2)}px ${-(y * ZOOM - lensSize / 2)}px`
         }
-        const handleLeave = () => magnifier.classList.remove(styles.magnifierActive)
 
-        frame.addEventListener("pointermove", handleMove)
-        frame.addEventListener("pointerleave", handleLeave)
+        const activate = () => {
+            setLensBackground()
+            lens.classList.add(styles.lensIsActive)
+        }
+        const deactivate = () => lens.classList.remove(styles.lensIsActive)
+
+        const onMove = (e: MouseEvent) => moveLens(e.clientX, e.clientY)
+        const onTouchStart = (e: TouchEvent) => {
+            activate()
+            moveLens(e.touches[0].clientX, e.touches[0].clientY)
+        }
+        const onTouchMove = (e: TouchEvent) => moveLens(e.touches[0].clientX, e.touches[0].clientY)
+        const onResize = () => {
+            if (lens.classList.contains(styles.lensIsActive)) setLensBackground()
+        }
+
+        wrap.addEventListener("mouseenter", activate)
+        wrap.addEventListener("mouseleave", deactivate)
+        wrap.addEventListener("mousemove", onMove)
+        wrap.addEventListener("touchstart", onTouchStart, { passive: true })
+        wrap.addEventListener("touchmove", onTouchMove, { passive: true })
+        wrap.addEventListener("touchend", deactivate)
+        window.addEventListener("resize", onResize)
 
         return () => {
-            badge.removeEventListener("load", setLensBackground)
-            window.removeEventListener("resize", setLensBackground)
-            frame.removeEventListener("pointermove", handleMove)
-            frame.removeEventListener("pointerleave", handleLeave)
+            wrap.removeEventListener("mouseenter", activate)
+            wrap.removeEventListener("mouseleave", deactivate)
+            wrap.removeEventListener("mousemove", onMove)
+            wrap.removeEventListener("touchstart", onTouchStart)
+            wrap.removeEventListener("touchmove", onTouchMove)
+            wrap.removeEventListener("touchend", deactivate)
+            window.removeEventListener("resize", onResize)
         }
     }, [])
 
+    // ─── Warm lamp glow following the cursor ───
+    useEffect(() => {
+        const hero = heroRef.current
+        const glow = glowRef.current
+        if (!hero || !glow) return
+
+        const onMove = (e: MouseEvent) => {
+            const rect = hero.getBoundingClientRect()
+            glow.style.setProperty("--mx", `${((e.clientX - rect.left) / rect.width) * 100}%`)
+            glow.style.setProperty("--my", `${((e.clientY - rect.top) / rect.height) * 100}%`)
+        }
+
+        hero.addEventListener("mousemove", onMove)
+        return () => hero.removeEventListener("mousemove", onMove)
+    }, [])
+
+    // ─── Subtle 3D tilt on the corkboard ───
+    useEffect(() => {
+        const board = corkboardRef.current
+        if (!board) return
+
+        const onMove = (e: MouseEvent) => {
+            if (transitioningRef.current) return
+            const rect = board.getBoundingClientRect()
+            const px = (e.clientX - rect.left) / rect.width - 0.5
+            const py = (e.clientY - rect.top) / rect.height - 0.5
+            board.style.transform = `perspective(900px) rotateX(${-py * MAX_TILT * 2}deg) rotateY(${px * MAX_TILT * 2}deg)`
+        }
+        const onLeave = () => {
+            if (transitioningRef.current) return
+            board.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)"
+        }
+
+        board.addEventListener("mousemove", onMove)
+        board.addEventListener("mouseleave", onLeave)
+        return () => {
+            board.removeEventListener("mousemove", onMove)
+            board.removeEventListener("mouseleave", onLeave)
+        }
+    }, [])
+
+    // ─── "Start Your Mission": stamp thud, then fly the board to centre ───
+    const handleCtaClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+
+        const cta = ctaRef.current
+        if (cta) {
+            cta.classList.add(styles.stampHit)
+            window.setTimeout(() => cta.classList.remove(styles.stampHit), 160)
+        }
+
+        // The perspective on the wrapper would trap the fixed corkboard, and the
+        // hover tilt would fight the fly-to-centre transform — drop both first.
+        if (boardWrapRef.current) boardWrapRef.current.style.perspective = "none"
+        if (corkboardRef.current) corkboardRef.current.style.transform = ""
+
+        launch({ href: CTA_HREF, element: corkboardRef.current, message: "Verifying credentials" })
+    }
+
     return (
-        <section
-            className={`${styles.section} ${bigShoulders.variable} ${karla.variable} ${courierPrime.variable}`}
-        >
-            {/* Chalk ruling + code-mark glyphs, contained to this section */}
-            <div className={styles.codeBg} aria-hidden="true">
-                <div className={styles.codeBgChecks}></div>
-                <div className={styles.codeBgTokens}>
-                    <span className={`${styles.glyph} ${styles.g1}`}>{"{ }"}</span>
-                    <span className={`${styles.glyph} ${styles.g2}`}>{"</>"}</span>
-                    <span className={`${styles.glyph} ${styles.g3}`}>{"( ) =>"}</span>
-                    <span className={`${styles.glyph} ${styles.g4}`}>{";"}</span>
-                    <span className={`${styles.glyph} ${styles.g5}`}>{"0 1 0 1"}</span>
-                    <span className={`${styles.glyph} ${styles.g6}`}>{"<- return"}</span>
-                </div>
+        <section ref={heroRef} className={`${styles.heroSection} ${detectiveFontVariables}`}>
+            {/* ambient page vignette, purely atmospheric */}
+            <div className={styles.pageVignette} aria-hidden="true" />
+
+            <div className={styles.heroChalkTexture} aria-hidden="true" />
+            <div ref={glowRef} className={styles.lampGlow} aria-hidden="true" />
+
+            {/* floating chalk-written code, purely decorative */}
+            <div
+                className={`${styles.codeBg} ${isTransitioning ? styles.isFading : ""}`}
+                aria-hidden="true"
+            >
+                {CODE_BITS.map((bit) => (
+                    <span
+                        key={bit.text}
+                        className={styles.codeBit}
+                        style={{
+                            top: bit.top,
+                            left: bit.left,
+                            ["--r" as string]: bit.r,
+                            animationDelay: bit.delay,
+                        }}
+                    >
+                        {bit.text}
+                    </span>
+                ))}
             </div>
 
             <div className={styles.heroInner}>
-                {/* Left: copy */}
-                <div>
-                    <p className={styles.eyebrow}>{eyebrowText}</p>
+                {/* LEFT: copy */}
+                <div className={`${styles.heroCopy} ${isTransitioning ? styles.isFading : ""}`}>
+                    <p className={styles.caseTag}>
+                        JOIN NOW
+                        <span className={styles.blinkCursor}>|</span>
+                    </p>
 
-                    <h1 className={styles.headline}>
-                        <span className={styles.headlineSmall}>Welcome to</span>
-                        <span className={styles.headlineBig}>
-                            <em>Code-</em>Undercover
+                    <h1 className={styles.heroTitle}>
+                        Welcome to
+                        <br />
+                        <span className={styles.heroTitleAccent}>
+                            <span className={styles.chalkHighlight} aria-hidden="true" />
+                            Code&#8209;Undercover
                         </span>
                     </h1>
 
-                    <p className={styles.lede}>
+                    <p className={styles.heroParagraph}>
                         Code Undercover is a mission-based learning platform where you solve real
-                        engineering challenges, build production-ready code, and level up your
-                        problem-solving skills in an immersive gamified environment.
+                        engineering challenges, build production-ready code, and level up your problem solving.
                     </p>
 
-                    <div className={styles.ctaRow}>
-                        <Link href="/register" className={styles.btnPrimary}>
-                            <span>Start Your Mission</span>
-                            <span aria-hidden="true">&rarr;</span>
-                        </Link>
-                        <Link href="/register" className={styles.btnSecondary}>
-                            Read the Brief
-                        </Link>
-                    </div>
+                    <Link ref={ctaRef} href={CTA_HREF} onClick={handleCtaClick} className={styles.ctaStamp}>
+                        <span>Start Your Mission</span>
+                    </Link>
                 </div>
 
-                {/* Right: case-file badge photo */}
-                <figure className={styles.dossier}>
-                    <span className={`${styles.tape} ${styles.tapeLeft}`} aria-hidden="true"></span>
-                    <span className={`${styles.tape} ${styles.tapeRight}`} aria-hidden="true"></span>
-                    <span className={styles.stamp} aria-hidden="true">Classified</span>
+                {/* RIGHT: investigation board with mascot photo + magnifier */}
+                <section ref={boardWrapRef} className={styles.heroBoard} aria-label="Case evidence board">
+                    <div ref={corkboardRef} className={styles.corkboard}>
+                        <div className={styles.corkboardGrain} aria-hidden="true" />
+                        <div className={styles.corkboardPin} aria-hidden="true" />
 
-                    <div className={styles.dossierFrame} ref={frameRef}>
-                        <Image
-                            ref={badgeRef}
-                            src="/mascot-logo.png"
-                            alt="Code Undercover badge with three detective agents: a platypus, a fox, and a panda holding magnifying glasses."
-                            width={440}
-                            height={293}
-                            sizes="(max-width: 1000px) 90vw, 440px"
-                            priority
-                        />
+                        <div ref={photoRef} className={styles.evidencePhoto}>
+                            <Image
+                                ref={imgRef}
+                                src="/characters/dossier/detectives.jpeg"
+                                alt="Three detective mascots — a platypus, a fox, and a panda — holding magnifying glasses, the Code Undercover agents"
+                                width={880}
+                                height={880}
+                                sizes="(max-width: 980px) 90vw, 460px"
+                                priority
+                                draggable={false}
+                                className={styles.evidencePhotoImg}
+                            />
 
-                        <div className={styles.magnifier} ref={magnifierRef} aria-hidden="true">
-                            <span className={styles.magnifierLens}>
-                                <span className={styles.magnifierZoom} ref={zoomLayerRef}></span>
-                            </span>
-                            <span className={styles.magnifierHandle}></span>
+                            <div className={styles.evidencePhotoTint} aria-hidden="true" />
+                            <div className={styles.evidencePhotoGrain} aria-hidden="true" />
+
+                            {/* lens that tracks the cursor: ring + glass + handle,
+                                true magnifying-glass geometry */}
+                            <div ref={lensRef} className={styles.lens} aria-hidden="true">
+                                <div ref={glassRef} className={styles.lensGlass} />
+                            </div>
+
+                            <span className={styles.evidencePhotoLabel}>EXHIBIT A — FIELD AGENTS</span>
+                        </div>
+
+                        <div className={`${styles.thread} ${styles.threadOne}`} aria-hidden="true" />
+                        <div className={`${styles.thread} ${styles.threadTwo}`} aria-hidden="true" />
+
+                        <div className={styles.stickyNote}>
+                            <p>
+                                Hover to inspect the clues,
+                                <br />
+                                Agent.
+                            </p>
                         </div>
                     </div>
-
-                    <figcaption className={styles.caption}>
-                        Fig. 01 — Field agents: Platypus · Fox · Panda
-                    </figcaption>
-                </figure>
+                </section>
             </div>
+
+            <CaseTransitionOverlay phase={phase} message={message} />
         </section>
     )
 }

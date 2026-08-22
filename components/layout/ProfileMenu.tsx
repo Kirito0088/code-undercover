@@ -34,26 +34,19 @@ export function ProfileMenu({ user, completedMissions }: ProfileMenuProps) {
 
   return (
     <div className="relative" ref={menuRef}>
+      {/* The trigger *is* the tab's label — the red leather nav-tab around it
+          supplies all the chrome. Anything with its own background here reads
+          as a black pill stuck inside the tab. The agent's name and level live
+          in the panel below rather than in the rail, as in the mockup. */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-3 py-1.5 rounded-md bg-[#0D0E12] border border-[#1F261F] hover:border-[#2A3A2A] transition-all group"
+        className="leading-none text-inherit cursor-pointer"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-label={`Profile menu for ${user.name || "Agent"}`}
       >
-        <Link
-          href="/profile"
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsOpen(false)
-          }}
-          className="size-8 rounded-md bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 overflow-hidden relative hover:bg-emerald-500/20 hover:scale-105 transition-all"
-          title="View Settings"
-        >
-          <Shield className="size-4 text-emerald-400" />
-        </Link>
-        <div className="text-left hidden sm:block">
-          <div className="text-sm font-medium text-[#E2E8F0] leading-none">{user.name || "Agent"}</div>
-          <div className="text-xs text-[#8F9F8F] mt-0.5 font-mono">Aura Lvl {user.auraLevel}</div>
-        </div>
+        Profile
       </button>
 
       {isOpen && (

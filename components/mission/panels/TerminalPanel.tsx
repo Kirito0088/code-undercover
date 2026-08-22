@@ -18,6 +18,14 @@ interface TerminalPanelProps {
     onFinishMission: () => void
 }
 
+// Per-severity styling for diagnostic blocks. Warnings and notes are not
+// failures — colouring them red made every successful-but-noisy run look broken.
+const SEVERITY_TONE = {
+    error: { text: "text-red-400", border: "border-red-500/40" },
+    warning: { text: "text-amber-400", border: "border-amber-500/40" },
+    note: { text: "text-sky-400", border: "border-sky-500/40" },
+} as const
+
 function getLineColor(type: string) {
     switch (type) {
         case "error": return "text-red-400"
@@ -98,19 +106,31 @@ export function TerminalPanel({
             {/* Terminal Output Area */}
             <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                 {terminalOutput.map((line) => {
-                    // ── Diagnostic error block ──────────────────────────
+                    // ── Diagnostic block ────────────────────────────────
                     if (line.isDiagnostic) {
+                        const d = line.diagnostic
+                        const severity = d?.severity ?? "error"
+                        const tone = SEVERITY_TONE[severity]
+                        // line 0 means the diagnostic came from the linker, which
+                        // reports no source position — show the stage instead of
+                        // a bogus "solution.c:0:0".
+                        const location = !d
+                            ? null
+                            : d.line > 0
+                                ? `${d.file}:${d.line}:${d.column}`
+                                : `${d.file} — link stage`
+
                         return (
                             <div key={line.id} className="mb-4">
                                 <div className="text-[#E2E8F0] text-sm font-semibold mb-1 break-words">
-                                    <span className="text-red-400">error: </span>
-                                    {line.message.split('error:')[1] || line.message}
+                                    <span className={tone.text}>{severity}: </span>
+                                    {d ? d.text : line.message}
                                 </div>
-                                <div className="text-[#4A5D4A] text-xs mb-2">
-                                    {line.message.split('error:')[0]}
-                                </div>
+                                {location && (
+                                    <div className="text-[#4A5D4A] text-xs mb-2">{location}</div>
+                                )}
                                 {line.rawContext && (
-                                    <pre className="bg-[#0D0E12] border-l-2 border-red-500/40 p-2 text-xs text-[#8F9F8F] font-mono overflow-x-auto whitespace-pre">
+                                    <pre className={`bg-[#0D0E12] border-l-2 ${tone.border} p-2 text-xs text-[#8F9F8F] font-mono overflow-x-auto whitespace-pre`}>
                                         {line.rawContext}
                                     </pre>
                                 )}

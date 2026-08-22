@@ -2,60 +2,42 @@ import React from "react"
 
 export default function DashboardLoading() {
     return (
-        <div className="flex-grow bg-[#07080A] min-h-[calc(100vh-3.5rem)] relative">
-            <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
-                
-                {/* Left Sidebar Skeleton */}
-                <aside className="w-full md:w-[250px] shrink-0 flex flex-col gap-6">
-                    {/* User Profile Block */}
-                    <div className="bg-[#0D0E12] border border-[#1F261F] rounded-xl p-5 flex flex-col items-center animate-pulse">
-                        <div className="size-20 bg-[#161820] rounded-full mb-3"></div>
-                        <div className="h-4 bg-[#161820] w-2/3 rounded-full mb-2"></div>
-                        <div className="h-3 bg-[#161820] w-1/2 rounded-full"></div>
-                        
-                        <div className="w-full mt-6 space-y-2">
-                            <div className="h-2 bg-[#161820] w-1/3 rounded-full"></div>
-                            <div className="h-2 w-full bg-[#161820] rounded-full"></div>
+        <div className="flex-grow min-h-[calc(100vh-3.5rem)] relative overflow-hidden bg-[linear-gradient(160deg,#204a3a_0%,#17342a_45%,#0d2118_100%)]">
+            {/* chalk noise */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    backgroundImage:
+                        "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")",
+                    opacity: 0.55,
+                    mixBlendMode: "overlay",
+                }}
+            />
+
+            <div className="relative z-10 max-w-[1204px] mx-auto px-6 py-12 flex flex-col items-center animate-pulse">
+                {/* heading skeleton */}
+                <div className="h-12 w-72 rounded-md bg-[#f7f2e7]/10 mb-8"></div>
+
+                {/* clearance boards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-[420px] md:max-w-none">
+                    {[0, 1, 2].map((i) => (
+                        <div key={i} className="flex flex-col">
+                            {/* tab */}
+                            <div className="mx-auto h-7 w-32 rounded bg-[#f7f2e7]/15 mb-2"></div>
+                            {/* frame + polaroid */}
+                            <div className="rounded-t-md bg-[#3b2a1c] p-4 shadow-xl">
+                                <div className="aspect-square rounded-sm bg-[#ecdfc0]"></div>
+                                <div className="mx-auto mt-3 h-4 w-28 rounded bg-[#a5453a]/60"></div>
+                            </div>
+                            {/* body */}
+                            <div className="flex-1 rounded-b-md bg-[#7a2e28] p-5 flex flex-col items-center gap-3">
+                                <div className="h-3 w-4/5 rounded bg-white/20"></div>
+                                <div className="h-3 w-3/5 rounded bg-white/20"></div>
+                                <div className="mt-2 h-9 w-32 rounded bg-[#f0cf8a]/70"></div>
+                            </div>
                         </div>
-                    </div>
-
-                    {/* Navigation list */}
-                    <div className="bg-[#0D0E12] border border-[#1F261F] rounded-xl p-3 flex flex-col gap-2 animate-pulse">
-                        <div className="h-10 bg-[#161820] w-full rounded-lg"></div>
-                        <div className="h-10 bg-[#161820] w-full rounded-lg"></div>
-                        <div className="h-10 bg-[#161820] w-full rounded-lg"></div>
-                    </div>
-                </aside>
-
-                {/* Main Content Skeleton */}
-                <main className="flex-grow min-w-0 flex flex-col gap-6 animate-pulse">
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="space-y-2">
-                            <div className="h-6 bg-[#0D0E12] border border-[#1F261F] w-48 rounded-md"></div>
-                            <div className="h-3 bg-[#0D0E12] border border-[#1F261F] w-64 rounded-md"></div>
-                        </div>
-                        <div className="h-5 bg-[#0D0E12] border border-[#1F261F] w-24 rounded-full"></div>
-                    </div>
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-24 rounded-xl"></div>
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-24 rounded-xl"></div>
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-24 rounded-xl"></div>
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-24 rounded-xl"></div>
-                    </div>
-
-                    {/* Progress Bar Card */}
-                    <div className="bg-[#0D0E12] border border-[#1F261F] h-20 rounded-xl"></div>
-
-                    {/* Levels Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-40 rounded-xl"></div>
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-40 rounded-xl"></div>
-                        <div className="bg-[#0D0E12] border border-[#1F261F] h-40 rounded-xl"></div>
-                    </div>
-                </main>
+                    ))}
+                </div>
             </div>
         </div>
     )

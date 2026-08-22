@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { CheckCircle, Zap } from "lucide-react"
@@ -24,6 +24,15 @@ export function CharacterManager({
 }: CharacterManagerProps) {
     const { push } = useRouter()
     const [foxDismissed, setFoxDismissed] = useState(false)
+    // Reset dismissed state when innovationUnlocked transitions to true,
+    // so the fox animation replays correctly on prop changes.
+    const prevUnlocked = useRef(innovationUnlocked)
+    useEffect(() => {
+        if (innovationUnlocked && !prevUnlocked.current) {
+            setFoxDismissed(false)
+        }
+        prevUnlocked.current = innovationUnlocked
+    }, [innovationUnlocked])
     const showFoxAnimation = innovationUnlocked && !foxDismissed
 
     // Auto-dismiss fox animation after 5 seconds

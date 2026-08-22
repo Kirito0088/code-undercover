@@ -5,6 +5,7 @@ import { db, safeDbQuery } from "@/lib/db"
 import { calculateAuraLevel } from "@/lib/aura"
 import { dailyQuestions } from "@/src/data/missionsData"
 import { dailyChallengeLimiter } from "@/lib/rate-limit"
+import { invalidateUser } from "@/lib/cache"
 
 export async function GET(req: Request) {
     try {
@@ -152,6 +153,9 @@ export async function POST(req: Request) {
                     null,
                     "daily-challenge.updateUser"
                 )
+                // The navbar caches this record; drop it so the new aura shows
+                // on the next navigation rather than after the TTL lapses.
+                if (user.email) await invalidateUser(user.email)
             }
         }
 

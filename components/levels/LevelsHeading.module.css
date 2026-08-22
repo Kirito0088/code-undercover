@@ -1,0 +1,42 @@
+/* Same chalk-script heading treatment as DashboardScene's title, plus a
+   small clearance tag (same stamp gradients as MissionCorkboard's hub tab)
+   identifying which sector's board is on screen. */
+
+.head {
+  text-align: center;
+  margin-bottom: clamp(18px, 3vh, 32px);
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-kalam), cursive;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #f7f2e7;
+  padding: 6px 16px 5px;
+  border-radius: 3px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  margin-bottom: 14px;
+}
+
+.title {
+  font-family: var(--font-kalam), cursive;
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3.8vw, 2.8rem);
+  line-height: 1.1;
+  color: var(--text);
+  text-shadow: 0 0 16px rgba(183, 135, 66, 0.15);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.rule {
+  display: block;
+  width: clamp(200px, 36vw, 500px);
+  height: 2px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, transparent, rgba(183, 135, 66, 0.55), transparent);
+}

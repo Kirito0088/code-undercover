@@ -149,17 +149,31 @@ export async function POST(req: Request) {
 
         if (!runRes.success) {
             // Compilation error, runtime crash, or compiler service issue
+            const errorDetail = runRes.compilerError || runRes.errors || "Execution failed"
+
+            // A judge outage is not the agent's fault. Report it as its own
+            // state and leave the combo streak alone — breaking a streak over
+            // an infrastructure failure punishes the wrong person.
+            if (runRes.serviceUnavailable) {
+                return NextResponse.json({
+                    success: false,
+                    serviceUnavailable: true,
+                    stdout: "",
+                    stderr: "",
+                    validationErrors: [],
+                    explanation: runRes.errors,
+                    comboBonus: 0,
+                    comboStreak: user.comboStreak
+                })
+            }
+
             if (isFirstTimeCompletion) {
                 await db.user.update({ where: { id: user.id }, data: { comboStreak: 0 } })
             }
 
-            const errorDetail = runRes.compilerError || runRes.errors || "Execution failed"
-            const isServiceError = errorDetail.includes("Compiler service") || errorDetail.includes("temporarily unavailable")
-            const validationMsg = isServiceError
-                ? "Compiler service is temporarily busy. Please wait a moment and try again."
-                : runRes.compilerError
-                    ? "Compilation failed. Fix your syntax errors."
-                    : runRes.errors || "Execution failed."
+            const validationMsg = runRes.compilerError
+                ? "Compilation failed. Fix your syntax errors."
+                : runRes.errors || "Execution failed."
 
             return NextResponse.json({
                 success: false,
@@ -172,6 +186,11 @@ export async function POST(req: Request) {
                 comboStreak: isFirstTimeCompletion ? 0 : user.comboStreak
             })
         }
+
+        // Warnings that did not block the build. The compiler collects these,
+        // but until now nothing forwarded them, so an agent whose program ran
+        // never learned it had e.g. an uninitialised variable.
+        const compilerWarnings = (runRes.diagnostics ?? []).filter(d => d.type !== 'error')
 
         // 3. Strict Output Validation against secure backend data
         const validationResult = validateMissionOutput(mission.order, input, finalStdout)
@@ -186,6 +205,7 @@ export async function POST(req: Request) {
                 success: false,
                 stdout: finalStdout,
                 stderr: "",
+                warnings: compilerWarnings,
                 validationErrors: [validationResult.feedbackMessage || "Output validation failed. Please check your implementation."],
                 comboBonus: 0,
                 comboStreak: isFirstTimeCompletion ? 0 : user.comboStreak
@@ -293,6 +313,7 @@ export async function POST(req: Request) {
             success: true,
             stdout: finalStdout,
             stderr: "",
+            warnings: compilerWarnings,
             validationErrors: [],
             earnedAura,
             innovationUnlocked: isInnovation,

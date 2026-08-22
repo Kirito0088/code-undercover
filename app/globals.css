@@ -34,6 +34,20 @@
   }
 }
 
+/* ─── Detective mission board ───
+   --place is how a scattered, pinned item is centred on its --x/--y point.
+   It lives here rather than in a utility class because the keyframes in
+   tailwind.config.ts (dropIn, shake) interpolate it, and it has to collapse
+   to none in the mobile fallback where folders become plain grid items. */
+.cu-scatter {
+  --place: translate(-50%, -50%);
+}
+@media (max-width: 900px) {
+  .cu-scatter {
+    --place: translate(0, 0);
+  }
+}
+
 /* ─── Character Animations ─── */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }

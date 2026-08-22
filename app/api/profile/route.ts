@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { profileLimiter } from "@/lib/rate-limit"
 import { isValidAvatarPath } from "@/lib/avatars"
+import { invalidateUser } from "@/lib/cache"
 
 export async function PATCH(req: Request) {
     try {
@@ -100,6 +101,12 @@ export async function PATCH(req: Request) {
             data: updateData,
             select: { name: true, email: true, username: true, image: true }
         })
+
+        // Name/email feed the profile menu, which the navbar caches.
+        if (updatedUser.email) await invalidateUser(updatedUser.email)
+        if (session.user.email && session.user.email !== updatedUser.email) {
+            await invalidateUser(session.user.email)
+        }
 
         return NextResponse.json({ success: true, user: updatedUser })
     } catch (error: unknown) {

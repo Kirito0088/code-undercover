@@ -1,5 +1,6 @@
-import { explainFirstDiagnostic } from './compilerExplanation'
+import { explainFirstDiagnostic, explainCompilerError, explainRuntimeFailure } from './compilerExplanation'
 import { CompilerDiagnostic } from '@/types'
+import { normalizeQuotes } from './errorClassifier'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -38,6 +39,12 @@ export interface CompileExecutionResult {
     explanation?: string
     exitCode?: number | null
     executionTimeMs?: number
+    /**
+     * The judge itself was unreachable or broken — nothing was compiled. Kept
+     * separate from a code error so the UI never tells an agent to "fix the
+     * issues above" when their submission was never even read.
+     */
+    serviceUnavailable?: boolean
 }
 
 // ─── Compile Cache ───────────────────────────────────────────────────────────
@@ -77,7 +84,7 @@ function setCachedResult(code: string, input: string, result: CompileExecutionRe
  * Sanitize GCC output: filter out noise lines that confuse
  * beginners (system include paths, linker cruft, etc.).
  */
-function sanitizeString(raw: string): string {
+export function sanitizeString(raw: string): string {
     if (!raw) return ''
 
     const NOISE_PATTERNS = [
@@ -87,13 +94,25 @@ function sanitizeString(raw: string): string {
         /^\/usr\/include/i,
         /^\/usr\/lib/i,
         /^\/opt\//i,
+        // The linker's location preamble ("... : in function `main':"). The
+        // line after it carries the actual "undefined reference", so this one
+        // contributes nothing but a scary-looking object-file path.
+        /in function\s+['`][^']*':\s*$/i,
     ]
 
-    const filtered = raw.split('\n').filter(line => {
-        const t = line.trim()
-        if (!t) return true // keep blank lines for context
-        return !NOISE_PATTERNS.some(pat => pat.test(t))
-    })
+    const filtered = raw.split('\n')
+        // Strip the linker's own binary path prefix without dropping the line.
+        // "/usr/bin/ld: main.c:(.text+0x1a): undefined reference to `greet'" is
+        // the single most useful line a beginner gets out of a link failure,
+        // and the /^\/usr\/lib/ rule above never caught /usr/bin anyway.
+        .map(line => line.replace(/^\s*\/\S*\/(ld|ld\.[a-z]+|collect2)(\.exe)?:\s*/i, ''))
+        .filter(line => {
+            // Normalise before matching: GCC writes ‘main’ under a UTF-8 locale,
+            // which the ASCII-quoted noise patterns above would otherwise miss.
+            const t = normalizeQuotes(line).trim()
+            if (!t) return true // keep blank lines for context
+            return !NOISE_PATTERNS.some(pat => pat.test(t))
+        })
 
     return filtered.join('\n')
 }
@@ -110,7 +129,42 @@ function b64decode(encoded: string | null | undefined): string {
     return Buffer.from(encoded, 'base64').toString('utf-8')
 }
 
-function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
+/**
+ * Strip the COMMON leading indentation from GCC's source-context block.
+ *
+ * GCC renders context as an aligned gutter:
+ *
+ *     5 |     printf("hi")
+ *       |                ^
+ *
+ * A blanket .trim() removed the leading spaces of the first line only, sliding
+ * it left relative to the caret line — so the ^ pointed at the wrong column,
+ * which is the one thing the context block exists to show. Removing the same
+ * amount from every line preserves the gutter and the caret position.
+ */
+function dedentContext(lines: string[]): string {
+    if (lines.length === 0) return ''
+
+    const indents = lines
+        .filter(l => l.trim() !== '')
+        .map(l => (l.match(/^[ \t]*/)?.[0].length ?? 0))
+    const common = indents.length > 0 ? Math.min(...indents) : 0
+
+    return lines
+        .map(l => l.slice(common).replace(/\s+$/, ''))
+        .join('\n')
+        .replace(/\n+$/, '')
+}
+
+/**
+ * Linker diagnostics carry no line:col, so they need their own pattern.
+ * Quotes are normalised first — GCC uses ‘directed’ quotes under a UTF-8
+ * locale while ld uses `backtick' style, and both reach this code path.
+ */
+const LINKER_REGEX = /undefined reference to\s+'([^']+)'/i
+
+/** Exported for tests — the caret alignment and linker paths regress silently. */
+export function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
     const diagnostics: CompilerDiagnostic[] = []
     const lines = sanitizedStderr.split('\n')
 
@@ -123,13 +177,17 @@ function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
     let currentDiag: CompilerDiagnostic | null = null
     let contextLines: string[] = []
 
+    const flush = () => {
+        if (currentDiag) {
+            currentDiag.rawContext = dedentContext(contextLines)
+            diagnostics.push(currentDiag)
+        }
+    }
+
     for (const line of lines) {
         const match = line.match(diagnosticRegex)
         if (match) {
-            if (currentDiag) {
-                currentDiag.rawContext = contextLines.join('\n').trim()
-                diagnostics.push(currentDiag)
-            }
+            flush()
             currentDiag = {
                 line: parseInt(match[1], 10),
                 column: parseInt(match[2], 10),
@@ -138,15 +196,34 @@ function parseGccDiagnostics(sanitizedStderr: string): CompilerDiagnostic[] {
                 rawContext: '',
             }
             contextLines = []
-        } else if (currentDiag && line.trim() !== '') {
+            continue
+        }
+
+        // Link failures ("undefined reference to `greet'") carry no line:col and
+        // so never matched the regex above. They used to fall through as zero
+        // diagnostics, leaving the agent with raw ld output and the generic
+        // "read the output above" explanation — calling a function you never
+        // defined is far too common a beginner mistake to leave unexplained.
+        const linkerMatch = normalizeQuotes(line).match(LINKER_REGEX)
+        if (linkerMatch) {
+            flush()
+            currentDiag = {
+                line: 0,
+                column: 0,
+                type: 'error',
+                message: `undefined reference to '${linkerMatch[1]}'`,
+                rawContext: '',
+            }
+            contextLines = []
+            continue
+        }
+
+        if (currentDiag && line.trim() !== '') {
             contextLines.push(line)
         }
     }
 
-    if (currentDiag) {
-        currentDiag.rawContext = contextLines.join('\n').trim()
-        diagnostics.push(currentDiag)
-    }
+    flush()
 
     return diagnostics
 }
@@ -222,9 +299,14 @@ export async function executeCode(
         if (statusId === STATUS_COMPILATION_ERROR) {
             const sanitizedCompilerError = sanitizeString(b64decode(judge0Response.compile_output))
             const diagnostics = parseGccDiagnostics(sanitizedCompilerError)
+            // With zero parsed diagnostics, classify the raw compiler text rather
+            // than emitting a dead-end "read the output above" line — the
+            // classifier still recognises preprocessor and link failures in it.
             const explanationText =
                 explainFirstDiagnostic(diagnostics) ??
-                'There is a compilation error. Read the output above for details.'
+                (sanitizedCompilerError
+                    ? explainCompilerError(sanitizedCompilerError)
+                    : 'There is a compilation error. Read the output above for details.')
 
             const compileErrorResult: CompileExecutionResult = {
                 success: false,
@@ -250,9 +332,12 @@ export async function executeCode(
 
         // ── Internal / exec-format errors ──────────────────────────────────
         if (statusId === STATUS_INTERNAL_ERROR || statusId === STATUS_EXEC_FORMAT_ERROR) {
+            const detail = b64decode(judge0Response.message) || judge0Response.status?.description || 'Unknown error'
+            console.error('[COMPILER] Judge0 internal error (status %d): %s', statusId, detail)
             return {
                 success: false,
-                errors: `Internal compiler error: ${b64decode(judge0Response.message) || judge0Response.status?.description || 'Unknown error'}`,
+                serviceUnavailable: true,
+                errors: `The code-execution service failed while handling your submission (${detail}). This is a platform problem, not a mistake in your program.`,
                 executionTimeMs,
             }
         }
@@ -261,10 +346,12 @@ export async function executeCode(
         if (statusId !== STATUS_ACCEPTED) {
             const programOutput = sanitizeString(b64decode(judge0Response.stdout))
             const programError = sanitizeString(b64decode(judge0Response.stderr))
+            const statusDescription: string | undefined = judge0Response.status?.description
             return {
                 success: false,
                 output: programOutput || undefined,
-                errors: programError || judge0Response.status?.description || `Program exited abnormally (status ${statusId})`,
+                errors: programError || statusDescription || `Program exited abnormally (status ${statusId})`,
+                explanation: explainRuntimeFailure(statusDescription, programError),
                 exitCode: judge0Response.exit_code ?? null,
                 executionTimeMs,
             }
@@ -294,10 +381,20 @@ export async function executeCode(
         return successResult
 
     } catch (error) {
-        console.error('[COMPILER] Unexpected error during Judge0 API execution:', error)
+        // Network-level failures surface as an opaque "fetch failed" from undici.
+        // Logging the cause is what turns an unactionable UI string into a
+        // diagnosable one (ECONNREFUSED vs. DNS vs. timeout).
+        const cause = (error as { cause?: { code?: string } })?.cause
+        console.error(
+            '[COMPILER] Judge0 unreachable at %s (%s)',
+            process.env.JUDGE0_API_URL || 'http://judge0-server:2358',
+            cause?.code ?? (error instanceof Error ? error.name : 'unknown'),
+            error
+        )
         return {
             success: false,
-            errors: `Internal compiler error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            serviceUnavailable: true,
+            errors: 'The code-execution service is not responding, so your code was never compiled. This is a platform problem, not a mistake in your program.',
             executionTimeMs: Date.now() - startTime,
         }
     }

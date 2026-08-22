@@ -22,7 +22,18 @@ services:
     depends_on:
       judge0-server:
         condition: service_healthy
-    restart: unless-stopped
+    # Opt-in only. Without a profile this service starts on a bare
+    # `docker compose up` — which is what you run to get Judge0 — and then
+    # publishes :3000 from whatever image was last built. `next dev` finds the
+    # port taken, silently falls back to :3001, and localhost:3000 keeps
+    # serving a frozen old build of the UI. Start it deliberately with
+    #   docker compose --profile app up --build
+    # and rebuild whenever you want it to reflect current source.
+    profiles: ["app"]
+    # NOT unless-stopped: that policy makes Docker Desktop resurrect this
+    # container on every machine/daemon restart, re-taking :3000 behind your
+    # back. It should only ever run because you asked for it.
+    restart: "no"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/ping', r => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
       interval: 30s
@@ -73,6 +84,16 @@ services:
     depends_on:
       - judge0-server
 
+  # NOTE: POSTGRES_PASSWORD is only ever applied when the judge0_data volume is
+  # first initialised. Editing it in judge0.conf afterwards does NOT change the
+  # stored password, so judge0-server then crash-loops on
+  #   FATAL: password authentication failed for user "judge0"
+  # while `psql -h 127.0.0.1` from inside this container still appears to work —
+  # pg_hba.conf trusts loopback, so that test gives a false pass. Reproduce the
+  # real path with `-h judge0-db`, which hits the scram-sha-256 rule.
+  # To resync without destroying the volume:
+  #   docker exec <db> psql -U judge0 -d judge0 \
+  #     -c "ALTER USER judge0 WITH PASSWORD '<value from judge0.conf>';"
   judge0-db:
     image: postgres:16.2
     env_file: judge0.conf

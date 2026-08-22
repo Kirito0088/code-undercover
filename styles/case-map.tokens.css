@@ -1,0 +1,43 @@
+:root {
+  /* Ground & Board */
+  --cm-bg-mat:        #0E2A1F;
+  --cm-frame-wood:    #4D2E17;
+  --cm-cork-base:     #B07D4F;
+  --cm-cork-dark:     #8C5F35;
+
+  /* Header & Navigation */
+  --cm-nav-wood-hi:   #4A3626;
+  --cm-nav-wood-lo:   #3B2B1D;
+  --cm-nav-rule:      #D9A441;
+  --cm-nav-text:      #F0E4CE;
+
+  /* Card Surfaces & Ink */
+  --cm-paper-locked:  #D5C7A9;
+  --cm-paper-clear:   #F4F1E4;
+  --cm-paper-active:  #E8B54A;
+  --cm-paper-edge:    rgba(60,40,20,.35);
+  --cm-ink-dark:      #2F2A22;
+  --cm-ink-muted:     #6A5C48;
+
+  /* Status & Accents */
+  --cm-ribbon-red:    #A8221E;
+  --cm-ribbon-green:  #2F7D3A;
+  --cm-tape-green:    #B9CDB6;
+  --cm-thread-live:   #C0392B;
+  --cm-thread-dead:   rgba(120,40,30,.55);
+  --cm-pin-red:       #C0392B;
+
+  /* Type roles */
+  --cm-font-display: "Special Elite", "Courier Prime", ui-monospace, monospace;
+  --cm-font-label:   "Bitter", "Zilla Slab", Georgia, serif;
+  --cm-font-data:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Z-Index Hierarchy */
+  --z-board:    0;
+  --z-threads:  10;
+  --z-polaroid: 20;
+  --z-notes:    30;
+  --z-cards:    40;
+  --z-pins:     50;
+  --z-chrome:   100;
+}

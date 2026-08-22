@@ -32,6 +32,18 @@ export type TerminalLine = {
     message: string
     rawContext?: string
     isDiagnostic?: boolean
+    /**
+     * Structured GCC diagnostic, set whenever isDiagnostic is. The terminal used
+     * to recover these by string-splitting `message` on "error:", which silently
+     * mislabelled every warning and note as an error. Carry the fields instead.
+     */
+    diagnostic?: {
+        severity: "error" | "warning" | "note"
+        file: string
+        line: number
+        column: number
+        text: string
+    }
     onSubmit?: (val: string) => void
 }
 

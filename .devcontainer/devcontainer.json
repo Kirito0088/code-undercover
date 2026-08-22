@@ -1,0 +1,25 @@
+{
+  "name": "code-undercover-dev",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "target": "deps",
+    "args": {}
+  },
+  "runArgs": {
+    "port": "3000:3000",
+    "volumes": [
+      "." : "/app"
+    ],
+    "workingDir": "/app"
+  },
+  "forwardPorts": [3000],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "bradlc.better-zip-bracket-spacing"
+      ]
+    }
+  },
+  "postCreateCommand": "npm install"
+}

@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 
+// .js suffix required: next/constants has no ESM subpath export.
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
@@ -32,12 +35,30 @@ const securityHeaders = [
   { key: "Vary", value: "Accept-Encoding" },
 ];
 
+// Only production emits content-hashed filenames under /_next/static. The
+// Turbopack dev server reuses stable URLs (_buildManifest.js, _ssgManifest.js,
+// Foo_module_css_1igg3k2._.single.css) whose bodies change on every recompile,
+// so an immutable year-long max-age pins the browser to the first bundle it
+// ever downloaded. It then hydrates that stale bundle against freshly rendered
+// SSR HTML, which surfaces as a hydration mismatch. In development we send no
+// Cache-Control at all here and let Next manage its own dev assets — it warns
+// on any custom Cache-Control for this route, and it is right to.
+const staticAssetHeaders = (isDev) => [
+  ...(isDev ? [] : [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }]),
+  { key: "Cross-Origin-Resource-Policy", value: "anonymous" },
+];
+
 const nextConfig = (phase) => {
+  const isDev = phase === PHASE_DEVELOPMENT_SERVER;
+
   return {
     output: "standalone",
     compress: true,
     poweredByHeader: false,
     reactStrictMode: true,
+    devIndicators: {
+      position: "bottom-right",
+    },
     env: {
       NEXT_PHASE: phase,
     },
@@ -64,10 +85,7 @@ const nextConfig = (phase) => {
         },
         {
           source: "/_next/static/:path*",
-          headers: [
-            { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-            { key: "Cross-Origin-Resource-Policy", value: "anonymous" },
-          ],
+          headers: staticAssetHeaders(isDev),
         },
       ];
     },

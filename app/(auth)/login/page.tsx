@@ -25,6 +25,26 @@ type LoginAction =
     | { type: "SUBMIT_ERROR"; payload: string }
     | { type: "FINISH_LOADING" }
 
+// Where a successful sign-in lands. The middleware, the hero CTA and the
+// mission board all hand us the page they turned the visitor away from as
+// ?callbackUrl, so signing in resumes that journey instead of dumping
+// everyone on the same screen. The mission board is the fallback.
+const DEFAULT_DESTINATION = "/levels"
+
+function safeCallbackUrl(raw: string | null): string {
+    if (!raw) return DEFAULT_DESTINATION
+    try {
+        // A relative path resolves against this origin; an absolute URL keeps
+        // its own. Only a same-origin target is allowed through, so the
+        // parameter can't be used to bounce someone to another site.
+        const url = new URL(raw, window.location.origin)
+        if (url.origin !== window.location.origin) return DEFAULT_DESTINATION
+        return `${url.pathname}${url.search}${url.hash}`
+    } catch {
+        return DEFAULT_DESTINATION
+    }
+}
+
 const initialLoginState: LoginState = {
     email: "",
     password: "",
@@ -100,7 +120,7 @@ function LoginForm() {
                 if (userId) {
                     localStorage.setItem(`hasSeenIntro_${userId}`, "true")
                 }
-                push("/levels")
+                push(safeCallbackUrl(searchParams.get("callbackUrl")))
                 refresh()
             }
         } catch {
@@ -114,7 +134,7 @@ function LoginForm() {
         dispatch({ type: "SET_GOOGLE_LOADING", payload: true })
         dispatch({ type: "SET_ERROR", payload: "" })
         try {
-            await signIn("google", { callbackUrl: "/levels" })
+            await signIn("google", { callbackUrl: safeCallbackUrl(searchParams.get("callbackUrl")) })
         } catch {
             dispatch({ type: "SET_ERROR", payload: "Google authentication failed." })
             dispatch({ type: "SET_GOOGLE_LOADING", payload: false })

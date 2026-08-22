@@ -10,6 +10,49 @@ import { Play } from "lucide-react"
 let lineId = 0
 const mkLine = <T extends object>(fields: T): T & { id: string } => ({ ...fields, id: String(++lineId) })
 
+/** The filename the agent sees in the editor tab; GCC compiles under its own. */
+const SOURCE_FILENAME = "solution.c"
+
+/** How many diagnostics of one severity to render before collapsing the rest. */
+const MAX_DIAGNOSTICS_SHOWN = 3
+
+type RawDiagnostic = {
+    line: number
+    column: number
+    type: "error" | "warning" | "note"
+    message: string
+    rawContext?: string
+}
+
+/**
+ * Build a structured diagnostic line. `message` stays human-readable as a
+ * fallback, but the terminal renders from `diagnostic` — it used to re-derive
+ * severity by splitting the string on "error:", which mislabelled warnings.
+ */
+const mkDiagnosticLine = (d: RawDiagnostic): TerminalLine =>
+    mkLine({
+        type: (d.type === "error" ? "error" : "system") as TerminalLine["type"],
+        message: `${SOURCE_FILENAME}:${d.line}:${d.column}: ${d.type}: ${d.message}`,
+        rawContext: d.rawContext,
+        isDiagnostic: true,
+        diagnostic: {
+            severity: d.type,
+            file: SOURCE_FILENAME,
+            line: d.line,
+            column: d.column,
+            text: d.message,
+        },
+    })
+
+/**
+ * Server-side stand-ins for a real diagnostic. When we have parsed diagnostics
+ * to show, these add nothing but a red line above the actual explanation.
+ */
+const GENERIC_VALIDATION_MESSAGES = new Set([
+    "Compilation failed. Fix your syntax errors.",
+    "Execution failed.",
+])
+
 // ── Heavy library: code-split so it never enters the initial JS bundle ─────
 const Editor = dynamic(() => import("@monaco-editor/react"), {
     ssr: false,
@@ -156,6 +199,20 @@ export function EditorPanel({
                     lines.push(mkLine({ type: "system" as const, message: `> Execution Time: ${result.executionTimeMs} ms` }))
                 }
 
+                // Compiler warnings. The program ran, so these are not failures —
+                // but they are exactly the habits worth correcting early, and the
+                // terminal used to discard them without a word.
+                const warnings: RawDiagnostic[] = result.warnings ?? []
+                if (warnings.length > 0) {
+                    lines.push(mkLine({
+                        type: "system" as const,
+                        message: `> ${warnings.length} compiler warning${warnings.length === 1 ? "" : "s"} — your program ran, but read these:`,
+                    }))
+                    for (const w of warnings.slice(0, MAX_DIAGNOSTICS_SHOWN)) {
+                        lines.push(mkDiagnosticLine(w))
+                    }
+                }
+
                 // Combo bonus
                 if (result.comboStreak > 1 && result.comboBonus > 0) {
                     lines.push(mkLine({
@@ -199,30 +256,54 @@ export function EditorPanel({
                 // NOTE: We do NOT call setMissionCleared(true) here anymore.
                 // That only happens when the user clicks "Finish Mission" in the terminal.
 
+            } else if (result.serviceUnavailable) {
+                // ── The judge is down: say so plainly. Telling the agent to
+                // "fix the issues above" when nothing was compiled sent them
+                // hunting for a bug in code that was never even read.
+                setTerminalOutput([
+                    mkLine({ type: "error" as const, message: "> Code-execution service unavailable." }),
+                    mkLine({
+                        type: "hint" as const,
+                        message: result.explanation
+                            ?? "The code-execution service is not responding, so your code was never compiled. This is a platform problem, not a mistake in your program.",
+                    }),
+                    mkLine({ type: "system" as const, message: "Your streak is safe. Try running again in a moment." }),
+                ])
             } else {
                 // ── ERROR: Show diagnostics → Platypus → retry ───────────
                 const errorLines: TerminalLine[] = [
                     mkLine({ type: "system" as const, message: "> Compilation or validation failed." }),
                 ]
 
+                const diagnostics: RawDiagnostic[] = result.diagnostics ?? []
+                const errorDiagnostics = diagnostics.filter((d) => d.type === "error")
+                const shown = (errorDiagnostics.length > 0 ? errorDiagnostics : diagnostics)
+                    .slice(0, MAX_DIAGNOSTICS_SHOWN)
+
                 if (result.validationErrors && result.validationErrors.length > 0) {
                     for (const err of result.validationErrors) {
+                        // Suppress the server's placeholder text once we have a
+                        // real diagnostic to print underneath it.
+                        if (shown.length > 0 && GENERIC_VALIDATION_MESSAGES.has(err)) continue
                         errorLines.push(mkLine({ type: "error" as const, message: "✗ " + err }))
                     }
                 }
 
-                if (result.diagnostics && result.diagnostics.length > 0) {
-                    // Only show the FIRST error diagnostic
-                    const firstDiag = result.diagnostics.find(
-                        (d: { type: string }) => d.type === "error"
-                    ) ?? result.diagnostics[0]
+                if (shown.length > 0) {
+                    for (const d of shown) {
+                        errorLines.push(mkDiagnosticLine(d))
+                    }
 
-                    errorLines.push(mkLine({
-                        type: "error" as const,
-                        message: `solution.c:${firstDiag.line}:${firstDiag.column}: ${firstDiag.type}: ${firstDiag.message}`,
-                        rawContext: firstDiag.rawContext,
-                        isDiagnostic: true
-                    }))
+                    // GCC cascades: one unclosed brace can invent a dozen follow-on
+                    // errors. Say how many were held back and why, rather than
+                    // silently dropping them as the old first-only render did.
+                    const total = errorDiagnostics.length > 0 ? errorDiagnostics.length : diagnostics.length
+                    if (total > shown.length) {
+                        errorLines.push(mkLine({
+                            type: "system" as const,
+                            message: `> ${total - shown.length} more diagnostic${total - shown.length === 1 ? "" : "s"} hidden — later errors are usually knock-on effects of the first. Fix the ones above and run again.`,
+                        }))
+                    }
                 } else if (result.stderr) {
                     errorLines.push(mkLine({ type: "error" as const, message: result.stderr }))
                 }

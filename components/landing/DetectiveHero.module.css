@@ -1,425 +1,556 @@
-/* ============================================================
-   Detective Academy hero — scoped to the landing page only.
-   Colors map onto the app's existing theme variables (globals.css)
-   so this section still inverts correctly between dark/light mode.
-   Fixed hex values are used only for "physical artifact" pieces
-   (the case-file photo, tape, stamp, CTA button) that are meant to
-   stay paper/leather-toned regardless of theme — same precedent
-   already used for the dossier photo elsewhere on this page.
-   ============================================================ */
+/* =========================================================
+   DETECTIVE HERO — LANDING PAGE
+   A direct port of the hero section of the static mockup
+   (index.html + style.css). Values are kept verbatim from
+   style.css so the two render identically; the only changes
+   are scoping (CSS Module class names instead of global
+   selectors) and the font tokens, which come from
+   next/font rather than a Google Fonts <link>.
+   ========================================================= */
 
-.section {
+.heroSection {
+  /* Design tokens, lifted from style.css :root. Scoped here because the
+     landing page is the only surface that uses the full mockup palette. */
+  --chalkboard: #17342a;
+  --chalkboard-mid: #204a3a;
+  --chalkboard-deep: #0d2118;
+
+  --walnut: #3b2a1c;
+  --walnut-light: #5a4029;
+  --walnut-deep: #1c1209;
+
+  --brass: #c9a24b;
+  --brass-bright: #f0cf8a;
+  --brass-deep: #8a6b28;
+
+  --chalk: #f7f2e7;
+  --amber: #e8a545;
+
+  --paper: #ecdfc0;
+  --ink-red: #7a2e28;
+
+  /* reusable film-grain noise, tinted per-surface via opacity */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
   position: relative;
+  min-height: calc(100vh - 68px);
+  display: flex;
+  align-items: center;
+  padding: 60px 32px 80px;
+  background:
+    radial-gradient(ellipse 900px 500px at 18% 8%, rgba(232, 165, 69, 0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 85% 85%, rgba(0, 0, 0, 0.4), transparent 60%),
+    linear-gradient(160deg, var(--chalkboard-mid) 0%, var(--chalkboard) 45%, var(--chalkboard-deep) 100%);
   overflow: hidden;
-  isolation: isolate;
 }
 
-/* ---------- Background: chalk ruling + code-mark glyphs ---------- */
-/* `absolute` (not `fixed`) and contained to this section only — the
-   original mockup was a full-page background; here it must not bleed
-   over the navbar or the sections below the hero. */
+/* soft dark vignette across the whole page for depth */
+.pageVignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: radial-gradient(ellipse 90% 80% at 50% 30%, transparent 55%, rgba(0, 0, 0, 0.38) 100%);
+  mix-blend-mode: multiply;
+}
+
+.heroChalkTexture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: var(--grain);
+  opacity: 0.6;
+  mix-blend-mode: overlay;
+}
+
+/* warm lamp glow that softly follows the cursor — a lived-in, lit-room feel */
+.lampGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle 420px at var(--mx, 20%) var(--my, 20%), rgba(232, 165, 69, 0.18), transparent 68%);
+  mix-blend-mode: soft-light;
+}
+
+/* floating chalk-written code snippets, drifting gently in the background */
 .codeBg {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  overflow: hidden;
   pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
 }
 
-.codeBg::before {
-  content: "";
+.codeBit {
   position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(ellipse 46% 22% at 22% 26%, rgba(244, 231, 211, 0.045), transparent 70%),
-    radial-gradient(ellipse 38% 18% at 74% 40%, rgba(244, 231, 211, 0.03), transparent 72%),
-    radial-gradient(ellipse 52% 16% at 44% 72%, rgba(244, 231, 211, 0.025), transparent 74%);
-  background-repeat: no-repeat;
-}
-
-.codeBgChecks {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(183, 135, 66, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(183, 135, 66, 0.045) 1px, transparent 1px),
-    linear-gradient(rgba(183, 135, 66, 0.1) 1.5px, transparent 1.5px),
-    linear-gradient(90deg, rgba(183, 135, 66, 0.085) 1.5px, transparent 1.5px);
-  background-size: 48px 48px, 48px 48px, 192px 192px, 192px 192px;
-  opacity: 0.7;
-  mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, rgba(0, 0, 0, 0.35) 100%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, rgba(0, 0, 0, 0.35) 100%);
-}
-
-.codeBgTokens {
-  position: absolute;
-  inset: 0;
-}
-
-.glyph {
-  position: absolute;
-  font-family: var(--font-courier), "Courier New", monospace;
-  font-size: var(--glyph-size, 18px);
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-family: var(--font-courier), monospace;
+  color: rgba(247, 242, 231, 0.15);
+  font-size: clamp(0.7rem, 1.2vw, 0.92rem);
   white-space: nowrap;
-  color: var(--accent);
-  opacity: 0.22;
-  pointer-events: auto;
-  transform: rotate(var(--glyph-rot, 0deg));
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.glyph:hover {
-  opacity: 0.5;
-  transform: rotate(var(--glyph-rot, 0deg)) scale(1.08);
+  letter-spacing: 0.5px;
+  transform: rotate(var(--r, 0deg));
+  animation: codeFloat 8s ease-in-out infinite;
 }
 
-.g1 { font-size: 28px; --glyph-rot: -4deg; top: 10%; left: 4%; }
-.g2 { font-size: 24px; --glyph-rot: 3deg; top: 7%; right: 6%; }
-.g3 { font-size: 19px; --glyph-rot: -2deg; top: 26%; left: 8%; }
-.g4 { font-size: 30px; --glyph-rot: 0deg; top: 20%; right: 15%; }
-.g5 { font-size: 18px; --glyph-rot: 2deg; top: 82%; left: 20%; }
-.g6 { font-size: 20px; --glyph-rot: -1deg; top: 86%; right: 22%; }
-
-@media (max-width: 1000px) {
-  .g3, .g4 { display: none; }
+@keyframes codeFloat {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); opacity: 0.7; }
+  50% { transform: translateY(-16px) rotate(var(--r, 0deg)); opacity: 1; }
 }
 
-/* ---------- Layout ---------- */
 .heroInner {
   position: relative;
-  z-index: 1;
-  max-width: 1240px;
+  z-index: 2;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 56px 28px 72px;
+  width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: center;
+  grid-template-columns: 1.05fr 0.95fr;
   gap: 56px;
-  pointer-events: none;
-}
-.heroInner > * {
-  pointer-events: auto;
+  align-items: center;
 }
 
-@media (max-width: 1000px) {
-  .heroInner {
-    grid-template-columns: 1fr;
-    gap: 48px;
-    text-align: left;
-    padding: 40px 24px 56px;
-  }
-}
+/* ---------- LEFT COPY ---------- */
 
-/* ---------- Copy ---------- */
-.eyebrow {
-  font-family: var(--font-courier), "Courier New", monospace;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 2.6px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin: 0 0 20px;
-  min-height: 1em;
-  opacity: 0;
-  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
-}
-.eyebrow::after {
-  content: "_";
-  color: var(--accent);
-  animation: blink 1.05s steps(1) infinite;
-}
-
-.headline {
-  margin: 0 0 22px;
-  opacity: 0;
-  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.15s forwards;
-}
-.headlineSmall {
-  display: block;
-  font-family: var(--font-display), sans-serif;
-  font-weight: 500;
-  font-size: clamp(22px, 3vw, 34px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 2px;
-}
-.headlineBig {
-  display: block;
-  font-family: var(--font-display), sans-serif;
-  font-weight: 800;
-  font-size: clamp(46px, 7.2vw, 92px);
-  line-height: 0.92;
-  letter-spacing: -0.5px;
-  text-transform: uppercase;
-  color: var(--text);
-}
-.headlineBig em {
-  font-style: normal;
-  color: var(--accent);
-}
-
-.lede {
-  max-width: 52ch;
-  font-family: var(--font-karla), sans-serif;
-  font-size: clamp(15px, 1.1vw, 17px);
-  line-height: 1.7;
-  color: var(--muted);
-  margin: 0 0 32px;
-  padding-left: 18px;
-  border-left: 2px solid rgba(183, 135, 66, 0.5);
-  opacity: 0;
-  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.3s forwards;
-}
-
-.ctaRow {
+.heroCopy {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px 22px;
-  opacity: 0;
-  animation: riseIn 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.45s forwards;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-/* Physical button — fixed leather/gold tones regardless of theme,
-   same treatment as the dossier photo below. */
-.btnPrimary {
-  position: relative;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px 30px;
-  background: linear-gradient(180deg, #7a5234, #5b3d2a);
-  color: #f4e7d3;
-  border-radius: 4px;
-  font-family: var(--font-display), sans-serif;
-  font-weight: 800;
-  font-size: 19px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  box-shadow:
-    inset 0 0 0 1px rgba(216, 177, 122, 0.3),
-    0 5px 0 #b78742,
-    0 14px 26px rgba(18, 21, 24, 0.4);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+.caseTag {
+  font-family: var(--font-special-elite), cursive;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--amber);
+  border: 1px dashed rgba(232, 165, 69, 0.5);
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 22px;
+  border-radius: 2px;
 }
-.btnPrimary::before {
+
+.blinkCursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1.1s step-end infinite;
+  color: var(--amber);
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.heroTitle {
+  font-family: var(--font-kalam), cursive;
+  font-weight: 700;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1.08;
+  color: var(--chalk);
+  text-shadow: 0 0 16px rgba(247, 242, 231, 0.18), 0 2px 0 rgba(0, 0, 0, 0.25);
+  margin-bottom: 22px;
+}
+
+.heroTitleAccent {
+  color: var(--brass-bright);
+  position: relative;
+}
+
+/* the chalk swipe behind the wordmark (style.css: .hero__title-accent::after) */
+.chalkHighlight {
   content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.5) 50%, transparent 75%);
-  transform: translateX(-110%);
-  transition: transform 0.55s ease;
-}
-.btnPrimary:hover {
-  background: linear-gradient(180deg, #8b5e3c, #7a5234);
-  transform: translateY(-2px);
-  box-shadow: 0 7px 0 #d2a05a, 0 20px 34px rgba(18, 21, 24, 0.48);
-}
-.btnPrimary:hover::before {
-  transform: translateX(110%);
-}
-.btnPrimary:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #b78742;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 10px;
+  background: rgba(232, 165, 69, 0.2);
+  z-index: -1;
+  transform: rotate(-0.4deg);
 }
 
-.btnSecondary {
-  padding: 15px 24px;
-  font-family: var(--font-karla), sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.4px;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: transparent;
-  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
-}
-.btnSecondary:hover {
-  color: var(--text);
-  border-color: var(--accent);
-  background: var(--surface);
-}
-
-/* ---------- Dossier (case-file photo) ---------- */
-.dossier {
-  position: relative;
-  margin: 0;
-  padding: 24px 24px 16px;
-  background-color: #f4e7d3;
-  border-radius: 6px;
-  transform: rotate(-1.6deg);
-  box-shadow:
-    0 2px 0 #fff8ec,
-    0 24px 48px rgba(18, 21, 24, 0.45),
-    0 0 0 1px rgba(91, 61, 42, 0.3);
-  transition: transform 0.35s ease;
-  opacity: 0;
-  animation: dossierIn 0.85s cubic-bezier(0.2, 0.7, 0.3, 1) 0.25s forwards;
-}
-.dossier::before {
-  content: "Case File";
-  position: absolute;
-  top: -24px;
-  left: 30px;
-  padding: 6px 18px 8px;
-  background: #b78742;
-  color: #1c2025;
+.heroParagraph {
   font-family: var(--font-courier), monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  border-radius: 5px 5px 0 0;
-}
-.dossier:hover {
-  transform: rotate(-0.4deg) translateY(-4px);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: rgba(247, 242, 231, 0.82);
+  max-width: 46ch;
+  margin-bottom: 34px;
 }
 
-.tape {
-  position: absolute;
-  top: -12px;
-  width: 88px;
-  height: 26px;
-  background: rgba(126, 151, 168, 0.55);
-  border-left: 1px dashed rgba(255, 255, 255, 0.5);
-  border-right: 1px dashed rgba(255, 255, 255, 0.5);
-}
-.tapeLeft {
-  left: -20px;
-  transform: rotate(-38deg);
-}
-.tapeRight {
-  right: -20px;
-  transform: rotate(38deg);
+.ctaStamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-special-elite), cursive;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  color: var(--chalkboard-deep);
+  text-decoration: none;
+  background: linear-gradient(180deg, var(--brass-bright), var(--brass) 60%, var(--brass-deep));
+  padding: 15px 30px;
+  border-radius: 4px;
+  box-shadow:
+    0 6px 0 var(--brass-deep),
+    0 10px 20px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: rotate(-1deg);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.stamp {
+.ctaStamp::before {
+  content: "🔍";
+  font-size: 1rem;
+}
+
+.ctaStamp:hover {
+  transform: rotate(0deg) translateY(-3px);
+  box-shadow:
+    0 9px 0 var(--brass-deep),
+    0 18px 26px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ctaStamp:active,
+.stampHit {
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 3px 0 var(--brass-deep), 0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- RIGHT: CORKBOARD + EVIDENCE PHOTO ---------- */
+
+.heroBoard {
+  display: flex;
+  justify-content: center;
+  perspective: 900px;
+}
+
+.corkboard {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  padding: 34px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(0, 0, 0, 0.14), transparent 40%),
+    radial-gradient(circle at 80% 75%, rgba(0, 0, 0, 0.18), transparent 45%),
+    repeating-radial-gradient(circle at 50% 50%, #ba875a 0, #ba875a 2px, #a97444 3px, #a97444 4px);
+  background-color: #a97444;
+  border: 10px solid var(--walnut);
+  border-radius: 6px;
+  box-shadow:
+    0 26px 50px rgba(0, 0, 0, 0.55),
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 0 70px rgba(0, 0, 0, 0.4);
+  transform-style: preserve-3d;
+  transition: transform 0.25s ease-out;
+  will-change: transform;
+  overflow: hidden;
+}
+
+.corkboardGrain {
   position: absolute;
-  right: 14px;
-  bottom: 46px;
-  z-index: 3;
-  font-family: var(--font-display), sans-serif;
-  font-weight: 800;
-  font-size: 24px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(201, 118, 38, 0.72);
-  border: 3px solid rgba(201, 118, 38, 0.6);
-  border-radius: 3px;
-  padding: 4px 12px 2px;
-  transform: rotate(-11deg);
-  opacity: 0.9;
+  inset: 0;
+  background-image: var(--grain);
+  opacity: 0.35;
+  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
-.dossierFrame {
-  position: relative;
-  overflow: hidden;
-  background: #f4e7d3;
-  border: 1px solid rgba(91, 61, 42, 0.28);
-  border-radius: 3px;
-}
-.dossierFrame :global(img) {
-  width: 100%;
-  height: auto;
-  display: block;
+.corkboardPin {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 35% 30%, #ffdca8, var(--amber) 60%, #a5691c 100%);
+  border-radius: 50%;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5);
 }
 
-.caption {
-  margin-top: 10px;
-  font-family: var(--font-courier), monospace;
-  font-size: 11px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #5b3d2a;
+.evidencePhoto {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--paper);
+  padding: 14px 14px 40px;
+  border-radius: 3px;
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.35),
+    0 2px 0 rgba(255, 255, 255, 0.3) inset;
+  transform: rotate(2deg);
+  transition: transform 0.3s ease;
+  cursor: none;
+}
+
+.evidencePhoto:hover {
+  transform: rotate(0deg) scale(1.015);
+}
+
+.evidencePhotoImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+  filter: sepia(0.32) saturate(1.35) contrast(1.05) brightness(0.98) hue-rotate(-6deg);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.evidencePhotoTint {
+  position: absolute;
+  inset: 14px 14px 40px 14px;
+  border-radius: 2px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(15, 25, 18, 0.55) 100%),
+    linear-gradient(160deg, rgba(232, 165, 69, 0.18), rgba(23, 52, 42, 0.28));
+  mix-blend-mode: multiply;
+}
+
+.evidencePhotoGrain {
+  position: absolute;
+  inset: 14px 14px 40px 14px;
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: var(--grain);
+}
+
+.evidencePhotoLabel {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  font-family: var(--font-special-elite), cursive;
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  color: var(--walnut-deep);
   text-align: center;
 }
 
-/* ---------- Magnifying glass hover ---------- */
-.magnifier {
+/* =========================================================
+   MAGNIFIER — geometrically accurate lens + tangent handle
+   Box: 84x84  →  radius R = 42
+   Attach point (down-right, 45°): 42 + 42·cos45° ≈ 71.7px
+   ========================================================= */
+
+.lens {
   position: absolute;
   top: 0;
   left: 0;
-  width: 104px;
-  height: 104px;
-  border: 5px solid #b78742;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  box-shadow:
-    0 0 0 2px #5b3d2a,
-    inset 0 0 0 2px rgba(91, 61, 42, 0.55),
-    0 8px 18px rgba(91, 61, 42, 0.35);
-  opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -50%) scale(0.86);
-  transition: opacity 0.16s ease, transform 0.16s ease;
-  z-index: 3;
-}
-.magnifierActive {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-.magnifierLens {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #f4e7d3;
-}
-.magnifierZoom {
-  position: absolute;
-  inset: 0;
-  background-repeat: no-repeat;
-}
-.magnifierHandle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 44px;
-  height: 10px;
-  margin-top: -5px;
-  border-radius: 2px 6px 6px 2px;
-  background: linear-gradient(90deg, #b78742 0 26%, #7a5234 26% 34%, #5b3d2a 34% 100%);
-  box-shadow: inset 0 1px 0 rgba(244, 231, 211, 0.28), inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.4);
-  transform-origin: 0 50%;
-  transform: rotate(45deg) translateX(50px);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+  transform: translate(-9999px, -9999px);
 }
 
-@media (hover: none) {
-  .dossierFrame {
-    cursor: default;
+.lensIsActive {
+  opacity: 1;
+}
+
+.lensGlass {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  background-color: var(--paper);
+  border: 4px solid var(--brass-deep);
+  box-shadow:
+    0 0 0 2px var(--brass-bright),
+    0 0 0 5px var(--walnut-deep),
+    0 0 0 6px rgba(240, 207, 138, 0.35),
+    inset 0 0 16px rgba(0, 0, 0, 0.45),
+    0 8px 16px rgba(0, 0, 0, 0.55);
+  /* identical colour treatment to the underlying photo, so the magnified
+     view always reads as the same image, never a mismatched patch */
+  filter: sepia(0.32) saturate(1.35) contrast(1.05) brightness(0.98) hue-rotate(-6deg);
+}
+
+/* curved glass highlight + falloff, gives the lens real depth */
+.lensGlass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.6), transparent 38%),
+    radial-gradient(circle at 68% 78%, rgba(0, 0, 0, 0.22), transparent 55%);
+}
+
+/* handle — a single tapered bar, tangent to the ring at exactly 45°.
+   NEGATIVE 45°, unlike style.css. The bar is authored pointing straight down
+   and pivots about its top edge, and CSS rotation is clockwise — so
+   rotate(45deg) swings it down-LEFT, back across the glass, where it reads as a
+   gold slash over the lens instead of a handle. The attach point above
+   (42 + 42·cos45° ≈ 71.7) was derived for a down-RIGHT handle, so the sign has
+   to match it: rotate(-45deg) sends the bar radially outward from that point. */
+.lens::after {
+  content: "";
+  position: absolute;
+  top: 71.7px;
+  left: 67.7px;
+  width: 8px;
+  /* 50px, not style.css's 32px. The pivot sits on the rim at radius 42 and the
+     glass's box-shadow rings cover the first ~6px, so 32px left only ~26px
+     showing — a stub against an 84px lens. 50px clears the rings and reads as
+     a handle without tipping over into lollipop proportions. */
+  height: 50px;
+  transform-origin: top center;
+  transform: rotate(-45deg);
+  background: linear-gradient(90deg, var(--walnut-deep), var(--brass) 40%, var(--brass-deep) 60%, var(--walnut-deep));
+  border-radius: 3px 3px 10px 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.55);
+}
+
+/* threads pinned across the board */
+.thread {
+  position: absolute;
+  background: var(--ink-red);
+  height: 2px;
+  opacity: 0.8;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.threadOne {
+  width: 120px;
+  top: 18%;
+  left: -8px;
+  transform: rotate(35deg);
+}
+
+.threadTwo {
+  width: 100px;
+  bottom: 22%;
+  right: -6px;
+  transform: rotate(-28deg);
+}
+
+.stickyNote {
+  position: absolute;
+  bottom: -18px;
+  right: -14px;
+  width: 130px;
+  background: linear-gradient(160deg, #f0c257, var(--amber));
+  color: var(--walnut-deep);
+  font-family: var(--font-kalam), cursive;
+  font-size: 0.82rem;
+  line-height: 1.25;
+  padding: 12px 12px 16px;
+  transform: rotate(6deg);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(255, 255, 255, 0.25) inset;
+  transition: transform 0.2s ease;
+}
+
+.stickyNote:hover {
+  transform: rotate(0deg) scale(1.04);
+}
+
+.stickyNote::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 40%;
+  width: 26px;
+  height: 14px;
+  background: rgba(247, 242, 231, 0.6);
+  transform: rotate(-8deg);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* =========================================================
+   PAGE TRANSITION — the board flies to centre while the rest
+   of the room fades out (style.css: body.is-transitioning …)
+   ========================================================= */
+
+.isFading {
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.heroCopy.isFading {
+  transform: translateY(12px);
+}
+
+.codeBg.isFading {
+  opacity: 0.3;
+  transition: opacity 0.5s ease;
+}
+
+/* the perspective on this wrapper would trap a fixed child, so drop it */
+.heroBoard.isFlying {
+  perspective: none;
+}
+
+.lens.isHidden {
+  display: none;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 980px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    text-align: center;
   }
-  .magnifier {
+
+  .heroCopy {
+    align-items: center;
+  }
+
+  .heroParagraph {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .caseTag {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .heroBoard {
+    order: -1;
+  }
+
+  .corkboard {
+    max-width: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroSection {
+    padding: 40px 18px 60px;
+  }
+
+  .lens {
+    display: none;
+  }
+
+  .evidencePhoto {
+    cursor: auto;
+  }
+
+  .codeBit {
     display: none;
   }
 }
 
-/* ---------- Motion ---------- */
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-@keyframes riseIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes dossierIn {
-  from { opacity: 0; transform: rotate(4deg) translateY(28px) scale(0.96); }
-  to { opacity: 1; transform: rotate(-1.6deg) translateY(0) scale(1); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .eyebrow, .headline, .lede, .ctaRow, .dossier {
-    animation-duration: 0.001ms !important;
-    opacity: 1;
-  }
-  .dossier {
-    transform: rotate(-1.6deg);
-  }
-  .glyph {
-    transition: none;
+  .heroSection *,
+  .heroSection {
+    transition: none !important;
+    animation: none !important;
   }
 }

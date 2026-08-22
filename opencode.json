@@ -7,7 +7,6 @@
     "opencode-openai-codex-auth",
     "opencode-gemini-auth",
     "opencode-antigravity-auth",
-    "opencode-devcontainers",
     "opencode-google-antigravity-auth",
     "opencode-dynamic-context-pruning",
     "opencode-vibeguard",
