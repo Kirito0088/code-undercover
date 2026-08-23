@@ -1,5 +1,8 @@
 package com.example.codeundercover_1.feature.auth
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,106 +13,117 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.codeundercover_1.data.model.SessionUser
 import com.example.codeundercover_1.domain.Validation
-import com.example.codeundercover_1.ui.components.AppTextField
-import com.example.codeundercover_1.ui.components.DossierCard
-import com.example.codeundercover_1.ui.components.PrimaryButton
-import com.example.codeundercover_1.ui.components.TextLink
-import com.example.codeundercover_1.ui.responsive.LocalAppLayout
+import com.example.codeundercover_1.ui.components.AppButton
+import com.example.codeundercover_1.ui.components.AppInput
+import com.example.codeundercover_1.ui.components.ButtonVariant
+import com.example.codeundercover_1.ui.components.ErrorBanner
+import com.example.codeundercover_1.ui.components.OrDivider
+import com.example.codeundercover_1.ui.effects.LetterGlitch
+import com.example.codeundercover_1.ui.theme.AuthHeading
+import com.example.codeundercover_1.ui.theme.BodyText
+import com.example.codeundercover_1.ui.theme.Console
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MonoFont
+import com.example.codeundercover_1.ui.theme.Semantic
+
+/*
+ * Ports of the app/(auth) route group. The login screen and the register screen are styled
+ * differently in the web app — login is the plain console card, register is the
+ * mono "intake terminal" with gold CTAs — and that difference is preserved here
+ * rather than unified.
+ */
+
+/** `max-w-sm` — 384px. */
+private val AuthMaxWidth = 384.dp
+
+/** `rounded-2xl` on both auth cards. */
+private val AuthCardShape = RoundedCornerShape(16.dp)
 
 /**
- * Forms get a fixed reading width even on a tablet. A login field stretched to
- * 1000dp is harder to use, not easier, so the card centres instead of filling.
+ * `app/(auth)/layout.tsx`: the LetterGlitch canvas is fixed behind every auth
+ * route at 40% opacity, and it persists across login/register navigation.
  */
-private val FormMaxWidth = 460.dp
-
 @Composable
 private fun AuthScaffold(
-    title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier,
+    heading: String?,
+    subheading: String?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val layout = LocalAppLayout.current
     val scroll = rememberScrollState()
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .imePadding(),
-        contentAlignment = Alignment.Center,
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(Hud.bg)) {
+        LetterGlitch()
+
         Column(
             modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .imePadding()
                 .verticalScroll(scroll)
-                .widthIn(max = FormMaxWidth)
-                .fillMaxWidth()
-                .padding(horizontal = layout.screenPadding, vertical = 24.dp),
+                .padding(horizontal = 16.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Text(
-                text = "CODE UNDERCOVER",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(24.dp))
+            Column(
+                modifier = Modifier.widthIn(max = AuthMaxWidth).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (heading != null) {
+                    Text(text = heading, style = AuthHeading, color = Console.text)
+                }
+                if (subheading != null) {
+                    Spacer(Modifier.height(8.dp)) // mt-2
+                    Text(
+                        text = subheading,
+                        style = BodyText,
+                        color = Console.muted,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                if (heading != null) Spacer(Modifier.height(32.dp)) // mt-8
 
-            DossierCard(content = content)
-
-            Spacer(Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AuthCardShape)
+                        .background(Console.panel)
+                        .border(1.dp, Console.border, AuthCardShape)
+                        .padding(32.dp), // p-8
+                    content = content,
+                )
+            }
         }
     }
-}
-
-@Composable
-private fun FormError(message: String?) {
-    if (message == null) return
-    Spacer(Modifier.height(12.dp))
-    Text(
-        text = message,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.error,
-    )
 }
 
 // ─── Login ───────────────────────────────────────────────────────────────────
@@ -123,6 +137,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var rememberMe by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.authenticated) {
         state.authenticated?.let {
@@ -132,14 +147,19 @@ fun LoginScreen(
     }
 
     AuthScaffold(
-        title = "Agent Sign-In",
-        subtitle = "Identify yourself to access the case files.",
+        heading = "Welcome back",
+        subheading = "Continue your learning journey",
     ) {
-        AppTextField(
+        if (state.formError != null) {
+            ErrorBanner(state.formError!!)
+            Spacer(Modifier.height(24.dp)) // space-y-6
+        }
+
+        AppInput(
             value = state.email,
             onValueChange = viewModel::onEmailChange,
-            label = "Email",
-            placeholder = "agent@codeundercover.com",
+            label = "Email Address",
+            placeholder = "name@email.com",
             errorText = state.emailError,
             enabled = !state.submitting,
             keyboardOptions = KeyboardOptions(
@@ -147,11 +167,14 @@ fun LoginScreen(
                 imeAction = ImeAction.Next,
             ),
         )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
+
+        Spacer(Modifier.height(24.dp))
+
+        AppInput(
             value = state.password,
             onValueChange = viewModel::onPasswordChange,
             label = "Password",
+            placeholder = "••••••••",
             errorText = state.passwordError,
             isPassword = true,
             enabled = !state.submitting,
@@ -161,32 +184,102 @@ fun LoginScreen(
             ),
         )
 
-        FormError(state.formError)
+        Spacer(Modifier.height(24.dp))
 
-        Spacer(Modifier.height(20.dp))
-        PrimaryButton(
-            text = "SIGN IN",
-            onClick = viewModel::submit,
-            modifier = Modifier.fillMaxWidth(),
-            loading = state.submitting,
-        )
-
-        Spacer(Modifier.height(4.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextLink(text = "Forgot password?", onClick = onForgotPassword)
-            TextLink(text = "Register", onClick = onRegister)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = rememberMe,
+                    onCheckedChange = { rememberMe = it },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Hud.accent,
+                        uncheckedColor = Console.border,
+                        checkmarkColor = Console.panel,
+                    ),
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.size(8.dp)) // ml-2
+                Text(
+                    text = "Remember me",
+                    style = BodyText.copy(fontSize = 12.sp),
+                    color = Console.muted,
+                )
+            }
+            Text(
+                text = "Forgot password?",
+                style = BodyText.copy(fontSize = 12.sp),
+                color = Console.link,
+                modifier = Modifier.clickable(onClick = onForgotPassword),
+            )
         }
 
-        Spacer(Modifier.height(4.dp))
-        TextLink(text = "Server settings", onClick = onServerSettings)
+        Spacer(Modifier.height(24.dp))
+
+        AppButton(
+            text = if (state.submitting) "Signing in..." else "Sign In",
+            onClick = viewModel::submit,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.submitting,
+        )
+
+        Spacer(Modifier.height(24.dp)) // mt-6
+        OrDivider()
+        Spacer(Modifier.height(24.dp))
+
+        GoogleButton(onClick = onServerSettings, label = "Sign in with Google")
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "Don't have an account? ",
+                style = BodyText.copy(fontSize = 12.sp),
+                color = Console.muted,
+            )
+            Text(
+                text = "Sign up",
+                style = BodyText.copy(fontSize = 12.sp),
+                color = Console.link,
+                modifier = Modifier.clickable(onClick = onRegister),
+            )
+        }
     }
 }
 
-// ─── Register ────────────────────────────────────────────────────────────────
+/**
+ * The web renders a Google button on the login card. Android cannot complete
+ * NextAuth's OAuth handshake in-process — the callback sets a cookie on the
+ * browser, not on this app's jar — so tapping it opens the server settings
+ * sheet where the flow can be completed on the web. Kept visually identical so
+ * the card matches; see the README for what a real in-app flow would need.
+ */
+@Composable
+private fun GoogleButton(onClick: () -> Unit, label: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(42.dp) // py-2.5 on a text-sm line
+            .clip(RoundedCornerShape(6.dp))
+            .background(Console.deep)
+            .border(1.dp, Console.border, RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = "G", style = BodyText.copy(fontSize = 16.sp), color = Semantic.emerald400)
+        Spacer(Modifier.size(12.dp)) // gap-3
+        Text(text = label, style = BodyText, color = Console.muted)
+    }
+}
+
+// ─── Register: step 1, agent intake ──────────────────────────────────────────
 
 @Composable
 fun RegisterScreen(
@@ -195,117 +288,266 @@ fun RegisterScreen(
     viewModel: RegisterViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var step by remember { mutableStateOf(1) }
 
     LaunchedEffect(state.registered) {
         if (state.registered) onRegistered()
     }
 
-    AuthScaffold(
-        title = "Recruit an Agent",
-        subtitle = "Register to begin the training programme.",
-    ) {
-        AppTextField(
-            value = state.name,
-            onValueChange = viewModel::onNameChange,
-            label = "Name",
-            errorText = state.nameError,
-            enabled = !state.submitting,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Next,
-            ),
-        )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
-            value = state.codename,
-            onValueChange = viewModel::onCodenameChange,
-            label = "Codename",
-            placeholder = "shadow_fox",
-            errorText = state.codenameError,
-            helperText = "3–20 characters. Letters, numbers, _ and - only.",
-            enabled = !state.submitting,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
-            value = state.email,
-            onValueChange = viewModel::onEmailChange,
-            label = "Email",
-            errorText = state.emailError,
-            enabled = !state.submitting,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next,
-            ),
-        )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
-            value = state.password,
-            onValueChange = viewModel::onPasswordChange,
-            label = "Password",
-            errorText = state.passwordError,
-            helperText = "At least 8 characters.",
-            isPassword = true,
-            enabled = !state.submitting,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Next,
-            ),
-        )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
-            value = state.confirmPassword,
-            onValueChange = viewModel::onConfirmChange,
-            label = "Confirm password",
-            errorText = state.confirmError,
-            isPassword = true,
-            enabled = !state.submitting,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done,
-            ),
-        )
+    val step1Valid = Validation.name(state.name) == null &&
+        Validation.codename(state.codename) == null &&
+        Validation.email(state.email) == null &&
+        Validation.password(state.password) == null
 
-        Spacer(Modifier.height(18.dp))
-        Text(
-            text = "PREFERRED TRACK",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Validation.LANGUAGES.forEach { language ->
-                FilterChip(
-                    selected = state.language == language,
-                    onClick = { viewModel.onLanguageChange(language) },
-                    enabled = !state.submitting,
-                    label = { Text(language, style = MaterialTheme.typography.labelSmall) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    AuthScaffold(heading = null, subheading = null) {
+        if (step == 1) {
+            Text(
+                text = "Classification Level: Unclassified until selection",
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = MonoFont,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.2.sp, // tracking-widest
+                ),
+                color = Console.labelGray,
+            )
+            Spacer(Modifier.height(24.dp)) // mb-6
+
+            IntakeField(
+                label = "Agent Name",
+                value = state.name,
+                onValueChange = viewModel::onNameChange,
+                placeholder = "Enter full real name",
+                error = state.nameError,
+                enabled = !state.submitting,
+                capitalization = KeyboardCapitalization.Words,
+            )
+            Spacer(Modifier.height(24.dp))
+            IntakeField(
+                label = "Codename",
+                value = state.codename,
+                onValueChange = viewModel::onCodenameChange,
+                placeholder = "Akshat_09",
+                error = state.codenameError,
+                enabled = !state.submitting,
+            )
+            Spacer(Modifier.height(24.dp))
+            IntakeField(
+                label = "Secure Mail",
+                value = state.email,
+                onValueChange = viewModel::onEmailChange,
+                placeholder = "name@secure-mail.com",
+                error = state.emailError,
+                enabled = !state.submitting,
+                keyboardType = KeyboardType.Email,
+            )
+            Spacer(Modifier.height(24.dp))
+            IntakeField(
+                label = "Passphrase",
+                value = state.password,
+                onValueChange = viewModel::onPasswordChange,
+                placeholder = "••••••••",
+                error = state.passwordError,
+                enabled = !state.submitting,
+                isPassword = true,
+                keyboardType = KeyboardType.Password,
+            )
+
+            if (state.formError != null) {
+                Spacer(Modifier.height(16.dp))
+                ErrorBanner(state.formError!!)
+            }
+
+            Spacer(Modifier.height(24.dp))
+            GoldButton(
+                text = "PROCEED TO LANGUAGE SELECTION",
+                enabled = step1Valid,
+                onClick = { step = 2 },
+            )
+
+            Spacer(Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "Already enlisted? ",
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = MonoFont,
+                        fontSize = 12.sp,
                     ),
+                    color = Console.labelGray,
+                )
+                Text(
+                    text = "Log in",
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = MonoFont,
+                        fontSize = 12.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    ),
+                    color = Console.gold,
+                    modifier = Modifier.clickable(onClick = onBackToLogin),
                 )
             }
+        } else {
+            DossierSelection(
+                selected = state.language,
+                submitting = state.submitting,
+                error = state.formError,
+                onSelect = viewModel::onLanguageChange,
+                onConfirm = viewModel::submit,
+                onAbort = { step = 1 },
+            )
         }
-
-        FormError(state.formError)
-
-        Spacer(Modifier.height(20.dp))
-        PrimaryButton(
-            text = "REGISTER",
-            onClick = viewModel::submit,
-            modifier = Modifier.fillMaxWidth(),
-            loading = state.submitting,
-        )
-        Spacer(Modifier.height(4.dp))
-        TextLink(text = "Already have clearance? Sign in", onClick = onBackToLogin)
     }
 }
 
-// ─── Forgot password ─────────────────────────────────────────────────────────
+/** `text-xs font-mono text-[#6B6B6B] tracking-wider uppercase mb-1` + input. */
+@Composable
+private fun IntakeField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    error: String?,
+    enabled: Boolean,
+    isPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label.uppercase(),
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = MonoFont,
+                fontSize = 12.sp,
+                letterSpacing = 0.6.sp, // tracking-wider
+            ),
+            color = Console.labelGray,
+        )
+        Spacer(Modifier.height(4.dp)) // mb-1
+        AppInput(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = placeholder,
+            errorText = error,
+            enabled = enabled,
+            isPassword = isPassword,
+            minHeight = 48.dp, // py-3
+            textStyle = BodyText.copy(fontFamily = MonoFont),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                capitalization = capitalization,
+                imeAction = ImeAction.Next,
+            ),
+        )
+    }
+}
+
+/**
+ * `bg-[#C9A84C] text-[#0D0E12] font-mono text-sm font-bold uppercase
+ * tracking-wider`, falling back to the muted disabled fill.
+ */
+@Composable
+private fun GoldButton(text: String, enabled: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(6.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp) // py-3
+            .clip(shape)
+            .background(if (enabled) Console.gold else Console.disabledFill)
+            .then(
+                if (enabled) Modifier else Modifier.border(1.dp, Console.border, shape)
+            )
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = MonoFont,
+                fontSize = 14.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                letterSpacing = 0.7.sp,
+            ),
+            color = if (enabled) Console.panel else Console.placeholder,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/** Step 2 — pick the track the agent enlists into. */
+@Composable
+private fun DossierSelection(
+    selected: String,
+    submitting: Boolean,
+    error: String?,
+    onSelect: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onAbort: () -> Unit,
+) {
+    Text(
+        text = "Select Your Field of Operation",
+        style = androidx.compose.ui.text.TextStyle(
+            fontFamily = MonoFont,
+            fontSize = 12.sp,
+            letterSpacing = 1.2.sp,
+        ),
+        color = Console.labelGray,
+    )
+    Spacer(Modifier.height(24.dp))
+
+    Validation.LANGUAGES.forEach { language ->
+        val isSelected = selected == language
+        val shape = RoundedCornerShape(6.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .padding(bottom = 4.dp)
+                .clip(shape)
+                .background(if (isSelected) Console.gold else Console.deep)
+                .border(1.dp, if (isSelected) Console.gold else Console.border, shape)
+                .clickable(enabled = !submitting) { onSelect(language) },
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = language.uppercase(),
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = MonoFont,
+                    fontSize = 14.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    letterSpacing = 0.7.sp,
+                ),
+                color = if (isSelected) Console.panel else Console.muted,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+
+    if (error != null) {
+        Spacer(Modifier.height(16.dp))
+        ErrorBanner(error)
+    }
+
+    Spacer(Modifier.height(16.dp))
+    GoldButton(
+        text = if (submitting) "TRANSMITTING..." else "CONFIRM ENLISTMENT",
+        enabled = !submitting,
+        onClick = onConfirm,
+    )
+    Spacer(Modifier.height(12.dp))
+    AppButton(
+        text = "Abort",
+        onClick = onAbort,
+        modifier = Modifier.fillMaxWidth(),
+        variant = ButtonVariant.Outline,
+        enabled = !submitting,
+    )
+}
+
+// ─── Forgot / reset ──────────────────────────────────────────────────────────
 
 @Composable
 fun ForgotPasswordScreen(
@@ -316,31 +558,41 @@ fun ForgotPasswordScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     AuthScaffold(
-        title = "Lost Credentials",
-        subtitle = "We will send a reset code to your registered email.",
+        heading = "Reset access",
+        subheading = "We will send a reset code to your registered email",
     ) {
         if (state.sent) {
             Text(
-                text = "If that email is registered, a reset code is on its way. " +
-                    "Check your inbox, then enter the code on the next screen.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                text = "If that email is registered, a reset code is on its way.",
+                style = BodyText,
+                color = Console.text,
             )
-            Spacer(Modifier.height(20.dp))
-            PrimaryButton(
-                text = "I HAVE A CODE",
+            Spacer(Modifier.height(24.dp))
+            AppButton(
+                text = "I have a code",
                 onClick = onHaveCode,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.height(4.dp))
-            TextLink(text = "Back to sign-in", onClick = onBackToLogin)
+            Spacer(Modifier.height(12.dp))
+            AppButton(
+                text = "Back to sign in",
+                onClick = onBackToLogin,
+                modifier = Modifier.fillMaxWidth(),
+                variant = ButtonVariant.Outline,
+            )
             return@AuthScaffold
         }
 
-        AppTextField(
+        if (state.formError != null) {
+            ErrorBanner(state.formError!!)
+            Spacer(Modifier.height(24.dp))
+        }
+
+        AppInput(
             value = state.email,
             onValueChange = viewModel::onEmailChange,
-            label = "Email",
+            label = "Email Address",
+            placeholder = "name@email.com",
             errorText = state.emailError,
             enabled = !state.submitting,
             keyboardOptions = KeyboardOptions(
@@ -348,22 +600,27 @@ fun ForgotPasswordScreen(
                 imeAction = ImeAction.Done,
             ),
         )
-
-        FormError(state.formError)
-
-        Spacer(Modifier.height(20.dp))
-        PrimaryButton(
-            text = "SEND RESET CODE",
+        Spacer(Modifier.height(24.dp))
+        AppButton(
+            text = if (state.submitting) "Sending..." else "Send reset code",
             onClick = viewModel::submit,
             modifier = Modifier.fillMaxWidth(),
-            loading = state.submitting,
+            enabled = !state.submitting,
         )
-        Spacer(Modifier.height(4.dp))
-        TextLink(text = "Back to sign-in", onClick = onBackToLogin)
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "Back to sign in",
+                style = BodyText.copy(fontSize = 12.sp),
+                color = Console.link,
+                modifier = Modifier.clickable(onClick = onBackToLogin),
+            )
+        }
     }
 }
-
-// ─── Reset password ──────────────────────────────────────────────────────────
 
 @Composable
 fun ResetPasswordScreen(
@@ -373,29 +630,32 @@ fun ResetPasswordScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.done) {
-        if (state.done) onDone()
-    }
+    LaunchedEffect(state.done) { if (state.done) onDone() }
 
     AuthScaffold(
-        title = "New Credentials",
-        subtitle = "Enter the code from your email and choose a new password.",
+        heading = "New credentials",
+        subheading = "Enter the code from your email and choose a new password",
     ) {
-        AppTextField(
+        if (state.formError != null) {
+            ErrorBanner(state.formError!!)
+            Spacer(Modifier.height(24.dp))
+        }
+
+        AppInput(
             value = state.token,
             onValueChange = viewModel::onTokenChange,
-            label = "Reset code",
+            label = "Reset Code",
             errorText = state.tokenError,
             enabled = !state.submitting,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
+        Spacer(Modifier.height(24.dp))
+        AppInput(
             value = state.password,
             onValueChange = viewModel::onPasswordChange,
-            label = "New password",
+            label = "New Password",
+            placeholder = "••••••••",
             errorText = state.passwordError,
-            helperText = "At least 8 characters.",
             isPassword = true,
             enabled = !state.submitting,
             keyboardOptions = KeyboardOptions(
@@ -403,11 +663,12 @@ fun ResetPasswordScreen(
                 imeAction = ImeAction.Next,
             ),
         )
-        Spacer(Modifier.height(14.dp))
-        AppTextField(
+        Spacer(Modifier.height(24.dp))
+        AppInput(
             value = state.confirmPassword,
             onValueChange = viewModel::onConfirmChange,
-            label = "Confirm new password",
+            label = "Confirm Password",
+            placeholder = "••••••••",
             errorText = state.confirmError,
             isPassword = true,
             enabled = !state.submitting,
@@ -416,17 +677,24 @@ fun ResetPasswordScreen(
                 imeAction = ImeAction.Done,
             ),
         )
-
-        FormError(state.formError)
-
-        Spacer(Modifier.height(20.dp))
-        PrimaryButton(
-            text = "SET NEW PASSWORD",
+        Spacer(Modifier.height(24.dp))
+        AppButton(
+            text = if (state.submitting) "Saving..." else "Set new password",
             onClick = viewModel::submit,
             modifier = Modifier.fillMaxWidth(),
-            loading = state.submitting,
+            enabled = !state.submitting,
         )
-        Spacer(Modifier.height(4.dp))
-        TextLink(text = "Back to sign-in", onClick = onBackToLogin)
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "Back to sign in",
+                style = BodyText.copy(fontSize = 12.sp),
+                color = Console.link,
+                modifier = Modifier.clickable(onClick = onBackToLogin),
+            )
+        }
     }
 }

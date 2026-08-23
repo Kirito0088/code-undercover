@@ -2,10 +2,10 @@ package com.example.codeundercover_1.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,212 +14,251 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.codeundercover_1.ui.responsive.LocalAppLayout
-import com.example.codeundercover_1.ui.theme.Noir
+import androidx.compose.ui.unit.sp
+import com.example.codeundercover_1.ui.theme.BodyText
+import com.example.codeundercover_1.ui.theme.ButtonText
+import com.example.codeundercover_1.ui.theme.Console
+import com.example.codeundercover_1.ui.theme.FieldLabel
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MetricLabel
+import com.example.codeundercover_1.ui.theme.Semantic
 
-/**
- * Wraps page content in the responsive measure: edge padding scaled to the
- * device, and a reading-width cap so long text does not run edge-to-edge on a
- * tablet.
+/*
+ * Ports of components/ui/Button.tsx and components/ui/Input.tsx. Sizes and
+ * colours are the literal values from those files, not approximations.
  */
-@Composable
-fun ResponsiveContent(
-    modifier: Modifier = Modifier,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val layout = LocalAppLayout.current
-    Box(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .widthIn(max = layout.maxContentWidth)
-                .fillMaxWidth()
-                .padding(horizontal = layout.screenPadding),
-            verticalArrangement = verticalArrangement,
-            horizontalAlignment = horizontalAlignment,
-            content = content,
-        )
-    }
+
+enum class ButtonVariant { Default, Destructive, Outline, Secondary, Ghost, Link }
+enum class ButtonSize { Default, Sm, Lg, Icon }
+
+private fun ButtonSize.height(): Dp = when (this) {
+    ButtonSize.Default -> 40.dp  // h-10
+    ButtonSize.Sm -> 36.dp       // h-9
+    ButtonSize.Lg -> 44.dp       // h-11
+    ButtonSize.Icon -> 40.dp     // size-10
 }
 
-/**
- * A case-file card. Reads as paper pinned to a board rather than a flat
- * Material surface, which is the visual language the web app uses throughout.
- */
-@Composable
-fun DossierCard(
-    modifier: Modifier = Modifier,
-    accent: Color? = null,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(scheme.surface, RoundedCornerShape(6.dp))
-            .border(1.dp, accent ?: scheme.outline, RoundedCornerShape(6.dp))
-            .padding(16.dp),
-        content = content,
-    )
+private fun ButtonSize.horizontalPadding(): Dp = when (this) {
+    ButtonSize.Default -> 16.dp  // px-4
+    ButtonSize.Sm -> 12.dp       // px-3
+    ButtonSize.Lg -> 32.dp       // px-8
+    ButtonSize.Icon -> 0.dp
 }
 
 @Composable
-fun PrimaryButton(
+fun AppButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    variant: ButtonVariant = ButtonVariant.Default,
+    size: ButtonSize = ButtonSize.Default,
     enabled: Boolean = true,
     loading: Boolean = false,
 ) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.heightIn(min = 52.dp),
-        enabled = enabled && !loading,
-        shape = RoundedCornerShape(4.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-        ),
-    ) {
-        if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-            Spacer(Modifier.size(10.dp))
-        }
-        Text(text, style = MaterialTheme.typography.labelLarge)
-    }
-}
+    val interactive = enabled && !loading
 
-@Composable
-fun SecondaryButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = modifier.heightIn(min = 52.dp),
-        enabled = enabled,
-        shape = RoundedCornerShape(4.dp),
+    // Mirrors the `variants` map in components/ui/Button.tsx.
+    val (container, content, borderColor) = when (variant) {
+        ButtonVariant.Default -> Triple(Hud.accent, Hud.accentFg, Color.Transparent)
+        ButtonVariant.Destructive -> Triple(Semantic.red500, Color.White, Color.Transparent)
+        ButtonVariant.Outline -> Triple(Color.Transparent, Hud.muted, Hud.border)
+        ButtonVariant.Secondary -> Triple(Hud.surface, Hud.text, Hud.border)
+        ButtonVariant.Ghost -> Triple(Color.Transparent, Hud.muted, Color.Transparent)
+        ButtonVariant.Link -> Triple(Color.Transparent, Hud.accent, Color.Transparent)
+    }
+
+    // disabled:opacity-50
+    val alpha = if (interactive) 1f else 0.5f
+    val shape = RoundedCornerShape(6.dp) // rounded-md
+
+    Box(
+        modifier = modifier
+            .heightIn(min = size.height())
+            .clip(shape)
+            .background(container.copy(alpha = container.alpha * alpha))
+            .border(1.dp, borderColor.copy(alpha = borderColor.alpha * alpha), shape)
+            .clickable(enabled = interactive, onClick = onClick)
+            .padding(horizontal = size.horizontalPadding()),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(text, style = MaterialTheme.typography.labelLarge)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(14.dp),
+                    strokeWidth = 2.dp,
+                    color = content,
+                )
+                Spacer(Modifier.size(8.dp))
+            }
+            Text(
+                text = text,
+                style = if (size == ButtonSize.Lg) ButtonText.copy(fontSize = 18.sp) else ButtonText,
+                color = content.copy(alpha = alpha),
+                maxLines = 1,
+            )
+        }
     }
 }
 
 /**
- * Text field with server-parity validation display. [errorText] is meant to
- * carry the message the API returned, so the phone shows exactly what the web
- * form would.
+ * Port of `components/ui/Input.tsx`, with the label treatment the auth pages
+ * wrap it in (`text-xs font-medium text-[#8F9F8F] mb-1.5`).
+ *
+ * Built on BasicTextField rather than OutlinedTextField because Material's
+ * outlined field draws a notched border and a floating label — neither of
+ * which the web input has.
  */
 @Composable
-fun AppTextField(
+fun AppInput(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
     modifier: Modifier = Modifier,
+    label: String? = null,
     placeholder: String? = null,
     errorText: String? = null,
     helperText: String? = null,
     isPassword: Boolean = false,
     singleLine: Boolean = true,
     enabled: Boolean = true,
+    minHeight: Dp = 40.dp, // h-10
+    textStyle: TextStyle = BodyText,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     var revealed by remember { mutableStateOf(false) }
-    val isError = errorText != null
+    val focusedBorder = Semantic.emerald500.copy(alpha = 0.60f)
+    val shape = RoundedCornerShape(6.dp)
 
     Column(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(label) },
-            placeholder = placeholder?.let { { Text(it) } },
-            isError = isError,
-            enabled = enabled,
-            singleLine = singleLine,
-            shape = RoundedCornerShape(4.dp),
-            keyboardOptions = keyboardOptions,
-            visualTransformation = when {
-                !isPassword || revealed -> VisualTransformation.None
-                else -> PasswordVisualTransformation()
-            },
-            trailingIcon = if (isPassword) {
-                {
-                    IconButton(onClick = { revealed = !revealed }) {
-                        Icon(
-                            imageVector = if (revealed) Icons.Filled.VisibilityOff
-                            else Icons.Filled.Visibility,
-                            contentDescription = if (revealed) "Hide password"
-                            else "Show password",
-                        )
-                    }
-                }
-            } else null,
-        )
+        if (label != null) {
+            Text(text = label, style = FieldLabel, color = Console.muted)
+            Spacer(Modifier.height(6.dp)) // mb-1.5
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = minHeight)
+                .clip(shape)
+                .background(Console.panel)
+                .border(
+                    width = 1.dp,
+                    color = when {
+                        errorText != null -> Semantic.red500.copy(alpha = 0.6f)
+                        else -> Console.border
+                    },
+                    shape = shape,
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp), // px-3 py-2
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            if (value.isEmpty() && placeholder != null) {
+                Text(text = placeholder, style = textStyle, color = Console.placeholder)
+            }
+            CompositionLocalProvider(LocalTextStyle provides textStyle) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = enabled,
+                    singleLine = singleLine,
+                    textStyle = textStyle.copy(color = Console.text),
+                    cursorBrush = SolidColor(focusedBorder),
+                    keyboardOptions = keyboardOptions,
+                    visualTransformation = when {
+                        !isPassword || revealed -> VisualTransformation.None
+                        else -> PasswordVisualTransformation()
+                    },
+                )
+            }
+        }
+
         val support = errorText ?: helperText
         if (support != null) {
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = support,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (isError) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 12.dp, top = 4.dp),
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = com.example.codeundercover_1.ui.theme.SansFont,
+                    fontSize = 12.sp,
+                ),
+                color = if (errorText != null) Semantic.red400 else Console.muted,
             )
         }
     }
 }
 
+/** `rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400` */
 @Composable
-fun LoadingState(modifier: Modifier = Modifier, label: String = "DECRYPTING...") {
+fun ErrorBanner(message: String, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(8.dp)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Semantic.errorFill)
+            .border(1.dp, Semantic.errorBorder, shape)
+            .padding(12.dp),
+    ) {
+        Text(text = message, style = BodyText, color = Semantic.red400)
+    }
+}
+
+/** The `or` rule between the credentials form and Google sign-in. */
+@Composable
+fun OrDivider(modifier: Modifier = Modifier, background: Color = Console.panel) {
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Console.border)
+        )
+        Text(
+            text = "or",
+            style = BodyText.copy(fontSize = 12.sp),
+            color = Console.placeholder,
+            modifier = Modifier
+                .background(background)
+                .padding(horizontal = 12.dp),
+        )
+    }
+}
+
+@Composable
+fun LoadingState(modifier: Modifier = Modifier, label: String = "LOADING") {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .background(Hud.bg),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(color = Hud.accent, strokeWidth = 2.dp)
         Spacer(Modifier.height(16.dp))
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text(text = label.uppercase(), style = MetricLabel, color = Hud.muted)
     }
 }
 
@@ -232,25 +271,22 @@ fun ErrorState(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(Hud.bg)
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            "TRANSMISSION FAILED",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.error,
-        )
+        Text(text = "// ERROR", style = MetricLabel, color = Semantic.red400)
         Spacer(Modifier.height(8.dp))
         Text(
-            message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = message,
+            style = BodyText,
+            color = Hud.muted,
             textAlign = TextAlign.Center,
         )
         if (onRetry != null) {
             Spacer(Modifier.height(20.dp))
-            SecondaryButton(text = "RETRY", onClick = onRetry)
+            AppButton(text = "Retry", onClick = onRetry, variant = ButtonVariant.Outline)
         }
     }
 }
@@ -265,18 +301,14 @@ fun EmptyState(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(Hud.bg)
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge)
+        Text(text = title, style = BodyText.copy(fontSize = 16.sp), color = Hud.text)
         Spacer(Modifier.height(8.dp))
-        Text(
-            detail,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        Text(text = detail, style = BodyText, color = Hud.muted, textAlign = TextAlign.Center)
         if (action != null) {
             Spacer(Modifier.height(20.dp))
             action()
@@ -284,81 +316,20 @@ fun EmptyState(
     }
 }
 
+/** Inline text link — `text-[#39D375]` on auth screens. */
 @Composable
-fun SectionHeader(
+fun TextLink(
     text: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    trailing: (@Composable () -> Unit)? = null,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text.uppercase(),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        trailing?.invoke()
-    }
-}
-
-/** Small stamped pill for difficulty, language or status. */
-@Composable
-fun StampChip(
-    text: String,
-    color: Color,
-    modifier: Modifier = Modifier,
+    color: Color = Console.link,
 ) {
     Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
+        text = text,
+        style = BodyText.copy(fontSize = 12.sp),
         color = color,
         modifier = modifier
-            .border(1.dp, color, RoundedCornerShape(3.dp))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
     )
-}
-
-/** Aura progress toward the next level bracket. */
-@Composable
-fun AuraBar(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    caption: String? = null,
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp),
-            color = Noir.brass,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
-        if (caption != null) {
-            Spacer(Modifier.height(6.dp))
-            Text(
-                caption,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-fun TextLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    TextButton(onClick = onClick, modifier = modifier) {
-        Text(
-            text,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-            ),
-            color = MaterialTheme.colorScheme.primary,
-        )
-    }
 }

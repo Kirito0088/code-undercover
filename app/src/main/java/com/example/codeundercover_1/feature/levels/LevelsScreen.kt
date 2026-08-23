@@ -3,28 +3,26 @@ package com.example.codeundercover_1.feature.levels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -33,14 +31,22 @@ import com.example.codeundercover_1.ServiceLocator
 import com.example.codeundercover_1.data.model.MissionSummary
 import com.example.codeundercover_1.data.net.ApiResult
 import com.example.codeundercover_1.data.repo.MissionStatus
-import com.example.codeundercover_1.ui.components.DossierCard
 import com.example.codeundercover_1.ui.components.EmptyState
+import com.example.codeundercover_1.ui.components.ErrorBanner
 import com.example.codeundercover_1.ui.components.ErrorState
 import com.example.codeundercover_1.ui.components.LoadingState
-import com.example.codeundercover_1.ui.components.StampChip
+import com.example.codeundercover_1.ui.hud.BadgeTone
+import com.example.codeundercover_1.ui.hud.HudBadge
+import com.example.codeundercover_1.ui.hud.HudPage
+import com.example.codeundercover_1.ui.hud.HudPanel
 import com.example.codeundercover_1.ui.responsive.LocalAppLayout
+import com.example.codeundercover_1.ui.theme.Console
 import com.example.codeundercover_1.ui.theme.DifficultyColors
-import com.example.codeundercover_1.ui.theme.Noir
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MetricHint
+import com.example.codeundercover_1.ui.theme.MetricLabel
+import com.example.codeundercover_1.ui.theme.MonoFont
+import com.example.codeundercover_1.ui.theme.Semantic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,8 +86,8 @@ class LevelsViewModel : ViewModel() {
     }
 
     /**
-     * A mission has to be accepted before it can be opened — the server refuses
-     * phase changes, hints and submissions for a mission the user never took.
+     * A mission must be accepted before it can be opened — the server refuses
+     * phase changes, hints and submissions for a mission never taken.
      */
     fun open(mission: MissionSummary, onOpen: (String) -> Unit) {
         if (MissionStatus.from(mission.status) == MissionStatus.LOCKED) return
@@ -109,67 +115,49 @@ fun LevelsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val layout = LocalAppLayout.current
+    val scroll = rememberScrollState()
 
     when {
-        state.loading -> LoadingState(label = "PINNING THE BOARD...")
-
-        state.error != null ->
-            ErrorState(message = state.error!!, onRetry = viewModel::load)
-
+        state.loading -> LoadingState(label = "Pinning the board")
+        state.error != null -> ErrorState(message = state.error!!, onRetry = viewModel::load)
         state.missions.isEmpty() -> EmptyState(
             title = "No missions",
             detail = "The mission catalogue is empty.",
         )
 
-        else -> LazyVerticalGrid(
-            // Column count comes from the window size, so a phone gets one
-            // column and a tablet three without a separate layout file.
-            columns = GridCells.Fixed(layout.boardColumns),
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding(),
-            contentPadding = PaddingValues(
-                start = layout.screenPadding,
-                end = layout.screenPadding,
-                top = 12.dp,
-                bottom = 32.dp,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(layout.gutter),
-            verticalArrangement = Arrangement.spacedBy(layout.gutter),
-        ) {
-            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                Column {
-                    Text(
-                        "Mission Board",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    val done = state.missions.count {
-                        MissionStatus.from(it.status) == MissionStatus.COMPLETED
-                    }
-                    Text(
-                        "$done of ${state.missions.size} cleared",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    state.actionError?.let { message ->
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            message,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                }
+        else -> Column(Modifier.verticalScroll(scroll)) {
+            val cleared = state.missions.count {
+                MissionStatus.from(it.status) == MissionStatus.COMPLETED
             }
 
-            items(state.missions, key = { it.id }) { mission ->
-                MissionCard(
-                    mission = mission,
-                    busy = state.opening == mission.id,
-                    onClick = { viewModel.open(mission, onOpenMission) },
-                )
+            HudPage(
+                eyebrow = "CASE_MAP // MISSION_BOARD",
+                title = "Mission Board",
+                subtitle = "$cleared of ${state.missions.size} operations cleared",
+                status = { HudBadge(text = "OPEN", tone = BadgeTone.Active) },
+            ) {
+                state.actionError?.let { ErrorBanner(it) }
+
+                // Column count comes from the window size, so a phone gets one
+                // and a tablet three without a separate layout.
+                state.missions.chunked(layout.boardColumns).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(layout.gutter)) {
+                        row.forEach { mission ->
+                            MissionCard(
+                                mission = mission,
+                                busy = state.opening == mission.id,
+                                modifier = Modifier.weight(1f),
+                                onClick = { viewModel.open(mission, onOpenMission) },
+                            )
+                        }
+                        repeat(layout.boardColumns - row.size) {
+                            Spacer(Modifier.weight(1f))
+                        }
+                    }
+                    Spacer(Modifier.height(layout.gutter))
+                }
+
+                Spacer(Modifier.height(24.dp))
             }
         }
     }
@@ -179,20 +167,21 @@ fun LevelsScreen(
 private fun MissionCard(
     mission: MissionSummary,
     busy: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val status = MissionStatus.from(mission.status)
     val locked = status == MissionStatus.LOCKED
 
     val accent = when (status) {
-        MissionStatus.COMPLETED -> Noir.cleared
-        MissionStatus.ACTIVE -> Noir.brass
-        MissionStatus.LOCKED -> null
+        MissionStatus.COMPLETED -> Semantic.emeraldBorder
+        MissionStatus.ACTIVE -> Hud.accent
+        MissionStatus.LOCKED -> Hud.border
     }
 
-    DossierCard(
-        modifier = Modifier.clickable(enabled = !locked && !busy, onClick = onClick),
-        accent = accent,
+    HudPanel(
+        modifier = modifier.clickable(enabled = !locked && !busy, onClick = onClick),
+        borderColor = accent,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -200,42 +189,43 @@ private fun MissionCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "MISSION ${mission.order}",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (locked) MaterialTheme.colorScheme.onSurfaceVariant
-                else MaterialTheme.colorScheme.primary,
+                text = "OP ${mission.order.toString().padStart(2, '0')}",
+                style = MetricLabel,
+                color = if (locked) Hud.muted else Hud.accent,
             )
             StatusBadge(status)
         }
 
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
-            mission.title,
-            style = MaterialTheme.typography.titleLarge,
-            // Locked titles stay legible rather than being blanked out — the
-            // web board shows them too; only the contents are gated.
-            color = if (locked) MaterialTheme.colorScheme.onSurfaceVariant
-            else MaterialTheme.colorScheme.onSurface,
+            text = mission.title,
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = MonoFont,
+                fontSize = 14.sp,
+            ),
+            // Locked titles stay legible — the web board shows them too; only
+            // the contents are gated.
+            color = if (locked) Hud.muted else Console.text,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
 
         if (mission.description.isNotBlank()) {
             Spacer(Modifier.height(6.dp))
             Text(
-                mission.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = mission.description,
+                style = MetricHint,
+                color = Hud.muted,
                 maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StampChip(
-                text = mission.difficulty,
-                color = DifficultyColors.forDifficulty(mission.difficulty),
-            )
-            StampChip(text = mission.language, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            StampChip(text = "${mission.auraReward} AURA", color = Noir.brass)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            HudBadge(text = mission.difficulty, tone = BadgeTone.Dim)
+            HudBadge(text = mission.language, tone = BadgeTone.Dim)
+            HudBadge(text = "${mission.auraReward} AP", tone = BadgeTone.Active)
         }
     }
 }
@@ -243,13 +233,14 @@ private fun MissionCard(
 @Composable
 private fun StatusBadge(status: MissionStatus) {
     val (icon, tone, label) = when (status) {
-        MissionStatus.COMPLETED -> Triple(Icons.Filled.CheckCircle, Noir.mossBright, "CLEARED")
-        MissionStatus.ACTIVE -> Triple(Icons.Filled.PlayArrow, Noir.brass, "ACTIVE")
-        MissionStatus.LOCKED -> Triple(
-            Icons.Filled.Lock,
-            MaterialTheme.colorScheme.onSurfaceVariant,
-            "LOCKED",
-        )
+        MissionStatus.COMPLETED ->
+            Triple(Icons.Filled.CheckCircle, Semantic.emerald400, "CLEARED")
+
+        MissionStatus.ACTIVE ->
+            Triple(Icons.Filled.PlayArrow, Hud.accent, "ACTIVE")
+
+        MissionStatus.LOCKED ->
+            Triple(Icons.Filled.Lock, Hud.muted, "LOCKED")
     }
 
     Row(
@@ -260,9 +251,11 @@ private fun StatusBadge(status: MissionStatus) {
             imageVector = icon,
             contentDescription = null,
             tint = tone,
-            modifier = Modifier.height(16.dp),
+            modifier = Modifier.size(12.dp),
         )
-        Text(label, style = MaterialTheme.typography.labelSmall, color = tone)
+        Text(label, style = MetricLabel.copy(fontSize = 8.sp), color = tone)
     }
 }
 
+/** Difficulty tint, kept alongside the board for the mission detail header. */
+internal fun difficultyTint(difficulty: String) = DifficultyColors.forDifficulty(difficulty)

@@ -2,53 +2,57 @@ package com.example.codeundercover_1.feature.mission
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.codeundercover_1.data.model.ValidateResponse
 import com.example.codeundercover_1.data.repo.MissionPhase
-import com.example.codeundercover_1.ui.components.DossierCard
+import com.example.codeundercover_1.domain.Aura
+import com.example.codeundercover_1.ui.components.AppButton
+import com.example.codeundercover_1.ui.components.AppInput
+import com.example.codeundercover_1.ui.components.ButtonVariant
+import com.example.codeundercover_1.ui.components.ErrorBanner
 import com.example.codeundercover_1.ui.components.ErrorState
 import com.example.codeundercover_1.ui.components.LoadingState
-import com.example.codeundercover_1.ui.components.PrimaryButton
-import com.example.codeundercover_1.ui.components.ResponsiveContent
-import com.example.codeundercover_1.ui.components.SecondaryButton
-import com.example.codeundercover_1.ui.components.SectionHeader
-import com.example.codeundercover_1.ui.components.StampChip
+import com.example.codeundercover_1.ui.hud.BadgeTone
+import com.example.codeundercover_1.ui.hud.HudBadge
+import com.example.codeundercover_1.ui.hud.HudPage
+import com.example.codeundercover_1.ui.hud.HudPanel
 import com.example.codeundercover_1.ui.responsive.LocalAppLayout
-import com.example.codeundercover_1.ui.theme.ChalkStyle
 import com.example.codeundercover_1.ui.theme.CodeStyle
-import com.example.codeundercover_1.ui.theme.DifficultyColors
-import com.example.codeundercover_1.ui.theme.Noir
+import com.example.codeundercover_1.ui.theme.Console
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MetricHint
+import com.example.codeundercover_1.ui.theme.MetricLabel
+import com.example.codeundercover_1.ui.theme.MonoFont
+import com.example.codeundercover_1.ui.theme.Semantic
 
 @Composable
 fun MissionScreen(
@@ -57,57 +61,30 @@ fun MissionScreen(
 ) {
     val viewModel: MissionViewModel = viewModel(
         key = missionId,
-        factory = viewModelFactory {
-            initializer { MissionViewModel(missionId) }
-        },
+        factory = viewModelFactory { initializer { MissionViewModel(missionId) } },
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scroll = rememberScrollState()
 
     when {
-        state.loading -> LoadingState(label = "OPENING CASE FILE...")
-
+        state.loading -> LoadingState(label = "Opening case file")
         state.error != null -> ErrorState(message = state.error!!, onRetry = viewModel::load)
-
         state.detail == null -> ErrorState(message = "Mission not found.", onRetry = onExit)
 
         else -> {
             val detail = state.detail!!
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .safeDrawingPadding()
+                Modifier
                     .imePadding()
-                    .verticalScroll(scroll),
+                    .verticalScroll(scroll)
             ) {
-                ResponsiveContent {
-                    Spacer(Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            "MISSION ${detail.order}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        StampChip(
-                            text = detail.difficulty,
-                            color = DifficultyColors.forDifficulty(detail.difficulty),
-                        )
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        detail.title,
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-
-                    Spacer(Modifier.height(12.dp))
+                HudPage(
+                    eyebrow = "FIELD_OP // MISSION_${detail.order.toString().padStart(2, '0')}",
+                    title = detail.title,
+                    subtitle = detail.description.takeIf { it.isNotBlank() },
+                    status = { HudBadge(text = detail.difficulty, tone = BadgeTone.Amber) },
+                ) {
                     PhaseIndicator(state.phase, hasQuiz = state.questions.isNotEmpty())
-                    Spacer(Modifier.height(18.dp))
 
                     when (state.phase) {
                         MissionPhase.TEACHING -> TeachingPhase(state, viewModel)
@@ -115,22 +92,15 @@ fun MissionScreen(
                         MissionPhase.CODING -> CodingPhase(state, viewModel)
                     }
 
-                    state.actionError?.let { message ->
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            message,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
+                    state.actionError?.let { ErrorBanner(it) }
 
-                    Spacer(Modifier.height(16.dp))
-                    SecondaryButton(
-                        text = "LEAVE MISSION",
+                    AppButton(
+                        text = "Leave mission",
                         onClick = onExit,
                         modifier = Modifier.fillMaxWidth(),
+                        variant = ButtonVariant.Outline,
                     )
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.height(24.dp))
                 }
             }
         }
@@ -138,7 +108,7 @@ fun MissionScreen(
 }
 
 @Composable
-private fun PhaseIndicator(phase: MissionPhase, hasQuiz: Boolean) {
+private fun ColumnScope.PhaseIndicator(phase: MissionPhase, hasQuiz: Boolean) {
     val steps = if (hasQuiz) {
         listOf(MissionPhase.TEACHING, MissionPhase.MCQ, MissionPhase.CODING)
     } else {
@@ -146,30 +116,30 @@ private fun PhaseIndicator(phase: MissionPhase, hasQuiz: Boolean) {
     }
     val index = steps.indexOf(phase).coerceAtLeast(0)
 
-    Column {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    HudPanel(padding = 12.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             steps.forEachIndexed { position, step ->
                 val label = when (step) {
-                    MissionPhase.TEACHING -> "BRIEF"
-                    MissionPhase.MCQ -> "QUIZ"
+                    MissionPhase.TEACHING -> "INTEL"
+                    MissionPhase.MCQ -> "VERIFY"
                     MissionPhase.CODING -> "FIELD WORK"
                 }
                 Text(
-                    label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (position <= index) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = label,
+                    style = MetricLabel,
+                    color = if (position <= index) Hud.accent else Hud.muted,
                 )
             }
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         LinearProgressIndicator(
             progress = { (index + 1f) / steps.size },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp),
-            color = Noir.brass,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.fillMaxWidth().height(4.dp),
+            color = Hud.accent,
+            trackColor = Console.deep,
         )
     }
 }
@@ -181,33 +151,31 @@ private fun ColumnScope.TeachingPhase(state: MissionUiState, viewModel: MissionV
     val slide = state.currentSlide
 
     if (slide == null) {
-        DossierCard {
-            Text(
-                "This mission has no briefing material.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        HudPanel {
+            Text("No briefing material.", style = MetricHint, color = Hud.muted)
         }
-        Spacer(Modifier.height(14.dp))
-        PrimaryButton(
-            text = "CONTINUE",
+        AppButton(
+            text = "Continue",
             onClick = viewModel::nextSlide,
             modifier = Modifier.fillMaxWidth(),
         )
         return
     }
 
-    DossierCard {
+    HudPanel {
         Text(
-            "SLIDE ${state.slideIndex + 1} OF ${state.slides.size}",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
+            "SLIDE ${state.slideIndex + 1} / ${state.slides.size}",
+            style = MetricLabel,
+            color = Hud.accent,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
         Text(
             slide.title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = MonoFont,
+                fontSize = 16.sp,
+            ),
+            color = Console.text,
         )
         Spacer(Modifier.height(12.dp))
         slide.content.forEach { line ->
@@ -215,23 +183,30 @@ private fun ColumnScope.TeachingPhase(state: MissionUiState, viewModel: MissionV
                 modifier = Modifier.padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("—", style = ChalkStyle, color = Noir.brass)
+                Text(">", style = CodeStyle, color = Hud.accent)
                 Text(
                     line.trim(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = MonoFont,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp,
+                    ),
+                    color = Console.text,
                 )
             }
         }
     }
 
-    Spacer(Modifier.height(14.dp))
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         if (state.slideIndex > 0) {
-            SecondaryButton(text = "BACK", onClick = viewModel::previousSlide)
+            AppButton(
+                text = "Back",
+                onClick = viewModel::previousSlide,
+                variant = ButtonVariant.Outline,
+            )
         }
-        PrimaryButton(
-            text = if (state.isLastSlide) "START QUIZ" else "NEXT",
+        AppButton(
+            text = if (state.isLastSlide) "Start verification" else "Next",
             onClick = viewModel::nextSlide,
             modifier = Modifier.weight(1f),
         )
@@ -243,53 +218,46 @@ private fun ColumnScope.TeachingPhase(state: MissionUiState, viewModel: MissionV
 @Composable
 private fun ColumnScope.QuizPhase(state: MissionUiState, viewModel: MissionViewModel) {
     state.questions.forEachIndexed { questionIndex, question ->
-        DossierCard(modifier = Modifier.padding(bottom = 12.dp)) {
-            Text(
-                "QUESTION ${questionIndex + 1}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(6.dp))
+        HudPanel {
+            Text("QUERY ${questionIndex + 1}", style = MetricLabel, color = Hud.accent)
+            Spacer(Modifier.height(8.dp))
             Text(
                 question.question,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = MonoFont,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                ),
+                color = Console.text,
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
 
             Column(Modifier.selectableGroup()) {
                 question.options.forEachIndexed { optionIndex, option ->
                     val selected = state.answers[questionIndex] == optionIndex
-                    // Once graded, the right answer is always highlighted so a
+                    // Once graded the right answer is always highlighted, so a
                     // wrong pick still teaches the correct one.
                     val tone = when {
-                        !state.quizGraded -> MaterialTheme.colorScheme.onSurface
-                        optionIndex == question.correctIndex -> Noir.mossBright
-                        selected -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        !state.quizGraded -> if (selected) Hud.accent else Console.text
+                        optionIndex == question.correctIndex -> Semantic.emerald400
+                        selected -> Semantic.red400
+                        else -> Hud.muted
                     }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = selected,
-                            onClick = { viewModel.answer(questionIndex, optionIndex) },
-                            enabled = !state.quizGraded,
-                        )
-                        Text(option, style = MaterialTheme.typography.bodyLarge, color = tone)
-                    }
+                    OptionRow(
+                        text = option,
+                        tone = tone,
+                        selected = selected,
+                        enabled = !state.quizGraded,
+                        onSelect = { viewModel.answer(questionIndex, optionIndex) },
+                    )
                 }
             }
         }
     }
 
     if (!state.quizGraded) {
-        PrimaryButton(
-            text = "CHECK ANSWERS",
+        AppButton(
+            text = "Check answers",
             onClick = viewModel::gradeQuiz,
             modifier = Modifier.fillMaxWidth(),
             enabled = state.allAnswered,
@@ -297,32 +265,65 @@ private fun ColumnScope.QuizPhase(state: MissionUiState, viewModel: MissionViewM
         return
     }
 
-    DossierCard(accent = if (state.quizPassed) Noir.cleared else MaterialTheme.colorScheme.error) {
+    HudPanel(
+        borderColor = if (state.quizPassed) Semantic.emeraldBorder else Semantic.errorBorder
+    ) {
         Text(
-            if (state.quizPassed) "ALL CORRECT" else "NOT QUITE",
-            style = MaterialTheme.typography.titleLarge,
-            color = if (state.quizPassed) Noir.mossBright else MaterialTheme.colorScheme.error,
+            if (state.quizPassed) "// ALL CORRECT" else "// NOT QUITE",
+            style = MetricLabel.copy(fontSize = 12.sp),
+            color = if (state.quizPassed) Semantic.emerald400 else Semantic.red400,
         )
         Spacer(Modifier.height(4.dp))
         Text(
             "${state.correctCount} of ${state.questions.size} correct.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MetricHint,
+            color = Hud.muted,
         )
     }
 
-    Spacer(Modifier.height(14.dp))
-    if (state.quizPassed) {
-        PrimaryButton(
-            text = "BEGIN FIELD WORK",
-            onClick = viewModel::proceedToCoding,
-            modifier = Modifier.fillMaxWidth(),
+    AppButton(
+        text = if (state.quizPassed) "Begin field work" else "Try again",
+        onClick = {
+            if (state.quizPassed) viewModel.proceedToCoding() else viewModel.retryQuiz()
+        },
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun OptionRow(
+    text: String,
+    tone: Color,
+    selected: Boolean,
+    enabled: Boolean,
+    onSelect: () -> Unit,
+) {
+    val shape = RoundedCornerShape(6.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clip(shape)
+            .background(Console.deep)
+            .border(1.dp, if (selected) tone else Console.border, shape)
+            .clickable(enabled = enabled, onClick = onSelect)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (selected) tone else Console.border)
         )
-    } else {
-        PrimaryButton(
-            text = "TRY AGAIN",
-            onClick = viewModel::retryQuiz,
-            modifier = Modifier.fillMaxWidth(),
+        Text(
+            text,
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = MonoFont,
+                fontSize = 13.sp,
+            ),
+            color = tone,
         )
     }
 }
@@ -335,74 +336,108 @@ private fun ColumnScope.CodingPhase(state: MissionUiState, viewModel: MissionVie
     val detail = state.detail ?: return
 
     if (detail.goal?.isNotBlank() == true || detail.briefing.isNotBlank()) {
-        DossierCard {
-            SectionHeader("Objective")
+        HudPanel {
+            Text("OBJECTIVE", style = MetricLabel, color = Hud.accent)
+            Spacer(Modifier.height(8.dp))
             Text(
                 detail.goal?.takeIf { it.isNotBlank() } ?: detail.briefing,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = MonoFont,
+                    fontSize = 13.sp,
+                    lineHeight = 20.sp,
+                ),
+                color = Console.text,
             )
         }
-        Spacer(Modifier.height(14.dp))
     }
 
     val editor: @Composable ColumnScope.() -> Unit = {
-        SectionHeader("Your code")
-        MonoField(
-            value = state.code,
-            onValueChange = viewModel::onCodeChange,
-            enabled = !state.submitting && !state.running,
-            minHeight = 260.dp,
-        )
-        Spacer(Modifier.height(10.dp))
-        SectionHeader("Standard input")
-        MonoField(
-            value = state.stdin,
-            onValueChange = viewModel::onStdinChange,
-            enabled = !state.submitting && !state.running,
-            minHeight = 72.dp,
-        )
-        Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SecondaryButton(
-                text = "RUN",
-                onClick = viewModel::run,
-                enabled = !state.running && !state.submitting,
+        HudPanel {
+            Text("EDITOR", style = MetricLabel, color = Hud.muted)
+            Spacer(Modifier.height(8.dp))
+            AppInput(
+                value = state.code,
+                onValueChange = viewModel::onCodeChange,
+                enabled = !state.submitting && !state.running,
+                singleLine = false,
+                minHeight = 260.dp,
+                textStyle = CodeStyle,
             )
-            PrimaryButton(
-                text = "SUBMIT",
-                onClick = viewModel::submit,
-                loading = state.submitting,
-                enabled = !state.running,
-                modifier = Modifier.weight(1f),
+            Spacer(Modifier.height(10.dp))
+            Text("STDIN", style = MetricLabel, color = Hud.muted)
+            Spacer(Modifier.height(8.dp))
+            AppInput(
+                value = state.stdin,
+                onValueChange = viewModel::onStdinChange,
+                enabled = !state.submitting && !state.running,
+                singleLine = false,
+                minHeight = 72.dp,
+                textStyle = CodeStyle,
             )
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                AppButton(
+                    text = "Run",
+                    onClick = viewModel::run,
+                    variant = ButtonVariant.Secondary,
+                    enabled = !state.running && !state.submitting,
+                    loading = state.running,
+                )
+                AppButton(
+                    text = "Submit",
+                    onClick = viewModel::submit,
+                    modifier = Modifier.weight(1f),
+                    loading = state.submitting,
+                    enabled = !state.running,
+                )
+            }
         }
     }
 
     val results: @Composable ColumnScope.() -> Unit = {
         state.runResult?.let { result ->
-            SectionHeader("Test run")
-            Terminal(
-                text = when {
-                    result.serviceUnavailable ->
-                        result.errors ?: "The execution service is unavailable."
+            HudPanel {
+                Text("TEST RUN", style = MetricLabel, color = Hud.muted)
+                Spacer(Modifier.height(8.dp))
+                Terminal(
+                    text = when {
+                        result.serviceUnavailable ->
+                            result.errors ?: "The execution service is unavailable."
 
-                    !result.success ->
-                        result.compilerError ?: result.errors ?: "Execution failed."
+                        !result.success ->
+                            result.compilerError ?: result.errors ?: "Execution failed."
 
-                    else -> result.output?.takeIf { it.isNotBlank() } ?: "(no output)"
-                },
-                tone = if (result.success) Noir.mossBright else MaterialTheme.colorScheme.error,
+                        else -> result.output?.takeIf { it.isNotBlank() } ?: "(no output)"
+                    },
+                    tone = if (result.success) Semantic.emerald400 else Semantic.red400,
+                )
+            }
+        }
+
+        state.submitResult?.let { SubmissionOutcome(it) }
+
+        HudPanel {
+            Text("SUPPORT", style = MetricLabel, color = Hud.muted)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "${state.hintsRemaining} of ${MissionUiState.MAX_HINTS} hints left · " +
+                    "${Aura.HINT_PENALTY} AP each",
+                style = MetricHint,
+                color = Hud.muted,
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
+            AppButton(
+                text = "Request hint",
+                onClick = viewModel::requestHint,
+                variant = ButtonVariant.Outline,
+                enabled = !state.hintLoading && state.hintsRemaining > 0,
+                loading = state.hintLoading,
+            )
+            state.hints.forEach { hint ->
+                Spacer(Modifier.height(8.dp))
+                Text(hint, style = CodeStyle, color = Semantic.amber400)
+            }
         }
-
-        state.submitResult?.let { result ->
-            SubmissionOutcome(result)
-            Spacer(Modifier.height(14.dp))
-        }
-
-        HintPanel(state, viewModel)
     }
 
     if (layout.supportsTwoPane) {
@@ -412,7 +447,6 @@ private fun ColumnScope.CodingPhase(state: MissionUiState, viewModel: MissionVie
         }
     } else {
         editor()
-        Spacer(Modifier.height(18.dp))
         results()
     }
 }
@@ -421,36 +455,30 @@ private fun ColumnScope.CodingPhase(state: MissionUiState, viewModel: MissionVie
 private fun ColumnScope.SubmissionOutcome(result: ValidateResponse) {
     val passed = result.success
 
-    DossierCard(accent = if (passed) Noir.cleared else MaterialTheme.colorScheme.error) {
+    HudPanel(
+        borderColor = if (passed) Semantic.emeraldBorder else Semantic.errorBorder
+    ) {
         Text(
             when {
-                result.serviceUnavailable -> "JUDGE UNAVAILABLE"
-                passed && result.isReplay -> "CLEARED AGAIN"
-                passed -> "MISSION CLEARED"
-                else -> "NOT ACCEPTED"
+                result.serviceUnavailable -> "// JUDGE UNAVAILABLE"
+                passed && result.isReplay -> "// CLEARED AGAIN"
+                passed -> "// MISSION CLEARED"
+                else -> "// NOT ACCEPTED"
             },
-            style = MaterialTheme.typography.titleLarge,
-            color = if (passed) Noir.mossBright else MaterialTheme.colorScheme.error,
+            style = MetricLabel.copy(fontSize = 12.sp),
+            color = if (passed) Semantic.emerald400 else Semantic.red400,
         )
 
         if (result.validationErrors.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            result.validationErrors.forEach { message ->
-                Text(
-                    "• $message",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+            result.validationErrors.forEach {
+                Text("· $it", style = MetricHint, color = Console.text)
             }
         }
 
-        result.explanation?.let { explanation ->
+        result.explanation?.let {
             Spacer(Modifier.height(8.dp))
-            Text(
-                explanation,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Text(it, style = MetricHint, color = Hud.muted)
         }
 
         if (passed) {
@@ -458,97 +486,57 @@ private fun ColumnScope.SubmissionOutcome(result: ValidateResponse) {
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 if (result.earnedAura > 0) {
                     Text(
-                        "+${result.earnedAura} aura",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Noir.brass,
+                        "+${result.earnedAura} AP",
+                        style = MetricLabel.copy(fontSize = 12.sp),
+                        color = Hud.accent,
                     )
                 }
                 if (result.comboBonus > 0) {
                     Text(
-                        "+${result.comboBonus} combo",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Noir.amber,
+                        "+${result.comboBonus} COMBO",
+                        style = MetricLabel.copy(fontSize = 12.sp),
+                        color = Semantic.amber400,
                     )
                 }
             }
             if (result.innovationUnlocked) {
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "FOX BADGE — ${result.innovationReason ?: "innovative solution"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Noir.brass,
+                    "FOX INSIGNIA — ${result.innovationReason ?: "innovative solution"}",
+                    style = MetricLabel,
+                    color = Semantic.amber400,
                 )
             }
-            // A replay earns nothing, but showing what it *would* have paid
-            // keeps the feedback honest instead of silently awarding zero.
-            result.wouldHaveEarnedAura?.let { potential ->
+            // A replay earns nothing; showing what it would have paid keeps the
+            // feedback honest instead of silently awarding zero.
+            result.wouldHaveEarnedAura?.let {
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Replay — no aura awarded (worth $potential on a first clear).",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    "Replay — no AP awarded (worth $it on a first clear).",
+                    style = MetricHint,
+                    color = Hud.muted,
                 )
             }
         }
 
         if (result.stdout.isNotBlank()) {
             Spacer(Modifier.height(10.dp))
-            Terminal(text = result.stdout, tone = Noir.chalk)
+            Terminal(text = result.stdout, tone = Console.text)
         }
     }
 }
 
 @Composable
-private fun ColumnScope.HintPanel(state: MissionUiState, viewModel: MissionViewModel) {
-    SectionHeader("Support")
-    Text(
-        "${state.hintsRemaining} of ${MissionUiState.MAX_HINTS} hints left. " +
-            "Each one costs ${com.example.codeundercover_1.domain.Aura.HINT_PENALTY} aura.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(8.dp))
-    SecondaryButton(
-        text = "REQUEST HINT",
-        onClick = viewModel::requestHint,
-        enabled = !state.hintLoading && state.hintsRemaining > 0,
-    )
-
-    state.hints.forEach { hint ->
-        Spacer(Modifier.height(8.dp))
-        Text(hint, style = ChalkStyle, color = Noir.brassBright)
-    }
-}
-
-@Composable
-private fun MonoField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    enabled: Boolean,
-    minHeight: Dp,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = minHeight),
-        enabled = enabled,
-        textStyle = CodeStyle.copy(color = MaterialTheme.colorScheme.onSurface),
-        shape = RoundedCornerShape(4.dp),
-        singleLine = false,
-    )
-}
-
-@Composable
 private fun Terminal(text: String, tone: Color) {
-    Column(
+    val shape = RoundedCornerShape(6.dp)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Noir.chalkboardDeep, RoundedCornerShape(4.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
+            .clip(shape)
+            .background(Console.deep)
+            .border(1.dp, Console.border, shape)
             .padding(12.dp),
     ) {
-        Text(text, style = CodeStyle, color = tone)
+        Text(text = text, style = CodeStyle, color = tone)
     }
 }

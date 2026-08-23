@@ -3,20 +3,22 @@ package com.example.codeundercover_1.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Palette ported from the web app.
+ * Colours taken from the web app as it actually renders.
  *
- * Two families live here, and they behave differently on purpose:
+ * There are deliberately two families here, because the web app has two:
  *
- *  - [DarkTokens] / [LightTokens] mirror the `--bg`/`--surface`/`--accent`
- *    custom properties in `app/globals.css`. These flip with the theme.
- *  - [Noir] mirrors the fixed hexes in `tailwind.config.ts`. Those surfaces are
- *    a painted set piece — chalkboard, cork, walnut, brass — and the web app
- *    deliberately keeps them constant in both themes. We do the same, so a
- *    corkboard reads as cork rather than inverting into something pale.
+ *  - [Hud] mirrors the CSS custom properties (`--bg`, `--surface`, `--accent`
+ *    …) that `HudPage`/`HudPanel` consume on every authenticated screen.
+ *  - [Console] mirrors the literal hexes hard-coded in the auth pages and the
+ *    older console surfaces (`#0D0E12`, `#1F261F`, `#8F9F8F` …).
+ *
+ * They are not unified here on purpose. Collapsing them into one scheme would
+ * make the Android app disagree with the web on which screens are brass-on-
+ * slate and which are green-on-near-black.
  */
 
-/** `:root` in globals.css — the default (dark) theme. */
-object DarkTokens {
+/** `:root` in globals.css — what HudPage and HudPanel render against. */
+object Hud {
     val bg = Color(0xFF2C3237)
     val surface = Color(0xFF37443E)
     val border = Color(0xFF5B3D2A)
@@ -24,81 +26,67 @@ object DarkTokens {
     val muted = Color(0xFF7E97A8)
     val accent = Color(0xFFB78742)
     val accentFg = Color(0xFFF4E7D3)
+
+    /** rgba(183,135,66,α) — the accent used for glows, grid lines, brackets. */
+    fun accentAlpha(alpha: Float) = accent.copy(alpha = alpha)
+
+    /** Corner brackets and scanline grid tints, at the web's exact opacities. */
+    val bracket = accentAlpha(0.40f)
+    val gridLine = accentAlpha(0.04f)
+    val panelGlow = accentAlpha(0.06f)
+    val sweep = accentAlpha(0.05f)
 }
 
-/** `.light` in globals.css. */
-object LightTokens {
-    val bg = Color(0xFFF4E7D3)
-    val surface = Color(0xFFFFF8EC)
-    val border = Color(0xFFD8B17A)
-    val text = Color(0xFF1C2025)
-    val muted = Color(0xFF5B3D2A)
-    val accent = Color(0xFFC97626)
-    val accentFg = Color(0xFFF4E7D3)
+/** Hard-coded hexes from the auth pages and console surfaces. */
+object Console {
+    val deep = Color(0xFF07080A)
+    val panel = Color(0xFF0D0E12)
+    val border = Color(0xFF1F261F)
+    val borderHover = Color(0xFF2A3A2A)
+    val hover = Color(0xFF181C18)
+    val hoverAlt = Color(0xFF161820)
+    val text = Color(0xFFE2E8F0)
+    val muted = Color(0xFF8F9F8F)
+    val placeholder = Color(0xFF4A5D4A)
+
+    /** #39D375 — the green used for links on the auth screens. */
+    val link = Color(0xFF39D375)
+
+    // ─── Register intake terminal ───
+    /** #6B6B6B — the mono uppercase field labels on the intake form. */
+    val labelGray = Color(0xFF6B6B6B)
+
+    /** #C9A84C — the gold CTA and link colour on the register flow. */
+    val gold = Color(0xFFC9A84C)
+    val goldHover = Color(0xFFB5953F)
+
+    /** #161820 — disabled CTA fill. */
+    val disabledFill = Color(0xFF161820)
 }
 
-/** Fixed set-piece colours — identical in light and dark. */
-object Noir {
-    // Chalkboard
-    val chalkboard = Color(0xFF17342A)
-    val chalkboardMid = Color(0xFF204A3A)
-    val chalkboardDeep = Color(0xFF0D2118)
-    val bgMat = Color(0xFF0E2A1F)
+/** Tailwind swatches referenced directly in the markup. */
+object Semantic {
+    val emerald500 = Color(0xFF10B981)
+    val emerald400 = Color(0xFF34D399)
+    val red400 = Color(0xFFF87171)
+    val red500 = Color(0xFFEF4444)
+    val amber400 = Color(0xFFFBBF24)
+    val amber500 = Color(0xFFF59E0B)
 
-    // Walnut / framing
-    val walnut = Color(0xFF3B2A1C)
-    val walnutLight = Color(0xFF5A4029)
-    val walnutDeep = Color(0xFF1C1209)
-    val frameWood = Color(0xFF4D2E17)
+    /** bg-red-500/10 + border-red-500/20 — the error banner treatment. */
+    val errorFill = red500.copy(alpha = 0.10f)
+    val errorBorder = red500.copy(alpha = 0.20f)
 
-    // Brass
-    val brass = Color(0xFFC9A24B)
-    val brassBright = Color(0xFFF0CF8A)
-    val brassDeep = Color(0xFF8A6B28)
+    val emeraldFill = emerald500.copy(alpha = 0.10f)
+    val emeraldBorder = emerald500.copy(alpha = 0.20f)
 
-    // Paper & ink
-    val chalk = Color(0xFFF7F2E7)
-    val note = Color(0xFFF6EFDC)
-    val paper = Color(0xFFECDFC0)
-    val paperLocked = Color(0xFFD5C7A9)
-    val paperClear = Color(0xFFF4F1E4)
-    val paperActive = Color(0xFFE8B54A)
-    val paperEdge = Color(0x593C2814)
-    val ink = Color(0xFF2F2A22)
-    val inkMuted = Color(0xFF6A5C48)
-
-    // Cork
-    val corkBase = Color(0xFFB07D4F)
-    val corkDark = Color(0xFF8C5F35)
-    val corkDeep = Color(0xFF8B5C30)
-
-    // Navigation chrome
-    val navWoodHi = Color(0xFF4A3626)
-    val navWoodLo = Color(0xFF3B2B1D)
-    val navRule = Color(0xFFD9A441)
-    val navText = Color(0xFFF0E4CE)
-
-    // Signals
-    val amber = Color(0xFFE8A545)
-    val inkRed = Color(0xFF7A2E28)
-    val inkRedBright = Color(0xFFA5453A)
-    val moss = Color(0xFF46664A)
-    val mossBright = Color(0xFF6D8F6F)
-    val slate = Color(0xFF3D4A6B)
-    val slateBright = Color(0xFF6B7A9E)
-    val cleared = Color(0xFF2F7A3D)
-    val pinRed = Color(0xFFC0392B)
-    val threadLive = Color(0xFFC0392B)
-    val threadDead = Color(0x8C782819)
-    val ribbonGreen = Color(0xFF2F7D3A)
-    val ribbonRed = Color(0xFFA8221E)
-    val tapeGreen = Color(0xFFB9CDB6)
+    val amberFill = amber500.copy(alpha = 0.10f)
+    val amberBorder = amber500.copy(alpha = 0.20f)
 }
 
 /**
- * Rank colours for the leaderboard, matching `getRankBadgeStyles` in
- * `lib/aura.ts`. The web returns Tailwind classes; these are the same swatches
- * resolved to hex so the ladder reads identically on both platforms.
+ * Rank colours from `getRankBadgeStyles` in `lib/aura.ts`, resolved from the
+ * Tailwind class names the web returns.
  */
 object RankColors {
     val platypus = Color(0xFFFCD34D)  // amber-300
@@ -124,16 +112,11 @@ object RankColors {
     }
 }
 
-/** Difficulty pill colours used on mission cards. */
 object DifficultyColors {
-    val easy = Noir.mossBright
-    val medium = Noir.amber
-    val hard = Noir.inkRedBright
-
     fun forDifficulty(difficulty: String): Color = when (difficulty.uppercase()) {
-        "EASY" -> easy
-        "MEDIUM" -> medium
-        "HARD" -> hard
-        else -> easy
+        "EASY" -> Semantic.emerald400
+        "MEDIUM" -> Semantic.amber400
+        "HARD" -> Semantic.red400
+        else -> Semantic.emerald400
     }
 }

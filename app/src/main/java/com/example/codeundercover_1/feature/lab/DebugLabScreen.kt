@@ -3,7 +3,9 @@ package com.example.codeundercover_1.feature.lab
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,16 +14,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -33,13 +33,20 @@ import com.example.codeundercover_1.data.model.CompileResponse
 import com.example.codeundercover_1.data.model.CompilerDiagnostic
 import com.example.codeundercover_1.data.net.ApiResult
 import com.example.codeundercover_1.data.repo.CompilerRepository
-import com.example.codeundercover_1.ui.components.PrimaryButton
-import com.example.codeundercover_1.ui.components.ResponsiveContent
-import com.example.codeundercover_1.ui.components.SecondaryButton
-import com.example.codeundercover_1.ui.components.SectionHeader
+import com.example.codeundercover_1.ui.components.AppButton
+import com.example.codeundercover_1.ui.components.AppInput
+import com.example.codeundercover_1.ui.components.ButtonVariant
+import com.example.codeundercover_1.ui.hud.BadgeTone
+import com.example.codeundercover_1.ui.hud.HudBadge
+import com.example.codeundercover_1.ui.hud.HudPage
+import com.example.codeundercover_1.ui.hud.HudPanel
 import com.example.codeundercover_1.ui.responsive.LocalAppLayout
 import com.example.codeundercover_1.ui.theme.CodeStyle
-import com.example.codeundercover_1.ui.theme.Noir
+import com.example.codeundercover_1.ui.theme.Console
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MetricHint
+import com.example.codeundercover_1.ui.theme.MetricLabel
+import com.example.codeundercover_1.ui.theme.Semantic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -99,222 +106,173 @@ fun DebugLabScreen(viewModel: DebugLabViewModel = viewModel()) {
     val layout = LocalAppLayout.current
     val scroll = rememberScrollState()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .safeDrawingPadding()
             .imePadding()
             .verticalScroll(scroll),
     ) {
-        ResponsiveContent {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Debug Lab",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-            Text(
-                "A scratchpad wired to the same compiler the missions use.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // On a tablet or unfolded foldable the editor and its output sit
-            // side by side; on a phone they stack, because a half-width editor
-            // on a 5-inch screen is unusable.
+        HudPage(
+            eyebrow = "Sandbox",
+            title = "Debug Lab",
+            subtitle = "Same compiler the missions use",
+            status = {
+                HudBadge(
+                    text = if (state.running) "RUNNING" else "IDLE",
+                    tone = if (state.running) BadgeTone.Amber else BadgeTone.Active,
+                )
+            },
+        ) {
             if (layout.supportsTwoPane) {
                 Row(horizontalArrangement = Arrangement.spacedBy(layout.gutter)) {
-                    Column(Modifier.weight(1f)) {
-                        EditorSection(state, viewModel)
-                    }
-                    Column(Modifier.weight(1f)) {
-                        OutputSection(state)
-                    }
+                    Column(Modifier.weight(1f)) { EditorSection(state, viewModel) }
+                    Column(Modifier.weight(1f)) { OutputSection(state) }
                 }
             } else {
                 EditorSection(state, viewModel)
-                Spacer(Modifier.height(16.dp))
                 OutputSection(state)
             }
-
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun EditorSection(state: DebugLabUiState, viewModel: DebugLabViewModel) {
-    SectionHeader("Source")
-    CodeEditor(
-        value = state.code,
-        onValueChange = viewModel::onCodeChange,
-        enabled = !state.running,
-        minHeight = 240.dp,
-    )
-    Text(
-        "${state.code.length} / ${CompilerRepository.MAX_CODE_LENGTH}",
-        style = MaterialTheme.typography.bodySmall,
-        color = if (state.code.length > CompilerRepository.MAX_CODE_LENGTH) {
-            MaterialTheme.colorScheme.error
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        modifier = Modifier.padding(top = 4.dp),
-    )
-
-    Spacer(Modifier.height(12.dp))
-    SectionHeader("Standard input")
-    CodeEditor(
-        value = state.stdin,
-        onValueChange = viewModel::onStdinChange,
-        enabled = !state.running,
-        minHeight = 88.dp,
-    )
-
-    Spacer(Modifier.height(14.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        PrimaryButton(
-            text = "RUN",
-            onClick = viewModel::run,
-            loading = state.running,
-            modifier = Modifier.weight(1f),
-        )
-        SecondaryButton(
-            text = "RESET",
-            onClick = viewModel::reset,
+private fun ColumnScope.EditorSection(state: DebugLabUiState, viewModel: DebugLabViewModel) {
+    HudPanel {
+        Text("SOURCE", style = MetricLabel, color = Hud.muted)
+        Spacer(Modifier.height(8.dp))
+        AppInput(
+            value = state.code,
+            onValueChange = viewModel::onCodeChange,
             enabled = !state.running,
+            singleLine = false,
+            minHeight = 240.dp,
+            textStyle = CodeStyle,
         )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "${state.code.length} / ${CompilerRepository.MAX_CODE_LENGTH}",
+            style = MetricHint,
+            color = if (state.code.length > CompilerRepository.MAX_CODE_LENGTH) {
+                Semantic.red400
+            } else {
+                Hud.muted
+            },
+        )
+
+        Spacer(Modifier.height(16.dp))
+        Text("STDIN", style = MetricLabel, color = Hud.muted)
+        Spacer(Modifier.height(8.dp))
+        AppInput(
+            value = state.stdin,
+            onValueChange = viewModel::onStdinChange,
+            enabled = !state.running,
+            singleLine = false,
+            minHeight = 72.dp,
+            textStyle = CodeStyle,
+        )
+
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AppButton(
+                text = if (state.running) "Running..." else "Run",
+                onClick = viewModel::run,
+                modifier = Modifier.weight(1f),
+                loading = state.running,
+            )
+            AppButton(
+                text = "Reset",
+                onClick = viewModel::reset,
+                variant = ButtonVariant.Outline,
+                enabled = !state.running,
+            )
+        }
     }
 }
 
 @Composable
-private fun OutputSection(state: DebugLabUiState) {
-    SectionHeader("Output")
+private fun ColumnScope.OutputSection(state: DebugLabUiState) {
+    HudPanel {
+        Text("OUTPUT", style = MetricLabel, color = Hud.muted)
+        Spacer(Modifier.height(8.dp))
 
-    val result = state.result
-    when {
-        state.error != null -> OutputPane(text = state.error, tone = MaterialTheme.colorScheme.error)
+        val result = state.result
+        when {
+            state.error != null -> Terminal(state.error!!, Semantic.red400)
 
-        state.running -> OutputPane(
-            text = "Compiling and running...",
-            tone = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+            state.running -> Terminal("Compiling and running...", Hud.muted)
 
-        result == null -> OutputPane(
-            text = "Nothing has been run yet.",
-            tone = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+            result == null -> Terminal("Nothing has been run yet.", Hud.muted)
 
-        // A judge outage is not the author's fault, and must not be dressed up
-        // as a compile error.
-        result.serviceUnavailable -> OutputPane(
-            text = result.errors
-                ?: "The code-execution service is unavailable. Your program was never run.",
-            tone = MaterialTheme.colorScheme.error,
-        )
-
-        !result.success -> {
-            OutputPane(
-                text = result.compilerError ?: result.errors ?: "Execution failed.",
-                tone = MaterialTheme.colorScheme.error,
+            // A judge outage must never be dressed up as a compile error.
+            result.serviceUnavailable -> Terminal(
+                result.errors ?: "The execution service is unavailable.",
+                Semantic.red400,
             )
-            result.explanation?.let { explanation ->
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    explanation,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+
+            !result.success -> {
+                Terminal(
+                    result.compilerError ?: result.errors ?: "Execution failed.",
+                    Semantic.red400,
                 )
+                result.explanation?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, style = MetricHint, color = Hud.muted)
+                }
+                Diagnostics(result.diagnostics)
             }
-            DiagnosticsList(result.diagnostics)
-        }
 
-        else -> {
-            OutputPane(
-                text = result.output?.takeIf { it.isNotBlank() }
-                    ?: "(the program produced no output)",
-                tone = Noir.mossBright,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Finished in ${result.executionTimeMs} ms" +
-                    (result.exitCode?.let { " · exit $it" } ?: ""),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            // Warnings survive a successful build and are worth surfacing —
-            // an uninitialised variable that happened to work is still a bug.
-            DiagnosticsList(result.diagnostics.filter { it.type != "error" })
+            else -> {
+                Terminal(
+                    result.output?.takeIf { it.isNotBlank() } ?: "(no output)",
+                    Semantic.emerald400,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Finished in ${result.executionTimeMs} ms" +
+                        (result.exitCode?.let { " · exit $it" } ?: ""),
+                    style = MetricHint,
+                    color = Hud.muted,
+                )
+                Diagnostics(result.diagnostics.filter { it.type != "error" })
+            }
         }
     }
 }
 
 @Composable
-private fun DiagnosticsList(diagnostics: List<CompilerDiagnostic>) {
+private fun ColumnScope.Diagnostics(diagnostics: List<CompilerDiagnostic>) {
     if (diagnostics.isEmpty()) return
     Spacer(Modifier.height(12.dp))
-    SectionHeader("Compiler notes")
+    Text("COMPILER NOTES", style = MetricLabel, color = Hud.muted)
+    Spacer(Modifier.height(6.dp))
     diagnostics.forEach { diagnostic ->
         val tone = when (diagnostic.type) {
-            "error" -> MaterialTheme.colorScheme.error
-            "warning" -> Noir.amber
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
+            "error" -> Semantic.red400
+            "warning" -> Semantic.amber400
+            else -> Hud.muted
         }
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 3.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = diagnostic.line?.let { "L$it" } ?: "—",
-                style = CodeStyle,
-                color = tone,
-            )
-            Text(
-                text = diagnostic.message.orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Text(diagnostic.line?.let { "L$it" } ?: "—", style = CodeStyle, color = tone)
+            Text(diagnostic.message.orEmpty(), style = MetricHint, color = Hud.text)
         }
     }
 }
 
-/**
- * Plain monospace editor. Monaco is not portable to Android, and a WebView just
- * to host it would cost startup time and break the native keyboard handling —
- * a monospace field with the right IME settings is the better mobile trade.
- */
 @Composable
-private fun CodeEditor(
-    value: String,
-    onValueChange: (String) -> Unit,
-    enabled: Boolean,
-    minHeight: androidx.compose.ui.unit.Dp,
-    modifier: Modifier = Modifier,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = minHeight),
-        enabled = enabled,
-        textStyle = CodeStyle.copy(color = MaterialTheme.colorScheme.onSurface),
-        shape = RoundedCornerShape(4.dp),
-        singleLine = false,
-    )
-}
-
-@Composable
-private fun OutputPane(text: String, tone: Color) {
-    Column(
+private fun Terminal(text: String, tone: Color) {
+    val shape = RoundedCornerShape(6.dp)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 120.dp)
-            .background(Noir.chalkboardDeep, RoundedCornerShape(4.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
+            .clip(shape)
+            .background(Console.deep)
+            .border(1.dp, Console.border, shape)
             .padding(12.dp),
     ) {
         Text(text = text, style = CodeStyle, color = tone)

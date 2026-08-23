@@ -1,24 +1,29 @@
 package com.example.codeundercover_1.feature.daily
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -27,14 +32,22 @@ import com.example.codeundercover_1.ServiceLocator
 import com.example.codeundercover_1.data.model.DailyAnswerResponse
 import com.example.codeundercover_1.data.model.DailyQuestion
 import com.example.codeundercover_1.data.net.ApiResult
-import com.example.codeundercover_1.ui.components.DossierCard
+import com.example.codeundercover_1.ui.components.AppButton
+import com.example.codeundercover_1.ui.components.ButtonVariant
 import com.example.codeundercover_1.ui.components.EmptyState
+import com.example.codeundercover_1.ui.components.ErrorBanner
 import com.example.codeundercover_1.ui.components.ErrorState
 import com.example.codeundercover_1.ui.components.LoadingState
-import com.example.codeundercover_1.ui.components.PrimaryButton
-import com.example.codeundercover_1.ui.components.ResponsiveContent
-import com.example.codeundercover_1.ui.components.SecondaryButton
-import com.example.codeundercover_1.ui.theme.Noir
+import com.example.codeundercover_1.ui.hud.BadgeTone
+import com.example.codeundercover_1.ui.hud.HudBadge
+import com.example.codeundercover_1.ui.hud.HudPage
+import com.example.codeundercover_1.ui.hud.HudPanel
+import com.example.codeundercover_1.ui.theme.Console
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MetricHint
+import com.example.codeundercover_1.ui.theme.MetricLabel
+import com.example.codeundercover_1.ui.theme.MonoFont
+import com.example.codeundercover_1.ui.theme.Semantic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,7 +88,6 @@ class DailyChallengeViewModel : ViewModel() {
     }
 
     fun select(option: String) {
-        // Locked once answered — the server has already scored it.
         if (_state.value.outcome != null) return
         _state.update { it.copy(selected = option) }
     }
@@ -108,7 +120,7 @@ fun DailyChallengeScreen(
     val scroll = rememberScrollState()
 
     when {
-        state.loading -> LoadingState(label = "FETCHING TODAY'S BRIEF...")
+        state.loading -> LoadingState(label = "Fetching today's brief")
 
         state.error != null && state.question == null ->
             ErrorState(message = state.error!!, onRetry = viewModel::load)
@@ -116,36 +128,26 @@ fun DailyChallengeScreen(
         state.question == null -> EmptyState(
             title = "No brief today",
             detail = "There is no daily question available right now.",
-            action = { SecondaryButton(text = "BACK", onClick = onBack) },
         )
 
         else -> {
             val question = state.question!!
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .safeDrawingPadding()
-                    .verticalScroll(scroll),
-            ) {
-                ResponsiveContent {
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Daily Brief",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Text(
-                        "Worth 20 aura if you get it right.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(20.dp))
-
-                    DossierCard {
+            Column(Modifier.verticalScroll(scroll)) {
+                HudPage(
+                    eyebrow = "Daily",
+                    title = "Daily Task",
+                    subtitle = "Worth 20 aura",
+                    status = { HudBadge(text = "NEW", tone = BadgeTone.Active) },
+                ) {
+                    HudPanel {
                         Text(
-                            question.question,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            text = question.question,
+                            style = androidx.compose.ui.text.TextStyle(
+                                fontFamily = MonoFont,
+                                fontSize = 14.sp,
+                                lineHeight = 21.sp,
+                            ),
+                            color = Hud.text,
                         )
                         Spacer(Modifier.height(16.dp))
 
@@ -162,68 +164,61 @@ fun DailyChallengeScreen(
                         }
                     }
 
-                    state.error?.let { message ->
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            message,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-
-                    Spacer(Modifier.height(18.dp))
+                    state.error?.let { ErrorBanner(it) }
 
                     val outcome = state.outcome
                     if (outcome == null) {
-                        PrimaryButton(
-                            text = "SUBMIT ANSWER",
+                        AppButton(
+                            text = if (state.submitting) "Submitting..." else "Submit answer",
                             onClick = viewModel::submit,
                             modifier = Modifier.fillMaxWidth(),
                             enabled = state.selected != null,
                             loading = state.submitting,
                         )
                     } else {
-                        DossierCard(
-                            accent = if (outcome.isCorrect) Noir.cleared else MaterialTheme.colorScheme.error
+                        HudPanel(
+                            borderColor = if (outcome.isCorrect) {
+                                Semantic.emeraldBorder
+                            } else {
+                                Semantic.errorBorder
+                            },
                         ) {
                             Text(
-                                if (outcome.isCorrect) "CORRECT" else "INCORRECT",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = if (outcome.isCorrect) Noir.mossBright
-                                else MaterialTheme.colorScheme.error,
+                                text = if (outcome.isCorrect) "// CORRECT" else "// INCORRECT",
+                                style = MetricLabel.copy(fontSize = 12.sp),
+                                color = if (outcome.isCorrect) {
+                                    Semantic.emerald400
+                                } else {
+                                    Semantic.red400
+                                },
                             )
                             if (!outcome.isCorrect) {
                                 Spacer(Modifier.height(6.dp))
                                 Text(
                                     "Answer: ${outcome.correctAnswer}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MetricHint.copy(fontSize = 13.sp),
+                                    color = Hud.text,
                                 )
                             }
                             Spacer(Modifier.height(10.dp))
-                            Text(
-                                outcome.explanation,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Text(outcome.explanation, style = MetricHint, color = Hud.muted)
                             if (outcome.earnedAura > 0) {
                                 Spacer(Modifier.height(10.dp))
                                 Text(
-                                    "+${outcome.earnedAura} aura",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = Noir.brass,
+                                    "+${outcome.earnedAura} AURA",
+                                    style = MetricLabel.copy(fontSize = 12.sp),
+                                    color = Hud.accent,
                                 )
                             }
                         }
-                        Spacer(Modifier.height(12.dp))
-                        SecondaryButton(
-                            text = "BACK",
+                        AppButton(
+                            text = "Back",
                             onClick = onBack,
                             modifier = Modifier.fillMaxWidth(),
+                            variant = ButtonVariant.Outline,
                         )
                     }
-
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.height(24.dp))
                 }
             }
         }
@@ -238,23 +233,47 @@ private fun OptionRow(
     enabled: Boolean,
     onSelect: () -> Unit,
 ) {
-    // After grading, the correct option is highlighted regardless of what was
-    // picked, so a wrong answer still teaches something.
-    val tint = when {
-        outcome == null -> MaterialTheme.colorScheme.onSurface
-        text == outcome.correctAnswer -> Noir.mossBright
-        selected -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    // Once graded, the correct option is highlighted regardless of what was
+    // picked, so a wrong answer still teaches the right one.
+    val tone = when {
+        outcome == null -> if (selected) Hud.accent else Hud.text
+        text == outcome.correctAnswer -> Semantic.emerald400
+        selected -> Semantic.red400
+        else -> Hud.muted
     }
+    val borderTone = when {
+        outcome == null -> if (selected) Hud.accent else Console.border
+        text == outcome.correctAnswer -> Semantic.emeraldBorder
+        selected -> Semantic.errorBorder
+        else -> Console.border
+    }
+    val shape = RoundedCornerShape(6.dp)
 
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(bottom = 8.dp)
+            .clip(shape)
+            .background(Console.deep)
+            .border(1.dp, borderTone, shape)
+            .clickable(enabled = enabled, onClick = onSelect)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        RadioButton(selected = selected, onClick = onSelect, enabled = enabled)
-        Text(text = text, style = MaterialTheme.typography.bodyLarge, color = tint)
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (selected || outcome != null) tone else Console.border)
+        )
+        Text(
+            text = text,
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = MonoFont,
+                fontSize = 13.sp,
+            ),
+            color = tone,
+        )
     }
 }

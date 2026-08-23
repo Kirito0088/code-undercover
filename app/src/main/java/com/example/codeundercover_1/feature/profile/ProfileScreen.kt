@@ -1,19 +1,14 @@
 package com.example.codeundercover_1.feature.profile
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -35,13 +31,18 @@ import com.example.codeundercover_1.ServiceLocator
 import com.example.codeundercover_1.data.model.SessionUser
 import com.example.codeundercover_1.data.net.ApiResult
 import com.example.codeundercover_1.domain.Validation
-import com.example.codeundercover_1.ui.components.AppTextField
-import com.example.codeundercover_1.ui.components.DossierCard
-import com.example.codeundercover_1.ui.components.PrimaryButton
-import com.example.codeundercover_1.ui.components.ResponsiveContent
-import com.example.codeundercover_1.ui.components.SecondaryButton
-import com.example.codeundercover_1.ui.components.SectionHeader
-import com.example.codeundercover_1.ui.theme.Noir
+import com.example.codeundercover_1.ui.components.AppButton
+import com.example.codeundercover_1.ui.components.AppInput
+import com.example.codeundercover_1.ui.components.ButtonVariant
+import com.example.codeundercover_1.ui.components.ErrorBanner
+import com.example.codeundercover_1.ui.hud.BadgeTone
+import com.example.codeundercover_1.ui.hud.HudBadge
+import com.example.codeundercover_1.ui.hud.HudPage
+import com.example.codeundercover_1.ui.hud.HudPanel
+import com.example.codeundercover_1.ui.theme.Hud
+import com.example.codeundercover_1.ui.theme.MetricHint
+import com.example.codeundercover_1.ui.theme.MetricLabel
+import com.example.codeundercover_1.ui.theme.Semantic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -112,11 +113,12 @@ class ProfileViewModel(user: SessionUser) : ViewModel() {
             )
 
             when (result) {
-                is ApiResult.Success -> _state.update {
-                    it.copy(saving = false, savedMessage = "Profile updated.")
-                }
+                is ApiResult.Success ->
+                    _state.update { it.copy(saving = false, savedMessage = "Profile updated.") }
 
                 is ApiResult.Failure -> {
+                    // A 409 is always about the codename or the email; route it
+                    // to the field it belongs to rather than a generic banner.
                     val message = result.error.message
                     val codenameClash = message.contains("codename", ignoreCase = true)
                     val emailClash = message.contains("email", ignoreCase = true)
@@ -142,9 +144,7 @@ class ProfileViewModel(user: SessionUser) : ViewModel() {
                     _state.update { it.copy(deleting = false, deleted = true) }
 
                 is ApiResult.Failure ->
-                    _state.update {
-                        it.copy(deleting = false, formError = result.error.message)
-                    }
+                    _state.update { it.copy(deleting = false, formError = result.error.message) }
             }
         }
     }
@@ -164,35 +164,27 @@ fun ProfileScreen(
     var confirmingDelete by remember { mutableStateOf(false) }
 
     if (state.deleted) {
-        // The server already cleared the session cookie; drop the local state
-        // so the app returns to the sign-in screen.
+        // The server already cleared the session cookie; drop local state so
+        // the app returns to sign-in.
         onSignOut()
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
+        Modifier
             .imePadding()
-            .verticalScroll(scroll),
+            .verticalScroll(scroll)
     ) {
-        ResponsiveContent {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "Agent File",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-            Text(
-                "Your identity on the network.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        HudPage(
+            eyebrow = "Operative",
+            title = "Profile",
+            subtitle = user.username ?: user.name ?: "agent",
+            status = { HudBadge(text = "OPEN", tone = BadgeTone.Active) },
+        ) {
+            HudPanel {
+                Text("IDENTITY", style = MetricLabel, color = Hud.muted)
+                Spacer(Modifier.height(12.dp))
 
-            Spacer(Modifier.height(20.dp))
-            DossierCard {
-                SectionHeader("Identity")
-                AppTextField(
+                AppInput(
                     value = state.name,
                     onValueChange = viewModel::onNameChange,
                     label = "Name",
@@ -200,8 +192,8 @@ fun ProfileScreen(
                     enabled = !state.saving,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 )
-                Spacer(Modifier.height(12.dp))
-                AppTextField(
+                Spacer(Modifier.height(16.dp))
+                AppInput(
                     value = state.codename,
                     onValueChange = viewModel::onCodenameChange,
                     label = "Codename",
@@ -210,8 +202,8 @@ fun ProfileScreen(
                     enabled = !state.saving,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 )
-                Spacer(Modifier.height(12.dp))
-                AppTextField(
+                Spacer(Modifier.height(16.dp))
+                AppInput(
                     value = state.email,
                     onValueChange = viewModel::onEmailChange,
                     label = "Email",
@@ -223,64 +215,67 @@ fun ProfileScreen(
                     ),
                 )
 
-                state.formError?.let { message ->
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                state.formError?.let {
+                    Spacer(Modifier.height(12.dp))
+                    ErrorBanner(it)
                 }
-                state.savedMessage?.let { message ->
-                    Spacer(Modifier.height(10.dp))
+                state.savedMessage?.let {
+                    Spacer(Modifier.height(12.dp))
                     Text(
-                        message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Noir.mossBright,
+                        "// $it",
+                        style = MetricHint.copy(fontSize = 12.sp),
+                        color = Semantic.emerald400,
                     )
                 }
 
-                Spacer(Modifier.height(18.dp))
-                PrimaryButton(
-                    text = "SAVE CHANGES",
+                Spacer(Modifier.height(20.dp))
+                AppButton(
+                    text = if (state.saving) "Saving..." else "Save changes",
                     onClick = viewModel::save,
                     modifier = Modifier.fillMaxWidth(),
                     loading = state.saving,
                 )
             }
 
-            Spacer(Modifier.height(20.dp))
-            SectionHeader("Session")
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SecondaryButton(
-                    text = "SIGN OUT",
+            HudPanel {
+                Text("SESSION", style = MetricLabel, color = Hud.muted)
+                Spacer(Modifier.height(12.dp))
+                AppButton(
+                    text = "Sign out",
                     onClick = onSignOut,
                     modifier = Modifier.fillMaxWidth(),
+                    variant = ButtonVariant.Secondary,
                 )
             }
 
-            Spacer(Modifier.height(28.dp))
-            SectionHeader("Danger zone")
-            Text(
-                "Deleting your account removes every mission record and cannot be undone.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(10.dp))
-            SecondaryButton(
-                text = "DELETE ACCOUNT",
-                onClick = { confirmingDelete = true },
-                enabled = !state.deleting,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            HudPanel(borderColor = Semantic.errorBorder) {
+                Text("DANGER ZONE", style = MetricLabel, color = Semantic.red400)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Deleting your account removes every mission record. This cannot be undone.",
+                    style = MetricHint,
+                    color = Hud.muted,
+                )
+                Spacer(Modifier.height(12.dp))
+                AppButton(
+                    text = "Delete account",
+                    onClick = { confirmingDelete = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = ButtonVariant.Destructive,
+                    enabled = !state.deleting,
+                )
+            }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
 
     if (confirmingDelete) {
         AlertDialog(
             onDismissRequest = { confirmingDelete = false },
+            containerColor = Hud.surface,
+            titleContentColor = Hud.text,
+            textContentColor = Hud.muted,
             title = { Text("Delete account?") },
             text = {
                 Text(
@@ -295,12 +290,15 @@ fun ProfileScreen(
                         viewModel.deleteAccount()
                     }
                 ) {
-                    Text("DELETE", color = MaterialTheme.colorScheme.error)
+                    Text("DELETE", color = Semantic.red400)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { confirmingDelete = false }) { Text("CANCEL") }
+                TextButton(onClick = { confirmingDelete = false }) {
+                    Text("CANCEL", color = Hud.muted)
+                }
             },
         )
     }
 }
+
