@@ -295,26 +295,16 @@ export function ClearanceScene({ progress }: ClearanceSceneProps) {
                                         </p>
 
                                         {locked ? (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    className={`${styles.cta} ${styles.ctaLocked}`}
-                                                    onClick={() => rattle(card.id)}
-                                                    aria-label={
-                                                        gate
-                                                            ? `${card.level} clearance locked. Clear all ${gate.total} ${gateCaption} cases first.`
-                                                            : `${card.level} clearance locked`
-                                                    }
-                                                >
-                                                    <span className={styles.ctaLabel}>Locked</span>
-                                                </button>
-
-                                                {gate && (
-                                                    <p className={styles.requirement}>
-                                                        Clear all {gate.total} {gateCaption} cases to unlock
-                                                    </p>
-                                                )}
-                                            </>
+                                            <button
+                                                type="button"
+                                                className={`${styles.cta} ${styles.ctaLocked}`}
+                                                onClick={() => rattle(card.id)}
+                                                aria-label={
+                                                    card.level + " clearance locked"
+                                                }
+                                            >
+                                                <span className={styles.ctaLabel}>Locked</span>
+                                            </button>
                                         ) : (
                                             <Link
                                                 href={card.nextRoute}

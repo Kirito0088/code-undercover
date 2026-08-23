@@ -15,6 +15,7 @@ const NAV_USER_TTL_SECONDS = 30
 
 const NAV_TABS = [
     { href: "/dashboard", label: "Dashboard" },
+    { href: "/daily-challenges", label: "Daily Challenges" },
     { href: "/debug-lab", label: "Dev Lab" },
     { href: "/leaderboard", label: "Leaderboard" },
 ]
