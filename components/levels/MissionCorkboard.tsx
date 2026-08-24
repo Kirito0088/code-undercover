@@ -127,17 +127,14 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
       const h = hubKey ? hubs[hubKey] : null;
       if (!a || !h) return;
       const svg = svgRef.current;
-      let path = svg.querySelector(`.thread[data-index="${i}"]`) as SVGPathElement | null;
+      let path = svg.querySelector(`[data-index="${i}"]`) as SVGPathElement | null;
       const lvl = levels[i];
       const isLive = lvl ? !lvl.isLocked || lvl.status === "COMPLETED" : false;
       const fresh = !path;
       if (fresh) {
         path = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
-        path.setAttribute("class", `thread ${!isLive ? "thread--pending" : ""}`);
-        (path as Element).setAttribute("data-index", String(i));
-        // map to CSS module classes
-        path.setAttribute("class", `${styles.thread} ${!isLive ? styles.threadPending : ""}`);
         path.dataset.index = String(i);
+        path.setAttribute("class", `${styles.thread} ${!isLive ? styles.threadPending : ""}`);
         svg.appendChild(path);
       }
       if (!path) return;
@@ -163,7 +160,7 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
         const q = pts[k];
         d += ` Q ${(p.x + q.x) / 2} ${(p.y + q.y) / 2 + 14} ${q.x} ${q.y}`;
       }
-      let line = svg.querySelector(".thread--rail") as SVGPathElement | null;
+      let line = svg.querySelector(`.${styles.threadRail}`) as SVGPathElement | null;
       const fresh = !line;
       if (fresh) {
         line = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
@@ -209,7 +206,7 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
 
   const light = useCallback(
     (i: number, on: boolean) => {
-      const p = svgRef.current?.querySelector(`.thread[data-index="${i}"]`);
+      const p = svgRef.current?.querySelector(`[data-index="${i}"]`);
       if (p) p.classList.toggle(styles.threadHot, on);
     },
     []
