@@ -168,7 +168,7 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
             eyebrow="DAILY_PROTOCOL // INTEL_OPERATIONS"
             title="Daily Task Assignment"
             subtitle="Complete today's intercept quiz or review flashcards to earn AP rewards and keep your clearance streak active."
-            maxWidth="max-w-[1100px]"
+            maxWidth="max-w-[860px]"
             status={
                 <div className="relative flex items-center gap-4 bg-[#141814] border border-[#1F261F] px-4 py-2.5 rounded-lg font-mono shrink-0 self-start sm:self-auto">
                     <div className="text-right">
@@ -204,15 +204,15 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
             }
         >
 
-                {/* Top Tab Switcher */}
+                {/* Top Tab Switcher — compact */}
                 <div className="flex justify-center">
-                    <div className="bg-[#0D0E12] border border-[#1F261F] p-1.5 rounded-xl flex items-center gap-2 relative max-w-md w-full shadow-inner">
+                    <div className="bg-[#0D0E12] border border-[#1F261F] p-1 rounded-lg flex items-center gap-1.5 relative max-w-sm w-full shadow-inner">
                         
                         {/* Option 1: Quiz Tab */}
                         <button
                             type="button"
                             onClick={() => setActiveTab("quiz")}
-                            className={`flex-1 py-2.5 px-4 rounded-lg font-mono text-xs font-bold transition-all relative z-10 flex items-center justify-center gap-2 cursor-pointer border-none ${
+                            className={`flex-1 py-2 px-3 rounded-md font-mono text-[11px] font-bold transition-all relative z-10 flex items-center justify-center gap-1.5 cursor-pointer border-none ${
                                 activeTab === "quiz" ? "text-emerald-400" : "text-[#8F9F8F] hover:text-[#E2E8F0]"
                             }`}
                         >
@@ -231,7 +231,7 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                         <button
                             type="button"
                             onClick={() => setActiveTab("flashcard")}
-                            className={`flex-1 py-2.5 px-4 rounded-lg font-mono text-xs font-bold transition-all relative z-10 flex items-center justify-center gap-2 cursor-pointer border-none ${
+                            className={`flex-1 py-2 px-3 rounded-md font-mono text-[11px] font-bold transition-all relative z-10 flex items-center justify-center gap-1.5 cursor-pointer border-none ${
                                 activeTab === "flashcard" ? "text-emerald-400" : "text-[#8F9F8F] hover:text-[#E2E8F0]"
                             }`}
                         >
@@ -259,13 +259,13 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                             transition={{ duration: 0.3 }}
                             className="w-full flex flex-col gap-6"
                         >
-                            {/* Quiz Card View */}
+                            {/* Quiz Card View — compact */}
                             {initialQuestion ? (
                                 <motion.div 
                                     key={shakeKey}
                                     animate={shakeKey > 0 && quizResult && !quizResult.isCorrect ? { x: [-10, 10, -8, 8, -4, 4, 0] } : {}}
                                     transition={{ duration: 0.4 }}
-                                    className="bg-[#0D0E12] border border-[#1F261F] rounded-2xl p-6 sm:p-8 relative overflow-hidden text-left shadow-[0_15px_40px_rgba(0,0,0,0.6)]"
+                                    className="bg-[#0D0E12] border border-[#1F261F] rounded-xl p-5 sm:p-6 relative overflow-hidden text-left shadow-[0_12px_32px_rgba(0,0,0,0.55)]"
                                 >
                                     <div className="flex justify-between items-center border-b border-[#1F261F] pb-4 mb-6">
                                         <div className="flex items-center gap-2">
@@ -286,12 +286,12 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                                         )}
                                     </div>
 
-                                    <h3 className="text-lg sm:text-xl font-bold font-sans text-[#E2E8F0] leading-snug mb-6">
+                                    <h3 className="text-[15px] sm:text-[17px] font-bold font-sans text-[#E2E8F0] leading-snug mb-5">
                                         {initialQuestion.question}
                                     </h3>
 
-                                    {/* Options List */}
-                                    <div className="grid gap-3 mb-6">
+                                    {/* Options List — compact */}
+                                    <div className="grid gap-2.5 mb-5">
                                         {initialQuestion.options.map((opt, idx) => {
                                             const letter = String.fromCharCode(65 + idx)
                                             const isSelected = selectedOption === opt
@@ -445,10 +445,10 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                                 </div>
                             </div>
 
-                            {/* 3D Flippable Flashcard Container */}
-                            <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6">
+                            {/* 3D Flippable Flashcard Container — compact */}
+                            <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-5">
                                 <div 
-                                    className="w-full h-[340px] sm:h-[360px] cursor-pointer group select-none relative"
+                                    className="w-full h-[280px] sm:h-[300px] cursor-pointer group select-none relative"
                                     style={{ perspective: "1000px" }}
                                     onClick={() => setIsFlipped(!isFlipped)}
                                 >
@@ -458,9 +458,9 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                                         animate={{ rotateY: isFlipped ? 180 : 0 }}
                                         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
                                     >
-                                        {/* FRONT FACE */}
+                                        {/* FRONT FACE — compact */}
                                         <div 
-                                            className="absolute inset-0 w-full h-full bg-[#0D0E12] border border-[#1F261F] group-hover:border-emerald-500/40 rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.7)] text-left"
+                                            className="absolute inset-0 w-full h-full bg-[#0D0E12] border border-[#1F261F] group-hover:border-emerald-500/40 rounded-xl p-5 sm:p-6 flex flex-col justify-between shadow-[0_16px_40px_rgba(0,0,0,0.65)] text-left"
                                             style={{ backfaceVisibility: "hidden" }}
                                         >
                                             <div className="flex justify-between items-center font-mono">
@@ -489,9 +489,9 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                                             </div>
                                         </div>
 
-                                        {/* BACK FACE */}
+                                        {/* BACK FACE — compact */}
                                         <div 
-                                            className="absolute inset-0 w-full h-full bg-[#10141A] border border-emerald-500/30 rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-[0_0_35px_rgba(16,185,129,0.15)] text-left"
+                                            className="absolute inset-0 w-full h-full bg-[#10141A] border border-emerald-500/30 rounded-xl p-5 sm:p-6 flex flex-col justify-between shadow-[0_0_28px_rgba(16,185,129,0.13)] text-left"
                                             style={{ 
                                                 backfaceVisibility: "hidden", 
                                                 transform: "rotateY(180deg)" 
