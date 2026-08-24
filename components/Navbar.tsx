@@ -68,10 +68,10 @@ export default async function Navbar() {
         <header className={styles.navbar}>
             <div className={styles.grain} aria-hidden="true" />
             <div className={styles.inner}>
-                <Link href="/" className={styles.brand}>
+                <div className={styles.brand} aria-label="CODE UNDERCOVER">
                     <span className={styles.brandMark}>&lt;&nbsp;&gt;</span>
                     <span className={styles.brandText}>CODE UNDERCOVER</span>
-                </Link>
+                </div>
 
                 <nav aria-label="Primary" className={`${styles.navLinks} hidden md:flex`}>
                 {NAV_TABS.map((tab) => (
