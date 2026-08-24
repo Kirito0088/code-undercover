@@ -1,348 +1,451 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-import type { MissionStatus } from "@/types"
-import type { LevelNode } from "@/app/levels/curriculum"
-import { detectiveFontVariables } from "@/lib/detective-fonts"
-import { MissionCard, type MissionState } from "@/components/case-map/MissionCard"
-import { ThreadLayer, type ThreadEdge, type Pt } from "@/components/case-map/ThreadLayer"
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import type { MissionStatus } from "@/types";
+import type { LevelNode } from "@/app/levels/curriculum";
+import { detectiveFontVariables } from "@/lib/detective-fonts";
+import { MissionCard, type MissionState } from "@/components/case-map/MissionCard";
+import styles from "./MissionBoard.module.css";
 
-type HubKey = "left" | "right" | "midLeft" | "midRight" | "top" | "lowLeft" | "lowRight"
+type HubKey = "left" | "right" | "midLeft" | "midRight" | "top" | "lowLeft" | "lowRight";
 
-// Where each case is pinned, as a percentage of the board, plus the paper's
-// tilt and which pin on the centre photo its string ties to. Order runs
-// clockwise: top band, right edge, bottom, left edge. These are the mockup's
-// coordinates verbatim — the ring reaches x 10–90 / y 11–89. Pulling it inward
-// is what crowds the folders into each other and into the centre photo.
 const LAYOUT: { x: number; y: number; tilt: number; hub: HubKey }[] = [
-    { x: 17, y: 13, tilt: -2.4, hub: "left" },
-    { x: 30, y: 17, tilt: 1.8, hub: "left" },
-    { x: 43, y: 11, tilt: -1.2, hub: "top" },
-    // nudged up from the mockup's y:16 — at 16 it hung low enough to crowd
-    // its neighbours and the MISSIONS tab below it
-    { x: 57, y: 12, tilt: 2.6, hub: "top" },
-    { x: 69, y: 11, tilt: -2.0, hub: "top" },
-    { x: 80, y: 16, tilt: 1.6, hub: "right" },
-    { x: 89, y: 28, tilt: -2.8, hub: "right" },
-    { x: 79, y: 37, tilt: 2.2, hub: "right" },
-    { x: 90, y: 50, tilt: -1.6, hub: "midRight" },
-    { x: 80, y: 62, tilt: 2.8, hub: "midRight" },
-    { x: 89, y: 75, tilt: -2.2, hub: "lowRight" },
-    // shifted right of the mockup's x:74 — it sat under the surveillance-photo
-    // prop pinned at 69%/72.5%
-    { x: 78, y: 85, tilt: 1.4, hub: "lowRight" },
-    { x: 58, y: 89, tilt: -2.6, hub: "lowRight" },
-    { x: 42, y: 86, tilt: 2.0, hub: "lowLeft" },
-    { x: 27, y: 88, tilt: -1.8, hub: "lowLeft" },
-    { x: 12, y: 78, tilt: 2.4, hub: "lowLeft" },
-    { x: 22, y: 66, tilt: -2.2, hub: "midLeft" },
-    { x: 10, y: 55, tilt: 1.8, hub: "midLeft" },
-    { x: 20, y: 41, tilt: -2.6, hub: "midLeft" },
-    { x: 10, y: 30, tilt: 2.2, hub: "left" },
-]
+  { x: 17, y: 13, tilt: -2.4, hub: "left" },
+  { x: 30, y: 17, tilt: 1.8, hub: "left" },
+  { x: 43, y: 11, tilt: -1.2, hub: "top" },
+  { x: 57, y: 12, tilt: 2.6, hub: "top" },
+  { x: 69, y: 11, tilt: -2.0, hub: "top" },
+  { x: 80, y: 16, tilt: 1.6, hub: "right" },
+  { x: 89, y: 28, tilt: -2.8, hub: "right" },
+  { x: 79, y: 37, tilt: 2.2, hub: "right" },
+  { x: 90, y: 50, tilt: -1.6, hub: "midRight" },
+  { x: 80, y: 62, tilt: 2.8, hub: "midRight" },
+  { x: 89, y: 75, tilt: -2.2, hub: "lowRight" },
+  { x: 78, y: 85, tilt: 1.4, hub: "lowRight" },
+  { x: 58, y: 89, tilt: -2.6, hub: "lowRight" },
+  { x: 42, y: 86, tilt: 2.0, hub: "lowLeft" },
+  { x: 27, y: 88, tilt: -1.8, hub: "lowLeft" },
+  { x: 12, y: 78, tilt: 2.4, hub: "lowLeft" },
+  { x: 22, y: 66, tilt: -2.2, hub: "midLeft" },
+  { x: 10, y: 55, tilt: 1.8, hub: "midLeft" },
+  { x: 20, y: 41, tilt: -2.6, hub: "midLeft" },
+  { x: 10, y: 30, tilt: 2.2, hub: "left" },
+];
 
-/** the cleared cases along the top also share one running string */
-const RAIL = [0, 1, 2, 3, 4, 5]
-
-// The seven tie-off pins, centred on the polaroid's white mat rather than on
-// the photograph. The mat is 20px, so a 19px pin head centred 10px in from the
-// padding box sits fully on the paper and clear of the print.
-const HUB_PINS: { key: HubKey; className: string }[] = [
-    { key: "top", className: "left-1/2 top-[10px] -translate-x-1/2 -translate-y-1/2" },
-    { key: "left", className: "left-[10px] top-[60px] -translate-x-1/2 -translate-y-1/2" },
-    { key: "right", className: "right-[10px] top-[60px] translate-x-1/2 -translate-y-1/2" },
-    { key: "midLeft", className: "left-[10px] top-[130px] -translate-x-1/2 -translate-y-1/2" },
-    { key: "midRight", className: "right-[10px] top-[130px] translate-x-1/2 -translate-y-1/2" },
-    { key: "lowLeft", className: "left-[10px] top-[205px] -translate-x-1/2 -translate-y-1/2" },
-    { key: "lowRight", className: "right-[10px] top-[205px] translate-x-1/2 -translate-y-1/2" },
-]
-
-const PROP_PHOTOS = [
-    { x: "30.5%", y: "34%", tilt: "-4deg" },
-    { x: "69.5%", y: "30%", tilt: "3.4deg" },
-    { x: "69%", y: "72.5%", tilt: "-2.6deg" },
-    { x: "31%", y: "71.5%", tilt: "4deg" },
-]
-const PROP_SLIPS = [
-    { x: "31%", y: "44%", tilt: "-6deg", text: "Connection Point" },
-    { x: "30.5%", y: "57.5%", tilt: "4deg", text: "Timeline" },
-    { x: "69%", y: "44%", tilt: "5deg", text: "Alibi?" },
-    { x: "69.5%", y: "57.5%", tilt: "-4deg", text: "Key Link" },
-]
+const RAIL = [0, 1, 2, 3, 4, 5];
 
 const HUB_BY_PATH: Record<"Beginner" | "Intermediate" | "Expert", { photo: string; alt: string; label: string }> = {
-    Beginner: { photo: "/characters/dossier/panda.jpeg", alt: "Agent Panda, mission control for Code Undercover", label: "AGENT PANDA" },
-    Intermediate: { photo: "/characters/dossier/fox.jpeg", alt: "Agent Fox, mission control for Code Undercover", label: "AGENT FOX" },
-    Expert: { photo: "/characters/dossier/platypus.jpeg", alt: "Agent Platypus, mission control for Code Undercover", label: "AGENT PLATYPUS" },
-}
-
-const TAB_COLOR: Record<"Beginner" | "Intermediate" | "Expert", string> = {
-    Beginner: "linear-gradient(180deg, #a5453a, #7a2e28)",
-    Intermediate: "linear-gradient(180deg, #6d8f6f, #46664a)",
-    Expert: "linear-gradient(180deg, #6b7a9e, #3d4a6b)",
-}
-
-const PIN_FACE =
-    "rounded-full bg-[radial-gradient(circle_at_34%_28%,#e8837a,#a5453a_55%,#571c17_100%)]"
+  Beginner: { photo: "/characters/dossier/panda.jpeg", alt: "Agent Panda, mission control for Code Undercover", label: "AGENT PANDA" },
+  Intermediate: { photo: "/characters/dossier/fox.jpeg", alt: "Agent Fox, mission control for Code Undercover", label: "AGENT FOX" },
+  Expert: { photo: "/characters/dossier/platypus.jpeg", alt: "Agent Platypus, mission control for Code Undercover", label: "AGENT PLATYPUS" },
+};
 
 interface CorkboardLevel {
-    lvl: LevelNode
-    status: MissionStatus
-    isLocked: boolean
-    realMissionId?: string
+  lvl: LevelNode;
+  status: MissionStatus;
+  isLocked: boolean;
+  realMissionId?: string;
 }
 
 interface MissionCorkboardProps {
-    levels: CorkboardLevel[]
-    activePath: "Beginner" | "Intermediate" | "Expert"
+  levels: CorkboardLevel[];
+  activePath: "Beginner" | "Intermediate" | "Expert";
 }
 
 export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) {
-    const mainRef = useRef<HTMLDivElement | null>(null)
-    const glowRef = useRef<HTMLDivElement | null>(null)
-    const stageRef = useRef<HTMLDivElement | null>(null)
+  const mainRef = useRef<HTMLDivElement | null>(null);
+  const glowRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const cardRef = useRef<HTMLElement | null>(null);
+  const hubPinRefs = useRef<Partial<Record<HubKey, HTMLSpanElement | null>>>({});
+  const folderRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const folderPinRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-    // Warm lamp glow following cursor
-    useEffect(() => {
-        const main = mainRef.current
-        const glow = glowRef.current
-        if (!main || !glow) return
-        const onMove = (e: MouseEvent) => {
-            const rect = main.getBoundingClientRect()
-            glow.style.setProperty("--mx", `${((e.clientX - rect.left) / rect.width) * 100}%`)
-            glow.style.setProperty("--my", `${((e.clientY - rect.top) / rect.height) * 100}%`)
-        }
-        main.addEventListener("mousemove", onMove)
-        return () => main.removeEventListener("mousemove", onMove)
-    }, [])
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [shakingId, setShakingId] = useState<number | null>(null);
 
-    const hub = HUB_BY_PATH[activePath]
+  const hub = HUB_BY_PATH[activePath];
 
-    // ─── Red string, measured off the live pin heads ───
-    const hubPinRefs = useRef<Partial<Record<HubKey, HTMLSpanElement | null>>>({})
-    const cardPinRefs = useRef<(HTMLSpanElement | null)[]>([])
-    const [threads, setThreads] = useState<{ edges: ThreadEdge[]; rail: Pt[]; w: number; h: number }>({
-        edges: [], rail: [], w: 0, h: 0,
-    })
+  // lamp glow follows cursor — exact port of lampGlow() in level-select-*.js
+  useEffect(() => {
+    const main = mainRef.current;
+    const glow = glowRef.current;
+    if (!main || !glow) return;
+    const onMove = (e: MouseEvent) => {
+      const rect = main.getBoundingClientRect();
+      glow.style.setProperty("--mx", `${((e.clientX - rect.left) / rect.width) * 100}%`);
+      glow.style.setProperty("--my", `${((e.clientY - rect.top) / rect.height) * 100}%`);
+    };
+    main.addEventListener("mousemove", onMove);
+    return () => main.removeEventListener("mousemove", onMove);
+  }, []);
 
-    const measure = useCallback(() => {
-        const stage = stageRef.current
-        if (!stage) return
-        const base = stage.getBoundingClientRect()
-        if (!base.width || !base.height) return
+  // helper: centre of element in stage coordinates
+  const centreOf = useCallback((el: Element | null | undefined, base: DOMRect | null) => {
+    if (!el || !base) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top } as { x: number; y: number };
+  }, []);
 
-        const centreOf = (el: Element | null | undefined): Pt | null => {
-            if (!el) return null
-            const r = el.getBoundingClientRect()
-            return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top }
-        }
+  const curve = (a: { x: number; y: number }, h: { x: number; y: number }) => {
+    const sag = Math.min(Math.hypot(h.x - a.x, h.y - a.y) * 0.06, 16);
+    return `M ${a.x} ${a.y} Q ${(a.x + h.x) / 2} ${(a.y + h.y) / 2 + sag} ${h.x} ${h.y}`;
+  };
 
-        const edges: ThreadEdge[] = []
-        levels.forEach(({ status, isLocked }, i) => {
-            const spot = LAYOUT[i]
-            if (!spot) return
-            const from = centreOf(cardPinRefs.current[i])
-            const to = centreOf(hubPinRefs.current[spot.hub])
-            if (!from || !to) return
-            edges.push({ id: i + 1, from, to, live: !isLocked || status === "COMPLETED" })
-        })
+  const animatePath = useCallback((path: SVGPathElement) => {
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) return;
+    const len = path.getTotalLength();
+    if (!len) return;
+    path.style.strokeDasharray = `${len}`;
+    path.style.strokeDashoffset = `${len}`;
+    requestAnimationFrame(() => {
+      path.style.transition = "stroke-dashoffset .42s cubic-bezier(.3,.8,.35,1)";
+      path.style.strokeDashoffset = "0";
+    });
+    const clean = () => {
+      path.style.transition = "";
+      path.style.strokeDasharray = "";
+      path.style.strokeDashoffset = "";
+    };
+    path.addEventListener("transitionend", clean, { once: true });
+    setTimeout(clean, 900);
+  }, []);
 
-        const rail = RAIL
-            .map((i) => centreOf(cardPinRefs.current[i]))
-            .filter((p): p is Pt => p !== null)
+  const drawThread = useCallback(
+    (i: number, pull: boolean, base: DOMRect | null, hubs: Partial<Record<HubKey, { x: number; y: number }>>) => {
+      if (!base || !svgRef.current) return;
+      const flow = window.matchMedia("(max-width: 900px), (max-height: 620px)").matches;
+      if (flow) return;
+      const btn = folderRefs.current[i];
+      if (!btn) return;
+      const a = centreOf(folderPinRefs.current[i], base);
+      const hubKey = LAYOUT[i]?.hub;
+      const h = hubKey ? hubs[hubKey] : null;
+      if (!a || !h) return;
+      const svg = svgRef.current;
+      let path = svg.querySelector(`.thread[data-index="${i}"]`) as SVGPathElement | null;
+      const lvl = levels[i];
+      const isLive = lvl ? !lvl.isLocked || lvl.status === "COMPLETED" : false;
+      const fresh = !path;
+      if (fresh) {
+        path = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
+        path.setAttribute("class", `thread ${!isLive ? "thread--pending" : ""}`);
+        (path as Element).setAttribute("data-index", String(i));
+        // map to CSS module classes
+        path.setAttribute("class", `${styles.thread} ${!isLive ? styles.threadPending : ""}`);
+        path.dataset.index = String(i);
+        svg.appendChild(path);
+      }
+      if (!path) return;
+      // update live/pending class dynamically (lock may change after completion)
+      path.setAttribute("class", `${styles.thread} ${!isLive ? styles.threadPending : ""}`);
+      path.setAttribute("d", curve(a, h));
+      if (fresh && pull) animatePath(path);
+    },
+    [levels, centreOf, animatePath]
+  );
 
-        setThreads({ edges, rail, w: base.width, h: base.height })
-    }, [levels])
+  const drawRail = useCallback(
+    (pull: boolean, base: DOMRect | null) => {
+      if (!base || !svgRef.current) return;
+      const flow = window.matchMedia("(max-width: 900px), (max-height: 620px)").matches;
+      if (flow) return;
+      const svg = svgRef.current;
+      const pts = RAIL.map((i) => centreOf(folderPinRefs.current[i], base)).filter((p): p is { x: number; y: number } => p !== null);
+      if (pts.length < 2) return;
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let k = 1; k < pts.length; k++) {
+        const p = pts[k - 1];
+        const q = pts[k];
+        d += ` Q ${(p.x + q.x) / 2} ${(p.y + q.y) / 2 + 14} ${q.x} ${q.y}`;
+      }
+      let line = svg.querySelector(".thread--rail") as SVGPathElement | null;
+      const fresh = !line;
+      if (fresh) {
+        line = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
+        line.setAttribute("class", `${styles.thread} ${styles.threadRail}`);
+        svg.insertBefore(line, svg.firstChild);
+      }
+      if (!line) return;
+      line.setAttribute("d", d);
+      if (fresh && pull) animatePath(line);
+    },
+    [centreOf, animatePath]
+  );
 
-    // Measure once the folders are laid out, and again whenever the board is
-    // resized — a thread pinned to a stale coordinate drifts off its pin.
-    useLayoutEffect(() => {
-        measure()
-        const stage = stageRef.current
-        if (!stage || typeof ResizeObserver === "undefined") return
-        const ro = new ResizeObserver(measure)
-        ro.observe(stage)
-        return () => ro.disconnect()
-    }, [measure])
+  const drawThreads = useCallback(
+    (pull: boolean) => {
+      const stage = stageRef.current;
+      const svg = svgRef.current;
+      if (!stage || !svg) return;
+      const base = stage.getBoundingClientRect();
+      if (!base.width || !base.height) return;
+      svg.setAttribute("viewBox", `0 0 ${base.width} ${base.height}`);
+      // measure hubs
+      const hubs: Partial<Record<HubKey, { x: number; y: number }>> = {};
+      (["left", "right", "midLeft", "midRight", "top", "lowLeft", "lowRight"] as HubKey[]).forEach((key) => {
+        const el = hubPinRefs.current[key];
+        const c = centreOf(el, base);
+        if (c) hubs[key] = c;
+      });
+      if (Object.keys(hubs).length === 0) return;
+      if (!pull) svg.innerHTML = "";
+      // when not pulling, clear and redraw all
+      if (!pull) {
+        svg.innerHTML = "";
+        levels.forEach((_, i) => drawThread(i, false, base, hubs));
+        drawRail(false, base);
+      } else {
+        levels.forEach((_, i) => drawThread(i, true, base, hubs));
+        drawRail(true, base);
+      }
+    },
+    [levels, centreOf, drawThread, drawRail]
+  );
 
-    // Webfonts change the folder metrics after first paint, which moves the pins.
-    useEffect(() => {
-        if (!document.fonts?.ready) return
-        let cancelled = false
-        document.fonts.ready.then(() => { if (!cancelled) measure() })
-        return () => { cancelled = true }
-    }, [measure])
+  const light = useCallback(
+    (i: number, on: boolean) => {
+      const p = svgRef.current?.querySelector(`.thread[data-index="${i}"]`);
+      if (p) p.classList.toggle(styles.threadHot, on);
+    },
+    []
+  );
 
-    return (
-        <div
-            ref={mainRef}
-            className={`${detectiveFontVariables} relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3 min-h-[620px] w-full bg-[radial-gradient(ellipse_900px_520px_at_16%_6%,rgba(232,165,69,0.14),transparent_60%),radial-gradient(ellipse_720px_520px_at_88%_92%,rgba(0,0,0,0.42),transparent_60%),linear-gradient(160deg,#204a3a_0%,#17342a_45%,#0d2118_100%)]`}
-            style={{ zIndex: "var(--z-board)" }}
-        >
-            <div className="pointer-events-none absolute inset-0 z-[1] bg-grain opacity-[0.55] mix-blend-overlay" aria-hidden="true" />
-            <div
-                ref={glowRef}
-                className="pointer-events-none absolute inset-0 z-[1] mix-blend-soft-light bg-[radial-gradient(circle_460px_at_var(--mx,50%)_var(--my,26%),rgba(232,165,69,0.16),transparent_68%)]"
-                aria-hidden="true"
-            />
+  const follow = useCallback(
+    (i: number) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const flow = window.matchMedia("(max-width: 900px), (max-height: 620px)").matches;
+      if (flow) return;
+      const base = stage.getBoundingClientRect();
+      if (!base.width) return;
+      const svg = svgRef.current;
+      if (!svg) return;
+      const hubs: Partial<Record<HubKey, { x: number; y: number }>> = {};
+      (["left", "right", "midLeft", "midRight", "top", "lowLeft", "lowRight"] as HubKey[]).forEach((key) => {
+        const el = hubPinRefs.current[key];
+        const c = centreOf(el, base);
+        if (c) hubs[key] = c;
+      });
+      const until = performance.now() + 320;
+      const step = () => {
+        drawThread(i, false, base, hubs);
+        if (RAIL.includes(i)) drawRail(false, base);
+        if (performance.now() < until) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    },
+    [centreOf, drawThread, drawRail]
+  );
 
-            {/* ─── Brown cork board inside walnut frame ─── */}
-            <div className="relative mx-auto flex min-h-0 w-full max-w-[1320px] flex-1 flex-col rounded-lg border-[11px] border-walnut px-[clamp(16px,2vw,30px)] py-[clamp(14px,2.2vh,26px)] bg-cork bg-[radial-gradient(circle_at_30%_30%,rgba(255,230,192,0.20)_1px,transparent_1.5px),radial-gradient(circle_at_70%_70%,rgba(74,38,10,0.22)_1.1px,transparent_1.6px),radial-gradient(circle_at_18%_16%,rgba(255,228,186,0.22),transparent_46%),radial-gradient(circle_at_84%_82%,rgba(60,30,8,0.30),transparent_48%)] [background-size:11px_11px,17px_17px,auto,auto] shadow-[0_30px_56px_rgba(0,0,0,0.6),0_8px_16px_rgba(0,0,0,0.45),inset_0_0_110px_rgba(74,38,10,0.55),inset_0_4px_10px_rgba(0,0,0,0.4)]"
-                style={{ zIndex: 1 }}>
-                <div className="pointer-events-none absolute inset-0 bg-grain opacity-50 mix-blend-multiply" aria-hidden="true" />
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.55] mix-blend-multiply bg-[radial-gradient(ellipse_88%_84%_at_44%_42%,transparent_38%,#8b5c30_100%)]"
-                    aria-hidden="true"
-                />
+  // stringOnArrival — wait for dropIn animations, then pull strings
+  useEffect(() => {
+    const stage = stageRef.current;
+    const svg = svgRef.current;
+    if (!stage || !svg) return;
+    const flow = window.matchMedia("(max-width: 900px), (max-height: 620px)").matches;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (flow || still) {
+      // still measure once for initial view
+      const id = setTimeout(() => drawThreads(false), 100);
+      return () => clearTimeout(id);
+    }
 
-                {/* ─── Stage ─── */}
-                <div ref={stageRef} className="relative w-full flex-1 min-h-[540px]">
-                    {/* Pinned clutter: blank surveillance photos and handwritten slips */}
-                    <div className="pointer-events-none absolute inset-0 max-sm:hidden" style={{ zIndex: "var(--z-notes)" }} aria-hidden="true">
-                        {PROP_PHOTOS.map((p) => (
-                            <span
-                                key={`${p.x}-${p.y}`}
-                                className="absolute h-[clamp(58px,6.6vh,86px)] w-[clamp(48px,5.4vh,70px)] p-[5px] pb-3.5 bg-[linear-gradient(180deg,#f6f1e2,#e6dfcb)] shadow-[0_8px_15px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.6)]"
-                                style={{ left: p.x, top: p.y, transform: `rotate(${p.tilt})` }}
-                            >
-                                <span className={`absolute -top-1.5 left-1/2 size-[13px] -translate-x-1/2 ${PIN_FACE} shadow-[0_4px_6px_rgba(0,0,0,0.55),inset_0_-2px_3px_rgba(0,0,0,0.35)]`} />
-                                <span className="absolute inset-[5px] bottom-3.5 bg-[linear-gradient(160deg,#1d1b18,#2c2a25_60%,#171512)] shadow-[inset_0_2px_6px_rgba(0,0,0,0.6)]" />
-                            </span>
-                        ))}
-                        {PROP_SLIPS.map((s) => (
-                            <span
-                                key={s.text}
-                                className="absolute max-w-[120px] bg-note px-[9px] pb-1.5 pt-[9px] text-center font-chalk text-[clamp(0.6rem,1.05vh,0.8rem)] font-bold leading-[1.15] text-walnut-deep shadow-[0_7px_13px_rgba(0,0,0,0.4)]"
-                                style={{ left: s.x, top: s.y, transform: `rotate(${s.tilt})` }}
-                            >
-                                <span className={`absolute -top-[5px] left-1/2 size-[10px] -translate-x-1/2 ${PIN_FACE} shadow-[0_4px_6px_rgba(0,0,0,0.55),inset_0_-2px_3px_rgba(0,0,0,0.35)]`} />
-                                {s.text}
-                            </span>
-                        ))}
-                    </div>
+    let strung = false;
+    let landed = 0;
+    const total = folderRefs.current.filter(Boolean).length;
 
-                    {/* Red string, tied pin-to-pin */}
-                    <ThreadLayer edges={threads.edges} rail={threads.rail} width={threads.w} height={threads.h} />
+    const stringUp = () => {
+      if (strung) return;
+      strung = true;
+      svg.innerHTML = "";
+      drawThreads(true);
+    };
 
-                    {/* ─── Case Folders ─── */}
-                    {levels.map(({ lvl, status, isLocked, realMissionId }, i) => {
-                        const spot = LAYOUT[i]
-                        if (!spot) return null
+    const btns = folderRefs.current.filter(Boolean) as HTMLButtonElement[];
+    btns.forEach((btn) => {
+      let counted = false;
+      const land = () => {
+        if (counted) return;
+        counted = true;
+        if (++landed === total) stringUp();
+      };
+      btn.addEventListener(
+        "animationend",
+        (e: AnimationEvent) => {
+          if ((e as AnimationEvent).animationName === "dropIn") land();
+        },
+        { once: true }
+      );
+      setTimeout(land, 1600);
+    });
+    const fallback = setTimeout(stringUp, 2400);
+    return () => clearTimeout(fallback);
+  }, [drawThreads, levels.length]);
 
-                        const cardState: MissionState = status === "COMPLETED" ? "cleared" : isLocked ? "locked" : "active"
-                        const href = !isLocked && realMissionId ? `/mission/${realMissionId}` : undefined
+  // resize + fonts
+  useEffect(() => {
+    const onResize = () => drawThreads(false);
+    let timer: number | null = null;
+    const handler = () => {
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(onResize, 120) as unknown as number;
+    };
+    window.addEventListener("resize", handler);
+    const mql = window.matchMedia("(max-width: 900px), (max-height: 620px)");
+    const mqlHandler = () => drawThreads(false);
+    if (mql.addEventListener) mql.addEventListener("change", mqlHandler);
+    else mql.addListener(mqlHandler);
+    if (document.fonts?.ready) document.fonts.ready.then(() => drawThreads(false));
+    return () => {
+      window.removeEventListener("resize", handler);
+      if (mql.removeEventListener) mql.removeEventListener("change", mqlHandler);
+      else mql.removeListener(mqlHandler);
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [drawThreads]);
 
-                        return (
-                            <MissionCard
-                                key={lvl.id}
-                                index={lvl.order}
-                                title={lvl.title}
-                                state={cardState}
-                                pinRef={(el) => { cardPinRefs.current[i] = el }}
-                                onOpen={() => {
-                                    if (href) window.location.href = href
-                                }}
-                                style={{
-                                    left: `${spot.x}%`,
-                                    top: `${spot.y}%`,
-                                    transform: `translate(-50%, -50%) rotate(${spot.tilt}deg)`,
-                                }}
-                            />
-                        )
-                    })}
+  // initial draw after mount
+  useEffect(() => {
+    const id = setTimeout(() => drawThreads(false), 50);
+    return () => clearTimeout(id);
+  }, [drawThreads]);
 
-                    {/* ─── Polaroid & MISSIONS Badge ─── */}
-                    <span
-                        className="absolute left-1/2 -translate-x-1/2 rounded-[3px] border border-chalk/20 px-4 py-1 font-data text-[12px] font-bold tracking-[.3em] text-chalk shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]"
-                        style={{
-                            top: "calc(50% - 150px - 28px)",
-                            background: TAB_COLOR[activePath],
-                            zIndex: "var(--z-notes)",
-                        }}
-                    >
-                        MISSIONS
-                    </span>
+  const handleSelect = (i: number, isLocked: boolean) => {
+    if (isLocked) {
+      setShakingId(i);
+      setTimeout(() => setShakingId(null), 340);
+      return;
+    }
+    setSelectedId(i);
+  };
 
-                    <article
-                        style={{
-                            width: "250px",
-                            height: "290px",
-                            zIndex: "var(--z-polaroid)",
-                        }}
-                        // 20px mat (not 14px) so a 19px pin head fits on the
-                        // paper without overhanging onto the print
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-5 pb-10 bg-[#F7F4EA] border-[6px] border-[#2A2419] shadow-[0_24px_40px_-18px_rgba(0,0,0,0.7),0_4px_8px_rgba(0,0,0,0.4)]"
-                    >
-                        {/* seven tie-offs the red string knots onto. They sit above
-                            the threads so every line ends beneath a pin head. */}
-                        {HUB_PINS.map((p) => (
-                            <span
-                                key={p.key}
-                                ref={(el) => { hubPinRefs.current[p.key] = el }}
-                                className={`absolute size-[19px] ${PIN_FACE} ${p.className} shadow-[0_5px_8px_rgba(0,0,0,0.6),inset_0_-2px_4px_rgba(0,0,0,0.35)]`}
-                                style={{ zIndex: "var(--z-pins)" }}
-                                aria-hidden="true"
-                            />
-                        ))}
+  return (
+    <div ref={mainRef} className={`${detectiveFontVariables} ${styles.boardMain}`}>
+      <div className={styles.chalkNoise} aria-hidden="true" />
+      <div ref={glowRef} className={styles.lampGlow} aria-hidden="true" />
 
-                        <div className="relative h-[200px] w-full overflow-hidden rounded-[1px] bg-[#14231d] [filter:sepia(.22)_saturate(1.2)_contrast(1.05)_brightness(.99)]">
-                            {/* `fill`, not width/height — the wrapper is already
-                                sized (relative h-[200px] w-full), and passing
-                                intrinsic dimensions that CSS then overrides on
-                                both axes is what triggers Next's aspect-ratio
-                                warning on every render. */}
-                            <Image
-                                src={hub.photo}
-                                alt={hub.alt}
-                                fill
-                                sizes="200px"
-                                className="object-cover"
-                            />
-                            <div
-                                className="pointer-events-none absolute inset-0 mix-blend-multiply bg-[radial-gradient(ellipse_72%_74%_at_50%_44%,transparent_40%,rgba(15,25,18,0.5)_100%),linear-gradient(160deg,rgba(232,165,69,0.12),rgba(23,52,42,0.24))]"
-                                aria-hidden="true"
-                            />
-                            <div
-                                className="pointer-events-none absolute inset-0 bg-grain opacity-45 mix-blend-overlay"
-                                aria-hidden="true"
-                            />
-                        </div>
+      <div className={styles.missionBoard}>
+        <div className={styles.missionBoardGrain} aria-hidden="true" />
+        <div className={styles.missionBoardShade} aria-hidden="true" />
 
-                        <span className="absolute inset-x-0 bottom-3 text-center font-display text-[15px] tracking-[.16em] text-[#2A2419]">
-                            {hub.label}
-                        </span>
-                    </article>
+        <div ref={stageRef} className={styles.stage}>
+          {/* props */}
+          <div className={styles.props} aria-hidden="true">
+            <span className={styles.prop} style={{ ["--x" as string]: "30.5%", ["--y" as string]: "34%", ["--tilt" as string]: "-4deg" }}>
+              <span className={styles.propPhoto} />
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "69.5%", ["--y" as string]: "30%", ["--tilt" as string]: "3.4deg" }}>
+              <span className={styles.propPhoto} />
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "69%", ["--y" as string]: "72.5%", ["--tilt" as string]: "-2.6deg" }}>
+              <span className={styles.propPhoto} />
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "31%", ["--y" as string]: "71.5%", ["--tilt" as string]: "4deg" }}>
+              <span className={styles.propPhoto} />
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "31%", ["--y" as string]: "44%", ["--tilt" as string]: "-6deg" }}>
+              <span className={styles.propSlip}>Connection Point</span>
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "30.5%", ["--y" as string]: "57.5%", ["--tilt" as string]: "4deg" }}>
+              <span className={styles.propSlip}>Timeline</span>
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "69%", ["--y" as string]: "44%", ["--tilt" as string]: "5deg" }}>
+              <span className={styles.propSlip}>Alibi?</span>
+            </span>
+            <span className={styles.prop} style={{ ["--x" as string]: "69.5%", ["--y" as string]: "57.5%", ["--tilt" as string]: "-4deg" }}>
+              <span className={styles.propSlip}>Key Link</span>
+            </span>
+          </div>
+
+          <svg ref={svgRef} className={styles.threads} aria-hidden="true" />
+
+          {/* folders — exact port, data comes from LevelsClient MERN logic */}
+          {levels.map(({ lvl, status, isLocked, realMissionId }, i) => {
+            const spot = LAYOUT[i];
+            if (!spot) return null;
+            const cardState: MissionState = status === "COMPLETED" ? "cleared" : isLocked ? "locked" : "active";
+            const delay = `${(i * 0.03).toFixed(2)}s`;
+            return (
+              <MissionCard
+                key={lvl.id}
+                index={lvl.order}
+                title={lvl.title}
+                state={cardState}
+                x={spot.x}
+                y={spot.y}
+                tilt={spot.tilt}
+                delay={delay}
+                isSelected={selectedId === i}
+                isShaking={shakingId === i}
+                pinRef={(el) => {
+                  folderPinRefs.current[i] = el;
+                }}
+                folderRef={(el) => {
+                  folderRefs.current[i] = el;
+                }}
+                onHover={(on) => {
+                  light(i, on);
+                  follow(i);
+                }}
+                onSelect={() => handleSelect(i, isLocked)}
+                onOpen={() => {
+                  if (!isLocked && realMissionId) window.location.href = `/mission/${realMissionId}`;
+                }}
+              />
+            );
+          })}
+
+          {/* centre polaroid */}
+          <article ref={cardRef} className={styles.card} id="hqCard">
+            <span ref={(el) => { hubPinRefs.current["left"] = el; }} className={`${styles.cardPin} ${styles.cardPinLeft}`} aria-hidden="true" />
+            <span ref={(el) => { hubPinRefs.current["right"] = el; }} className={`${styles.cardPin} ${styles.cardPinRight}`} aria-hidden="true" />
+            <span ref={(el) => { hubPinRefs.current["lowLeft"] = el; }} className={`${styles.cardPin} ${styles.cardPinLowLeft}`} aria-hidden="true" />
+            <span ref={(el) => { hubPinRefs.current["lowRight"] = el; }} className={`${styles.cardPin} ${styles.cardPinLowRight}`} aria-hidden="true" />
+            <span ref={(el) => { hubPinRefs.current["top"] = el; }} className={`${styles.cardPin} ${styles.cardPinTop}`} aria-hidden="true" />
+            <span ref={(el) => { hubPinRefs.current["midLeft"] = el; }} className={`${styles.cardPin} ${styles.cardPinMidLeft}`} aria-hidden="true" />
+            <span ref={(el) => { hubPinRefs.current["midRight"] = el; }} className={`${styles.cardPin} ${styles.cardPinMidRight}`} aria-hidden="true" />
+            <span className={styles.cardTab}>MISSIONS</span>
+            <div className={styles.cardFrame}>
+              <div className={styles.polaroid}>
+                <div className={styles.polaroidCrop} style={{ backgroundImage: `url("${hub.photo}")`, backgroundSize: "contain" }} role="img" aria-label={hub.label}>
+                  <span className={styles.polaroidEmpty} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="26" height="26">
+                      <rect x="3" y="6" width="18" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M8.6 6l1.3-2h4.2l1.3 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    </svg>
+                    <em>No photo on file</em>
+                  </span>
                 </div>
-
-                {/* ─── Back Button ─── */}
-                <Link
-                    href="/skill"
-                    aria-label="Go back to sector selection"
-                    className="absolute bottom-4 left-6 flex items-center gap-1.5 rounded-[4px] border border-[#c2b291] bg-[#e4d6b6] px-3.5 py-1.5 font-data text-[12px] font-bold tracking-[.08em] text-[#3b2b1d] shadow-md hover:-translate-y-0.5 transition-transform"
-                    style={{ zIndex: "var(--z-chrome)" }}
-                >
-                    <ChevronLeft size={14} /> Back
-                </Link>
+                <div className={styles.polaroidTint} aria-hidden="true" />
+                <div className={styles.polaroidGrain} aria-hidden="true" />
+                <span className={styles.polaroidCaption}>{hub.label}</span>
+              </div>
             </div>
-
-            {/* ─── Legend ─── */}
-            <p className="relative z-[3] mt-2 flex flex-wrap items-center justify-center gap-6 font-data text-[12px] font-semibold tracking-[.08em] text-[#A6C0B4]">
-                <span className="flex items-center gap-2">
-                    <span className="size-3 rounded-[2px] bg-[#F4F1E4] border border-[#2F7D3A]" />
-                    <span className="text-[#2F7D3A]">Cleared</span>
-                </span>
-                <span className="flex items-center gap-2">
-                    <span className="size-3 rounded-[2px] bg-[#E8B54A]" />
-                    <span className="text-[#E8B54A]">In progress</span>
-                </span>
-                <span className="flex items-center gap-2">
-                    <span className="size-3 rounded-[2px] bg-[#D5C7A9]" />
-                    <span className="text-[#D5C7A9]">Locked</span>
-                </span>
-            </p>
+          </article>
         </div>
-    )
+
+        <Link href="/skill" aria-label="Go back to sector selection" className={styles.backBtn}>
+          <ChevronLeft size={14} /> Back
+        </Link>
+      </div>
+
+      <p className={styles.legend}>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendChip} ${styles.legendChipDone}`} /> Cleared
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendChip} ${styles.legendChipCurrent}`} /> In progress
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendChip} ${styles.legendChipLocked}`} /> Locked
+        </span>
+      </p>
+    </div>
+  );
 }
