@@ -349,7 +349,6 @@ export function MissionWorkspace({
                             <EditorPanel
                                 mission={mission}
                                 setTerminalOutput={setTerminalOutput}
-                                attemptCount={state.attemptCount}
                                 setAttemptCount={setAttemptCount}
                                 setInnovationUnlocked={setInnovationUnlocked}
                                 setPendingClearInfo={setPendingClearInfo}
