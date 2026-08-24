@@ -83,7 +83,7 @@ export default async function Navbar() {
                 {/* Red Leather Tab: Profile */}
                 <div className={`${TAB_CLASS} ${PROFILE_TAB_CLASS} flex items-center gap-1.5`}>
                     {/* the mockup's .profile-icon, not a lucide glyph */}
-                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="shrink-0">
+                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" className="shrink-0">
                         <path d="M12 2c-3 0-4.8 2-4.8 4.6C7.2 9.2 9 11 12 11s4.8-1.8 4.8-4.4C16.8 4 15 2 12 2z" fill="currentColor" />
                         <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" />
                     </svg>
