@@ -17,13 +17,11 @@
 
 .boardMain {
   position: relative;
-  /* 68px is the navbar height (--nav-h in the mockup); keep the two in step
-     or a strip of body colour shows below the board. */
   min-height: calc(100dvh - 68px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(56px, 8vh, 90px) 32px clamp(44px, 6vh, 72px);
+  padding: clamp(40px, 6vh, 72px) 32px clamp(32px, 5vh, 56px);
   overflow: hidden;
   background:
     radial-gradient(ellipse 900px 520px at 16% 6%, rgba(232, 165, 69, 0.14), transparent 60%),
@@ -78,10 +76,8 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  /* as a flex item, min-width:auto would refuse to shrink past the cards'
-     min-content width and overflow the viewport on narrow screens */
   min-width: 0;
-  max-width: 1204px;
+  max-width: 980px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -131,7 +127,7 @@
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: clamp(20px, 3vw, 44px);
+  gap: clamp(16px, 2.4vw, 32px);
   align-items: stretch;
 }
 
@@ -307,7 +303,7 @@
   display: grid;
   place-items: center;
   width: 100%;
-  height: clamp(170px, 23vh, 250px);
+  height: clamp(140px, 18vh, 210px);
   border-radius: 1px;
   background-color: #e6dabd;
   background-repeat: no-repeat;
@@ -362,8 +358,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: clamp(16px, 2vh, 24px) clamp(14px, 1.6vw, 22px) clamp(18px, 2.4vh, 28px);
+  gap: 12px;
+  padding: clamp(12px, 1.6vh, 20px) clamp(12px, 1.4vw, 18px) clamp(14px, 2vh, 24px);
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.46), rgba(0, 0, 0, 0.64)),
     var(--accent);
