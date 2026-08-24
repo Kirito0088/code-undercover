@@ -7,7 +7,7 @@ import { dailyQuestions } from "@/src/data/missionsData"
 import { dailyChallengeLimiter } from "@/lib/rate-limit"
 import { invalidateUser } from "@/lib/cache"
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
     try {
         const session = await getServerSession(authOptions)
         if (!session?.user?.id) {

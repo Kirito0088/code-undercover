@@ -119,7 +119,7 @@ export async function PATCH(req: Request) {
     }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(_req: Request) {
     try {
         const session = await getServerSession(authOptions)
         const userId = session?.user?.id

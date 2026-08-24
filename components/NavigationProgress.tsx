@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 
 export function NavigationProgress() {
   const pathname = usePathname()
-  const [isPending, ] = useTransition()
+  const [isPending] = useTransition()
   const [visible, setVisible] = useState(false)
   const progressRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
