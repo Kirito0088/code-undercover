@@ -56,6 +56,14 @@ const nextConfig = (phase) => {
     compress: true,
     poweredByHeader: false,
     reactStrictMode: true,
+    images: {
+      remotePatterns: [
+        { protocol: "https", hostname: "lh3.googleusercontent.com" },
+        { protocol: "https", hostname: "*.googleusercontent.com" },
+        { protocol: "https", hostname: "avatars.githubusercontent.com" },
+        { protocol: "https", hostname: "*.githubusercontent.com" },
+      ],
+    },
     devIndicators: {
       position: "bottom-right",
     },
