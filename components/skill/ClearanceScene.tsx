@@ -71,11 +71,6 @@ const CLEARANCE_CARDS: ClearanceCard[] = [
     },
 ]
 
-/** "AGENT PANDA" for the tier that holds a locked board shut. */
-const CAPTION_BY_TIER = Object.fromEntries(
-    CLEARANCE_CARDS.map((c) => [c.tier, c.caption])
-) as Record<ClearanceTier, string>
-
 const CODE_BITS = [
     { text: '<debug mode="on"/>', top: "10%", left: "4%", r: "-5deg", delay: "0s" },
     { text: "if (bug.found) { solve(); }", top: "26%", left: "36%", r: "3deg", delay: "1.2s" },
@@ -209,8 +204,7 @@ export function ClearanceScene({ progress }: ClearanceSceneProps) {
                             ? Math.round((tier.completed / tier.total) * 100)
                             : 0
                         // The board that has to be cleared before this one opens.
-                        const gate = tier.requires ? progress[tier.requires] : undefined
-                        const gateCaption = tier.requires ? CAPTION_BY_TIER[tier.requires] : ""
+                        // (Gate information removed - button aria-label provides sufficient info)
 
                         const isSelected = !locked && selectedId === card.id
                         const isFlying = flyingId === card.id

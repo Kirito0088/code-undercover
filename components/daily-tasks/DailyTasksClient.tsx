@@ -53,12 +53,12 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
     const [shakeKey, setShakeKey] = useState(0)
 
     // Flashcard State
-    const [cards, setCards] = useState<Flashcard[]>(flashcardsData)
-    const [selectedCategory, setSelectedCategory] = useState<string>("ALL")
+    const [cards] = useState<Flashcard[]>(flashcardsData)
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isFlipped, setIsFlipped] = useState(false)
     const [masteredIds, setMasteredIds] = useState<Set<string>>(new Set())
     const [flashcardApClaimed, setFlashcardApClaimed] = useState(false)
+    const [selectedCategory, setSelectedCategory] = useState<string>("ALL")
 
     useEffect(() => {
         const today = getTodayKeyUTC()

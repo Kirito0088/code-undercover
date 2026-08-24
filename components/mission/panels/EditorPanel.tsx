@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import dynamic from "next/dynamic"
+import { signOut } from "next-auth/react"
 import { MissionRecord } from "@/types"
 import type { MissionClearInfo, TerminalLine } from "../MissionWorkspace"
 import { Play } from "lucide-react"
@@ -66,7 +67,6 @@ const Editor = dynamic(() => import("@monaco-editor/react"), {
 interface EditorPanelProps {
     mission: MissionRecord
     setTerminalOutput: React.Dispatch<React.SetStateAction<TerminalLine[]>>
-    attemptCount: number
     setAttemptCount: React.Dispatch<React.SetStateAction<number>>
     setInnovationUnlocked: (unlocked: boolean) => void
     setPendingClearInfo: (info: MissionClearInfo | null) => void
@@ -76,7 +76,6 @@ interface EditorPanelProps {
 export function EditorPanel({
     mission,
     setTerminalOutput,
-    attemptCount,
     setAttemptCount,
     setInnovationUnlocked,
     setPendingClearInfo,
@@ -256,6 +255,19 @@ export function EditorPanel({
                 // NOTE: We do NOT call setMissionCleared(true) here anymore.
                 // That only happens when the user clicks "Finish Mission" in the terminal.
 
+            } else if (result.code === "STALE_SESSION") {
+                // The account behind this cookie is gone, so nothing the agent
+                // types can succeed. Say that instead of "fix the issues above",
+                // and send them somewhere that can actually clear it.
+                setTerminalOutput([
+                    mkLine({ type: "error" as const, message: "> Session expired." }),
+                    mkLine({
+                        type: "hint" as const,
+                        message: result.error
+                            ?? "Your session refers to an account that no longer exists. Signing you out — please sign in again.",
+                    }),
+                ])
+                signOut({ callbackUrl: "/login" })
             } else if (result.serviceUnavailable) {
                 // ── The judge is down: say so plainly. Telling the agent to
                 // "fix the issues above" when nothing was compiled sent them

@@ -49,7 +49,7 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
                     startedAt: new Date(),
                 }
             })
-        } catch (err) {
+        } catch {
             // Concurrent insert won — fetch it again
             return await db.userMission.findUnique({
                 where: { userId_missionId: { userId: session.user.id, missionId: id } }

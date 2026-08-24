@@ -1,19 +1,10 @@
 "use client"
 
-import { useReducer, useEffect } from "react"
+import { useReducer } from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { Cpu, Coffee, Database, ChevronLeft, ShieldAlert } from "lucide-react"
-
-// Types
-interface RegistrationPayload {
-    name: string;
-    username: string;
-    email: string;
-    password: string;
-    preferredLanguage: "C" | "Java" | "Python" | "DBMS";
-}
 
 const LANGUAGES = [
     { value: "C", label: "C / C++", codename: "PROTOCOL-C", icon: Cpu },

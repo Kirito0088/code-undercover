@@ -5,7 +5,7 @@ import { db, safeDbQuery } from "@/lib/db"
 import { ProfileMenu } from "./layout/ProfileMenu"
 import { NavBackButton } from "./layout/NavBackButton"
 import { MobileNav } from "./layout/MobileNav"
-import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
+
 import { cached, cacheKeys } from "@/lib/cache"
 
 // Short enough that an aura change shows up on its own within half a minute
@@ -78,9 +78,6 @@ export default async function Navbar() {
             )
         )
     }
-
-    const rank = userStats ? calculateAgentRank(userStats.auraPoints) : null
-    const rankStyles = rank ? getRankBadgeStyles(rank) : null
 
     return (
         // Mahogany desk rail with brass fittings — the mockup's .navbar. The
