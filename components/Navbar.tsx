@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db, safeDbQuery } from "@/lib/db"
 import { ProfileMenu } from "./layout/ProfileMenu"
-import { NavBackButton } from "./layout/NavBackButton"
 import { MobileNav } from "./layout/MobileNav"
 import styles from "./Navbar.module.css"
 
@@ -69,10 +68,6 @@ export default async function Navbar() {
         <header className={styles.navbar}>
             <div className={styles.grain} aria-hidden="true" />
             <div className={styles.inner}>
-                <nav aria-label="History Navigation" className="relative flex overflow-hidden rounded-sm border border-black/30 bg-black/20">
-                    <NavBackButton />
-                </nav>
-
                 <Link href="/" className={styles.brand}>
                     <span className={styles.brandMark}>&lt;&nbsp;&gt;</span>
                     <span className={styles.brandText}>CODE UNDERCOVER</span>
