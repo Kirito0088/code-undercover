@@ -1,0 +1,55 @@
+/* Exact port of level-select-*.css navbar */
+.navbar{
+  position: sticky; top:0; z-index:50;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.4)),
+    repeating-linear-gradient(90deg, #3b2a1c 0px, #3b2a1c 2px, #1c1209 3px, #5a4029 4px, #3b2a1c 5px);
+  border-bottom: 3px solid #c9a24b;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 10px 22px rgba(0,0,0,0.45);
+}
+.grain{
+  position:absolute; inset:0; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:.5; mix-blend-mode:overlay; pointer-events:none;
+}
+.inner{
+  position:relative;
+  max-width:1280px; margin:0 auto;
+  padding: 16px 32px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+}
+.brand{
+  font-family: 'Special Elite', cursive; font-size:1rem; letter-spacing:1.4px;
+  color: #f0cf8a; display:flex; align-items:center; gap:8px; white-space:nowrap;
+  transition: text-shadow .2s ease;
+}
+.brand:hover{ text-shadow: 0 0 14px rgba(240,207,138,0.6); }
+.brandMark{
+  color: #e8a545; font-family: 'Courier Prime', monospace; font-weight:700;
+  border:1px solid rgba(232,165,69,0.5); padding:2px 6px; border-radius:3px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+}
+.navLinks{ display:flex; align-items:center; gap:7px; }
+.navTab{
+  font-family: 'Special Elite', cursive; font-size:.75rem; letter-spacing:.5px;
+  color: #1c1209; padding: 7px 13px 5px;
+  background: linear-gradient(180deg, #e0cf9f, #c9b47f 70%, #b89f6c);
+  border-radius: 3px 3px 8px 8px; position:relative;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.navTab::before{
+  content:""; position:absolute; top:-5px; left:9px; width:16px; height:5px;
+  background: inherit; border-radius:3px 3px 0 0; opacity:.85;
+}
+.navTab:hover{
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #f0cf8a, #c9a24b);
+  box-shadow: 0 5px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.navTab:active{ transform: translateY(1px); box-shadow: 0 2px 0 rgba(0,0,0,0.4); }
+.navTabProfile{
+  display:flex; align-items:center; gap:6px;
+  background: linear-gradient(180deg, #a5453a, #7a2e28 70%, #5c1f19);
+  color: #ecdfc0;
+}
+.navTabProfile:hover{ background: linear-gradient(180deg, #b8574a, #a5453a); }
