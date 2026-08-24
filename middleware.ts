@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 
 const PROTECTED_APP_ROUTES = [
     "/dashboard",
+    "/skill",
     "/levels",
     "/mission",
     "/history",
@@ -69,6 +70,8 @@ export default withAuth(
 export const config = {
     matcher: [
         "/dashboard/:path*",
+        "/skill/:path*",
+        "/skill",
         "/levels/:path*",
         "/mission/:path*",
         "/history/:path*",
