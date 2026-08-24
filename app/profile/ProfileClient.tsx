@@ -2,7 +2,7 @@
 
 import React, { useReducer, useEffect, useRef } from "react"
 import Image from "next/image"
-import { Shield, CreditCard, User as UserIcon, ArrowLeft, AlertTriangle, CheckCircle, Loader, Check } from "lucide-react"
+import { Shield, CreditCard, User as UserIcon, ArrowLeft, AlertTriangle, CheckCircle, Loader, Check, LogOut } from "lucide-react"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { calculateAgentRank, getRankBadgeStyles } from "@/lib/aura"
@@ -150,19 +150,37 @@ const DangerZone = ({ onOpenDelete }: DangerZoneProps) => {
         Danger Zone
       </div>
 
-      <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="max-w-md">
-          <h4 className="text-sm font-bold text-text">Delete Account</h4>
-          <p className="text-xs text-muted mt-1">Once you delete your account, all field records, achievements, and completed missions will be permanently destroyed. There is no going back.</p>
+      <div className="space-y-4">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="max-w-md">
+            <h4 className="text-sm font-bold text-text">Log Out</h4>
+            <p className="text-xs text-muted mt-1">You will be signed out and redirected to the login page. Your progress will be saved.</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="px-5 py-2.5 rounded-lg border border-amber-500/30 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 font-semibold text-xs tracking-wider transition-all whitespace-nowrap self-start sm:self-center flex items-center gap-2"
+          >
+            <LogOut className="size-3.5" />
+            Log Out
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenDelete}
-          className="px-5 py-2.5 rounded-lg border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10 font-semibold text-xs tracking-wider transition-all whitespace-nowrap self-start sm:self-center"
-        >
-          Delete Account
-        </button>
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="max-w-md">
+            <h4 className="text-sm font-bold text-text">Delete Account</h4>
+            <p className="text-xs text-muted mt-1">Once you delete your account, all field records, achievements, and completed missions will be permanently destroyed. There is no going back.</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenDelete}
+            className="px-5 py-2.5 rounded-lg border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10 font-semibold text-xs tracking-wider transition-all whitespace-nowrap self-start sm:self-center"
+          >
+            Delete Account
+          </button>
+        </div>
       </div>
     </div>
   )
