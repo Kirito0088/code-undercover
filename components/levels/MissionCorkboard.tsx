@@ -331,31 +331,23 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
         <div className={styles.missionBoardShade} aria-hidden="true" />
 
         <div ref={stageRef} className={styles.stage}>
-          {/* props */}
+          {/* props — single element per prop with both classes, exactly as static */}
           <div className={styles.props} aria-hidden="true">
-            <span className={styles.prop} style={{ ["--x" as string]: "30.5%", ["--y" as string]: "34%", ["--tilt" as string]: "-4deg" }}>
-              <span className={styles.propPhoto} />
+            <span className={`${styles.prop} ${styles.propPhoto}`} style={{ ["--x" as string]: "30.5%", ["--y" as string]: "34%", ["--tilt" as string]: "-4deg" }} />
+            <span className={`${styles.prop} ${styles.propPhoto}`} style={{ ["--x" as string]: "69.5%", ["--y" as string]: "30%", ["--tilt" as string]: "3.4deg" }} />
+            <span className={`${styles.prop} ${styles.propPhoto}`} style={{ ["--x" as string]: "69%", ["--y" as string]: "72.5%", ["--tilt" as string]: "-2.6deg" }} />
+            <span className={`${styles.prop} ${styles.propPhoto}`} style={{ ["--x" as string]: "31%", ["--y" as string]: "71.5%", ["--tilt" as string]: "4deg" }} />
+            <span className={`${styles.prop} ${styles.propSlip}`} style={{ ["--x" as string]: "31%", ["--y" as string]: "44%", ["--tilt" as string]: "-6deg" }}>
+              Connection Point
             </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "69.5%", ["--y" as string]: "30%", ["--tilt" as string]: "3.4deg" }}>
-              <span className={styles.propPhoto} />
+            <span className={`${styles.prop} ${styles.propSlip}`} style={{ ["--x" as string]: "30.5%", ["--y" as string]: "57.5%", ["--tilt" as string]: "4deg" }}>
+              Timeline
             </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "69%", ["--y" as string]: "72.5%", ["--tilt" as string]: "-2.6deg" }}>
-              <span className={styles.propPhoto} />
+            <span className={`${styles.prop} ${styles.propSlip}`} style={{ ["--x" as string]: "69%", ["--y" as string]: "44%", ["--tilt" as string]: "5deg" }}>
+              Alibi?
             </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "31%", ["--y" as string]: "71.5%", ["--tilt" as string]: "4deg" }}>
-              <span className={styles.propPhoto} />
-            </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "31%", ["--y" as string]: "44%", ["--tilt" as string]: "-6deg" }}>
-              <span className={styles.propSlip}>Connection Point</span>
-            </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "30.5%", ["--y" as string]: "57.5%", ["--tilt" as string]: "4deg" }}>
-              <span className={styles.propSlip}>Timeline</span>
-            </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "69%", ["--y" as string]: "44%", ["--tilt" as string]: "5deg" }}>
-              <span className={styles.propSlip}>Alibi?</span>
-            </span>
-            <span className={styles.prop} style={{ ["--x" as string]: "69.5%", ["--y" as string]: "57.5%", ["--tilt" as string]: "-4deg" }}>
-              <span className={styles.propSlip}>Key Link</span>
+            <span className={`${styles.prop} ${styles.propSlip}`} style={{ ["--x" as string]: "69.5%", ["--y" as string]: "57.5%", ["--tilt" as string]: "-4deg" }}>
+              Key Link
             </span>
           </div>
 
