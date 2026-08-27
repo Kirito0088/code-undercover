@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { executeCode } from '@/lib/compiler'
 import { detectInnovation, validateMissionOutput } from '@/lib/validation/missionValidator'
 import { canAccessMission } from '@/services/mission.service'
+import { staleSessionResponse } from '@/lib/session'
 import { missionValidateLimiter } from '@/lib/rate-limit'
 import {
     AURA_MISSION_COMPLETE,
@@ -88,25 +89,34 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'You do not have access to this mission' }, { status: 403 })
         }
 
-        // Fetch mission, user, and upsert UserMission in parallel — all independent
-        const [mission, user, userMission] = await Promise.all([
+        // Mission and user first — the UserMission upsert below is keyed on both,
+        // so running it alongside them (as this once did) let it trip its foreign
+        // key before the guard could answer, turning a missing account into a 500.
+        const [mission, user] = await Promise.all([
             db.mission.findUnique({ where: { id: missionId } }),
             db.user.findUnique({ where: { id: session.user.id } }),
-            db.userMission.upsert({
-                where: { userId_missionId: { userId: session.user.id, missionId } },
-                update: {},
-                create: {
-                    userId: session.user.id,
-                    missionId,
-                    status: 'ACTIVE',
-                    startedAt: new Date(),
-                }
-            }),
         ])
 
-        if (!mission || !user) {
-            return NextResponse.json({ error: 'Entities not found' }, { status: 404 })
+        // A JWT outlives the row it names once an account is deleted or the
+        // database is reseeded. That is a stale session, not a missing mission.
+        if (!user) {
+            return staleSessionResponse()
         }
+
+        if (!mission) {
+            return NextResponse.json({ error: 'Mission not found' }, { status: 404 })
+        }
+
+        const userMission = await db.userMission.upsert({
+            where: { userId_missionId: { userId: user.id, missionId } },
+            update: {},
+            create: {
+                userId: user.id,
+                missionId,
+                status: 'ACTIVE',
+                startedAt: new Date(),
+            }
+        })
 
         const isFirstTimeCompletion = userMission.status !== 'COMPLETED'
 

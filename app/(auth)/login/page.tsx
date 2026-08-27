@@ -87,6 +87,8 @@ function LoginForm() {
         const errorParam = searchParams.get("error")
         if (errorParam === "AccountNotExist") {
             dispatch({ type: "SET_ERROR", payload: "Account does not exist. Please sign up." })
+        } else if (errorParam === "OAuthAccountNotLinked") {
+            dispatch({ type: "SET_ERROR", payload: "This email is already registered with a password. Sign in with your password, or use a different Google account." })
         } else if (errorParam === "OAuthCallback" || errorParam === "OAuthCreateAccount") {
             dispatch({ type: "SET_ERROR", payload: "Unable to authenticate with Google. Please try again or sign up with credentials." })
         } else if (errorParam) {

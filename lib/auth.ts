@@ -140,9 +140,7 @@ export const authOptions: NextAuthOptions = {
                 GoogleProvider({
                     clientId: process.env.GOOGLE_CLIENT_ID,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                    // Dangerous linking disabled: without it, a credentials account
-                    // registered with someone else's email (unverified at signup)
-                    // could silently absorb that person's future Google sign-in.
+                    allowDangerousEmailAccountLinking: true,
                 }),
             ]
             : []),

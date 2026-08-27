@@ -25,8 +25,8 @@
   --font-chalk: 'Kalam', cursive;
   --font-type:  'Special Elite', cursive;
   --font-body:  'Courier Prime', monospace;
-  --folder:  clamp(88px, 10.6vh, 132px);
-  --photo:   clamp(196px, 38vh, 372px);
+  --folder:  clamp(80px, 9.2vh, 114px);
+  --photo:   clamp(180px, 33vh, 330px);
   --place:   translate(-50%, -50%);
   --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
@@ -109,12 +109,14 @@
 .stage{
   position:relative; z-index:2;
   width:100%; height:100%;
-  min-height: 560px;
+  min-height: 580px;
 }
 
 .threads{
   position:absolute; inset:0; width:100%; height:100%;
   pointer-events:none; z-index:3; overflow:visible;
+  opacity: 0;
+  transition: opacity .32s ease;
 }
 .thread{
   fill:none; stroke: var(--ink-red-bright); stroke-width:2.4; stroke-linecap:round;
@@ -322,6 +324,8 @@
   inset:0; margin:auto;
   width: var(--photo); max-width:92%;
   height: fit-content;
+  /* reference is vertically centered; a subtle +10px keeps the MISSIONS tab clear of the top rail */
+  transform: translateY(10px);
 }
 .cardPin{
   position:absolute; z-index:6;
@@ -329,13 +333,13 @@
   background: radial-gradient(circle at 34% 28%, #e8837a, var(--ink-red-bright) 55%, #571c17 100%);
   box-shadow: 0 5px 8px rgba(0,0,0,0.6), inset 0 -2px 4px rgba(0,0,0,0.35);
 }
-.cardPinLeft{       left: 5.5%;  top: 17%; }
-.cardPinRight{      right:5.5%;  top: 17%; }
-.cardPinMidLeft{   left: 3.5%;  top: 54%; }
-.cardPinMidRight{  right:3.5%;  top: 54%; }
-.cardPinLowLeft{   left: 5.5%;  bottom: 7%; }
-.cardPinLowRight{  right:5.5%;  bottom: 7%; }
-.cardPinTop{        left:50%; top:16%; transform: translateX(-50%); }
+.cardPinLeft{       left: 3.2%;  top: 14.0%; }
+.cardPinRight{      right:3.2%;  top: 14.0%; }
+.cardPinMidLeft{   left: 3.2%;  top: 54%; }
+.cardPinMidRight{  right:3.2%;  top: 54%; }
+.cardPinLowLeft{   left: 4.3%;  bottom: 5.5%; }
+.cardPinLowRight{  right:4.3%;  bottom: 5.5%; }
+.cardPinTop{        left:50%; top:11.2%; transform: translateX(-50%); }
 .cardTab{
   position:absolute; top:-2px; left:50%; transform: translateX(-50%);
   z-index:6;
@@ -418,27 +422,38 @@
 .legendChipCurrent{ background: var(--amber); }
 .legendChipLocked{  background: #a68a5c; }
 
+/* Responsive: keep the detective-board composition intact.
+   Instead of destroying the absolute layout with a grid, keep the cork
+   proportions and allow a controlled horizontal viewport on narrow screens.
+   The board scales proportionally via container width; no cards are clipped
+   and no strings are hidden. */
 @media (max-width: 900px){
-  :root{ --place: translate(0, 0); }
-  .boardMain{ padding: 16px 14px 36px; }
-  .missionBoard{ flex:none; padding:16px; }
-  .threads,
-  .props{ display:none; }
+  .boardMain{ padding: 10px 10px 24px; min-height: auto; }
+  .missionBoard{
+    flex: none;
+    padding: 10px 10px 14px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--walnut) transparent;
+  }
+  .missionBoard::-webkit-scrollbar{ height: 6px; }
+  .missionBoard::-webkit-scrollbar-thumb{ background: var(--walnut); border-radius: 3px; }
   .stage{
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-    gap: 26px 14px;
-    height:auto;
+    min-width: 860px;
+    min-height: 520px;
+    height: 62vh;
+    max-height: 640px;
   }
-  .card{
-    position:static; inset:auto; height:auto;
-    grid-column: 1 / -1;
-    width:min(100%, 320px); margin:0 auto 22px; max-width:100%;
-  }
-  .folder{
-    position:static;
-    width:100%; height:auto; aspect-ratio: 1 / .82;
-  }
+  /* threads & props stay visible - the investigation-board feeling is preserved */
+  /* folder tap targets remain usable; slightly smaller to fit the scaled viewport */
+  :root{ --folder: clamp(76px, 16vw, 106px); }
+}
+@media (max-width: 560px){
+  .stage{ min-width: 720px; min-height: 480px; }
+  :root{ --photo: clamp(160px, 52vw, 260px); }
 }
 @media (prefers-reduced-motion: reduce){
   .boardMain *{ transition:none !important; animation:none !important; }

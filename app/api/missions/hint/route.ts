@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { canAccessMission } from '@/services/mission.service'
+import { requireSessionUser } from '@/lib/session'
 import { missionActionLimiter } from '@/lib/rate-limit'
 
 const HINTS = [
@@ -15,12 +14,10 @@ const HINTS = [
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions)
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+        const { userId, error } = await requireSessionUser()
+        if (error) return error
 
-        const rate = await missionActionLimiter.check(session.user.id)
+        const rate = await missionActionLimiter.check(userId)
         if (!rate.success) {
             return NextResponse.json(
                 { error: `Too many requests. Try again in ${Math.ceil(rate.retryAfterMs / 1000)}s.` },
@@ -34,17 +31,14 @@ export async function POST(req: Request) {
         }
 
         // 🔒 Access check — must happen before any DB writes or hint logic
-        const hasAccess = await canAccessMission(session.user.id, missionId)
+        const hasAccess = await canAccessMission(userId, missionId)
         if (!hasAccess) {
             return NextResponse.json({ error: 'You do not have access to this mission' }, { status: 403 })
         }
 
         const userMission = await db.userMission.findUnique({
             where: {
-                userId_missionId: {
-                    userId: session.user.id,
-                    missionId
-                }
+                userId_missionId: { userId, missionId }
             }
         })
 

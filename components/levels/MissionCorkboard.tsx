@@ -11,27 +11,33 @@ import styles from "./MissionBoard.module.css";
 
 type HubKey = "left" | "right" | "midLeft" | "midRight" | "top" | "lowLeft" | "lowRight";
 
+/**
+ * Distanced corkboard positions - spread outward from center to increase
+ * inter-card clearance. Keeps reference topology but pushes each folder
+ * ~12-15% further from the 50,54 centre so the board reads as deliberately
+ * arranged, not congested. Hub assignments preserve the red-string path.
+ */
 const LAYOUT: { x: number; y: number; tilt: number; hub: HubKey }[] = [
-  { x: 17, y: 13, tilt: -2.4, hub: "left" },
-  { x: 30, y: 17, tilt: 1.8, hub: "left" },
-  { x: 43, y: 11, tilt: -1.2, hub: "top" },
-  { x: 57, y: 16, tilt: 2.6, hub: "top" },
-  { x: 69, y: 11, tilt: -2.0, hub: "top" },
-  { x: 80, y: 16, tilt: 1.6, hub: "right" },
-  { x: 89, y: 28, tilt: -2.8, hub: "right" },
-  { x: 79, y: 37, tilt: 2.2, hub: "right" },
-  { x: 90, y: 50, tilt: -1.6, hub: "midRight" },
-  { x: 80, y: 62, tilt: 2.8, hub: "midRight" },
-  { x: 89, y: 75, tilt: -2.2, hub: "lowRight" },
-  { x: 74, y: 85, tilt: 1.4, hub: "lowRight" },
-  { x: 58, y: 89, tilt: -2.6, hub: "lowRight" },
-  { x: 42, y: 86, tilt: 2.0, hub: "lowLeft" },
-  { x: 27, y: 88, tilt: -1.8, hub: "lowLeft" },
-  { x: 12, y: 78, tilt: 2.4, hub: "lowLeft" },
-  { x: 22, y: 66, tilt: -2.2, hub: "midLeft" },
-  { x: 10, y: 55, tilt: 1.8, hub: "midLeft" },
-  { x: 20, y: 41, tilt: -2.6, hub: "midLeft" },
-  { x: 10, y: 30, tilt: 2.2, hub: "left" },
+  { x: 15, y: 11, tilt: -2.4, hub: "left" },      // 01 Missing Semicolon
+  { x: 28, y: 20, tilt: 1.8, hub: "left" },       // 02 Loop of No Return
+  { x: 40, y: 10, tilt: -1.2, hub: "top" },       // 03 Null Pointer
+  { x: 55, y: 15, tilt: 2.6, hub: "top" },        // 04 Recursion
+  { x: 69, y: 10, tilt: -2.0, hub: "top" },       // 05 Off-By-One
+  { x: 81, y: 17, tilt: 1.6, hub: "right" },      // 06 Race Condition
+  { x: 90, y: 30, tilt: -2.8, hub: "right" },     // 07 Ghost In Machine
+  { x: 80, y: 42, tilt: 2.2, hub: "right" },      // 08 Merge Conflict
+  { x: 91, y: 53, tilt: -1.6, hub: "midRight" },  // 09 Stack Overflow
+  { x: 80, y: 63, tilt: 2.8, hub: "midRight" },   // 10 Silent Crash
+  { x: 91, y: 74, tilt: -2.2, hub: "lowRight" },  // 11 Zombie Process
+  { x: 75, y: 87, tilt: 1.4, hub: "lowRight" },   // 12 Resource Leak
+  { x: 56, y: 95, tilt: -2.6, hub: "lowRight" },  // 13 Deadlock Trap
+  { x: 40, y: 95, tilt: 2.0, hub: "lowLeft" },    // 14 Memory Corruption
+  { x: 26, y: 90, tilt: -1.8, hub: "lowLeft" },   // 15 Infinite Loop
+  { x: 9, y: 77, tilt: 2.4, hub: "lowLeft" },    // 16 Duplicate Key - down + left for gap
+  { x: 20, y: 62, tilt: -2.2, hub: "midLeft" },   // 17 Array Grid - right zigzag
+  { x: 9, y: 48, tilt: 1.8, hub: "midLeft" },     // 18 Broken Build - left
+  { x: 20, y: 33, tilt: -2.6, hub: "midLeft" },   // 19 Phantom Bug - right
+  { x: 11, y: 27, tilt: 2.2, hub: "left" },        // 20 Final System Lockdown - moved down to clear 01
 ];
 
 const RAIL = [0, 1, 2, 3, 4, 5];
@@ -247,8 +253,11 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
     const flow = window.matchMedia("(max-width: 900px), (max-height: 620px)").matches;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (flow || still) {
-      // still measure once for initial view
-      const id = setTimeout(() => drawThreads(false), 100);
+      // on small viewports or reduced-motion: still wait for files to land, then show threads without pull animation
+      const id = setTimeout(() => {
+        svg.style.opacity = "1";
+        drawThreads(false);
+      }, 900);
       return () => clearTimeout(id);
     }
 
@@ -259,6 +268,7 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
     const stringUp = () => {
       if (strung) return;
       strung = true;
+      svg.style.opacity = "1";
       svg.innerHTML = "";
       drawThreads(true);
     };
@@ -306,11 +316,12 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
     };
   }, [drawThreads]);
 
-  // initial draw after mount
+  // initial draw is handled by stringOnArrival so files appear first;
+  // no eager draw here - keeps threads hidden until folders have landed
   useEffect(() => {
-    const id = setTimeout(() => drawThreads(false), 50);
-    return () => clearTimeout(id);
-  }, [drawThreads]);
+    const svg = svgRef.current;
+    if (svg) svg.style.opacity = "0";
+  }, []);
 
   const handleSelect = (i: number, isLocked: boolean) => {
     if (isLocked) {

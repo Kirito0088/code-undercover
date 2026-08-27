@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { requireSessionUser } from '@/lib/session'
 import { canAccessMission } from '@/services/mission.service'
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions)
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+        const { userId, error } = await requireSessionUser()
+        if (error) return error
 
         const { missionId, phase } = await req.json()
         if (!missionId || typeof missionId !== 'string' || !phase) {
@@ -17,7 +14,7 @@ export async function POST(req: Request) {
         }
 
         // 🔒 Access check — must happen before any DB writes or phase logic
-        const hasAccess = await canAccessMission(session.user.id, missionId)
+        const hasAccess = await canAccessMission(userId, missionId)
         if (!hasAccess) {
             return NextResponse.json({ error: 'You do not have access to this mission' }, { status: 403 })
         }
@@ -27,14 +24,21 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid phase' }, { status: 400 })
         }
 
-        const updated = await db.userMission.update({
+        // Upsert, not update: access is already granted above, and an agent can
+        // reach a phase before anything has written their UserMission row. An
+        // `update` throws P2025 there, which only ever surfaced as a 500.
+        const updated = await db.userMission.upsert({
             where: {
-                userId_missionId: {
-                    userId: session.user.id,
-                    missionId
-                }
+                userId_missionId: { userId, missionId }
             },
-            data: { phase }
+            update: { phase },
+            create: {
+                userId,
+                missionId,
+                phase,
+                status: 'ACTIVE',
+                startedAt: new Date(),
+            }
         })
 
         return NextResponse.json({ success: true, phase: updated.phase })

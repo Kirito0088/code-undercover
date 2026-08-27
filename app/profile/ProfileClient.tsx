@@ -159,7 +159,7 @@ const DangerZone = ({ onOpenDelete }: DangerZoneProps) => {
 
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className="px-5 py-2.5 rounded-lg border border-amber-500/30 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 font-semibold text-xs tracking-wider transition-all whitespace-nowrap self-start sm:self-center flex items-center gap-2"
           >
             <LogOut className="size-3.5" />
@@ -567,7 +567,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
       })
 
       if (response.ok) {
-        await signOut({ callbackUrl: '/login' })
+        await signOut({ callbackUrl: '/' })
       } else {
         const data = await response.json().catch(() => ({}))
         console.error('Failed to delete account:', data.error || 'Server error')
