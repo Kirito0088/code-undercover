@@ -108,6 +108,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  transform: translateX(-120px);
 }
 
 .caseTag {
@@ -136,11 +137,11 @@
 .heroTitle {
   font-family: var(--font-kalam), cursive;
   font-weight: 700;
-  font-size: clamp(1.7rem, 3.6vw, 2.8rem);
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
   line-height: 1.08;
   color: var(--chalk);
   text-shadow: 0 0 16px rgba(247, 242, 231, 0.18), 0 2px 0 rgba(0, 0, 0, 0.25);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .heroTitleAccent {
@@ -175,12 +176,12 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-special-elite), cursive;
-  font-size: 0.82rem;
-  letter-spacing: 0.8px;
+  font-size: 0.88rem;
+  letter-spacing: 0.9px;
   color: var(--chalkboard-deep);
   text-decoration: none;
   background: linear-gradient(180deg, var(--brass-bright), var(--brass) 60%, var(--brass-deep));
-  padding: 11px 22px;
+  padding: 12px 24px;
   border-radius: 4px;
   box-shadow:
     0 4px 0 var(--brass-deep),
@@ -215,6 +216,7 @@
   display: flex;
   justify-content: center;
   perspective: 900px;
+  transform: translateX(120px);
 }
 
 .corkboard {
@@ -499,6 +501,7 @@
 
   .heroCopy {
     align-items: center;
+    transform: none;
   }
 
   .heroParagraph {
@@ -513,6 +516,7 @@
 
   .heroBoard {
     order: -1;
+    transform: none;
   }
 
   .corkboard {

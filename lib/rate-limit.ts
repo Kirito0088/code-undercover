@@ -161,6 +161,13 @@ const redis =
         : null;
 
 if (!redis) {
+    const isBuild = process.env.NEXT_PHASE === "phase-production-build"
+    if (process.env.NODE_ENV === "production" && !isBuild) {
+        throw new Error(
+            "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set in production. " +
+            "In-memory rate limiting is per-instance and unsafe at scale. See .env.example."
+        );
+    }
     console.warn(
         "[RATE-LIMIT] UPSTASH_REDIS_REST_URL/TOKEN not set — falling back to in-memory " +
         "rate limiting. Fine for local dev; unsafe across multiple instances in production."

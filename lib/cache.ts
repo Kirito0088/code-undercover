@@ -17,7 +17,14 @@ export const isRedisCache = Boolean(url && token)
 
 const redis = isRedisCache ? new Redis({ url: url!, token: token! }) : null
 
-if (!isRedisCache && process.env.NODE_ENV !== "production") {
+if (!isRedisCache) {
+    const isBuild = process.env.NEXT_PHASE === "phase-production-build"
+    if (process.env.NODE_ENV === "production" && !isBuild) {
+        throw new Error(
+            "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set in production. " +
+            "In-process cache is per-instance and gives no sharing across serverless invocations. See .env.example."
+        )
+    }
     console.warn(
         "[CACHE] UPSTASH_REDIS_REST_URL/TOKEN not set — using in-process cache. " +
         "Fine for local dev; per-instance only, so it gives no sharing across " +

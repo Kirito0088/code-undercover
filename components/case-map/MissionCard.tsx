@@ -21,8 +21,21 @@ export interface MissionCardProps {
   onSelect?: () => void;
 }
 
-const TICK = `<svg class="${styles.folderTick}" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l5.5 5.5L20 5.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const LOCK_SVG = `<svg class="${styles.folderLock}" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>`;
+function TickIcon() {
+  return (
+    <svg className={styles.folderTick} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 13l5.5 5.5L20 5.5" fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function LockIcon() {
+  return (
+    <svg className={styles.folderLock} viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4.5" y="10.5" width="15" height="10.5" rx={2} fill="currentColor" />
+      <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export function MissionCard({
   index,
@@ -100,10 +113,10 @@ export function MissionCard({
         <span className={styles.folderNum}>{num}</span>
         <span className={styles.folderName}>{title}</span>
         <span className={styles.folderState}>{label.toUpperCase()}</span>
-        {isDone && <span dangerouslySetInnerHTML={{ __html: TICK }} />}
+        {isDone && <TickIcon />}
         {isLocked && (
           <>
-            <span dangerouslySetInnerHTML={{ __html: LOCK_SVG }} />
+            <LockIcon />
             <span className={styles.folderSeal} aria-hidden="true">
               LEVEL LOCKED
             </span>

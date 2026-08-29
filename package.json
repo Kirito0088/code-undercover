@@ -20,6 +20,9 @@
     "check:rls": "node scripts/check-rls.js",
     "prebuild": "node -e \"if (!process.env.VERCEL_ENV) process.exit(0)\" || npm run check:rls"
   },
+  "overrides": {
+    "dompurify": "^3.4.14"
+  },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@next-auth/prisma-adapter": "^1.0.7",

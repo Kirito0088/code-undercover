@@ -1,6 +1,10 @@
 const https = require('https');
 
-const API_KEY = process.env.RENDER_API_KEY || 'rnd_qpx8X5di5qKu5OiUq32MEn2WaE4B';
+const API_KEY = process.env.RENDER_API_KEY;
+if (!API_KEY) {
+  console.error("RENDER_API_KEY is required. Set it in your environment (see .env.example).");
+  process.exit(1);
+}
 
 function request(url, headers = {}) {
   return new Promise((resolve, reject) => {
