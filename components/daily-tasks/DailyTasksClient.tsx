@@ -342,13 +342,15 @@ export function DailyTasksClient({ initialQuestion, user }: DailyTasksClientProp
                                         })}
                                     </div>
 
-                                    {/* Explanation Box */}
+                                    {/* Explanation Box - layout animates height via FLIP, not per-frame layout */}
                                     <AnimatePresence>
                                         {quizResult && (
                                             <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: "auto" }}
-                                                exit={{ opacity: 0, height: 0 }}
+                                                layout
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                style={{ overflow: "hidden" }}
                                                 className={`p-5 rounded-xl border flex gap-3.5 mb-6 ${
                                                     quizResult.isCorrect 
                                                         ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-300"

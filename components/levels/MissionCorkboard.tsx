@@ -274,6 +274,7 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
     };
 
     const btns = folderRefs.current.filter(Boolean) as HTMLButtonElement[];
+    const cleanups: Array<() => void> = [];
     btns.forEach((btn) => {
       let counted = false;
       const land = () => {
@@ -281,17 +282,17 @@ export function MissionCorkboard({ levels, activePath }: MissionCorkboardProps) 
         counted = true;
         if (++landed === total) stringUp();
       };
-      btn.addEventListener(
-        "animationend",
-        (e: AnimationEvent) => {
-          if ((e as AnimationEvent).animationName === "dropIn") land();
-        },
-        { once: true }
-      );
-      setTimeout(land, 1600);
+      const handler = (e: AnimationEvent) => {
+        if ((e as AnimationEvent).animationName === "dropIn") land();
+      };
+      btn.addEventListener("animationend", handler as unknown as EventListener);
+      cleanups.push(() => btn.removeEventListener("animationend", handler as unknown as EventListener));
     });
-    const fallback = setTimeout(stringUp, 2400);
-    return () => clearTimeout(fallback);
+    const fallback = window.setTimeout(stringUp, 2400) as unknown as number;
+    return () => {
+      cleanups.forEach((fn) => fn());
+      clearTimeout(fallback);
+    };
   }, [drawThreads, levels.length]);
 
   // resize + fonts

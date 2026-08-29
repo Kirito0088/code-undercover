@@ -46,7 +46,9 @@ export function DetectiveHero() {
     // script.js holds this in a module-level `inTransition` flag so the tilt
     // handler stops fighting the fly-to-centre transform.
     const transitioningRef = useRef(false)
-    transitioningRef.current = isTransitioning
+    useEffect(() => {
+        transitioningRef.current = isTransitioning
+    }, [isTransitioning])
 
     // ─── Magnifying glass that tracks the cursor over the photo ───
     useEffect(() => {

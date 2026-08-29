@@ -166,6 +166,7 @@ const LetterGlitch = ({
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
     };
   }, [glitchSpeed, resizeCanvas]);
 
