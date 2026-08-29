@@ -17,12 +17,6 @@ export function validateEnv(): void {
     missing.push("NEXTAUTH_SECRET (or AUTH_SECRET)")
   }
 
-  // In production, in-memory fallbacks are unsafe at scale - require shared Redis.
-  if (process.env.NODE_ENV === "production") {
-    if (!process.env.UPSTASH_REDIS_REST_URL) missing.push("UPSTASH_REDIS_REST_URL")
-    if (!process.env.UPSTASH_REDIS_REST_TOKEN) missing.push("UPSTASH_REDIS_REST_TOKEN")
-  }
-
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables:\n  ${missing.join("\n  ")}\n\n` +
