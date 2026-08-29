@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { detectiveFontVariables } from "@/lib/detective-fonts"
@@ -46,7 +46,7 @@ export function DetectiveHero() {
     // script.js holds this in a module-level `inTransition` flag so the tilt
     // handler stops fighting the fly-to-centre transform.
     const transitioningRef = useRef(false)
-    useEffect(() => {
+    useLayoutEffect(() => {
         transitioningRef.current = isTransitioning
     }, [isTransitioning])
 

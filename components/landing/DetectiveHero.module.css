@@ -108,7 +108,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  transform: translateX(-120px);
+  margin-left: -38px;
 }
 
 .caseTag {
@@ -216,7 +216,7 @@
   display: flex;
   justify-content: center;
   perspective: 900px;
-  transform: translateX(120px);
+  margin-left: 22px;
 }
 
 .corkboard {
@@ -501,7 +501,7 @@
 
   .heroCopy {
     align-items: center;
-    transform: none;
+    margin-left: 0;
   }
 
   .heroParagraph {
@@ -516,7 +516,7 @@
 
   .heroBoard {
     order: -1;
-    transform: none;
+    margin-left: 0;
   }
 
   .corkboard {
